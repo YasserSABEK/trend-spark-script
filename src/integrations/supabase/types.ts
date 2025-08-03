@@ -14,7 +14,286 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      apify_runs: {
+        Row: {
+          actor_id: string | null
+          cost_usd: number | null
+          created_at: string
+          dataset_id: string | null
+          finished_at: string | null
+          id: string
+          input_data: Json | null
+          items_count: number | null
+          run_id: string
+          started_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          cost_usd?: number | null
+          created_at?: string
+          dataset_id?: string | null
+          finished_at?: string | null
+          id?: string
+          input_data?: Json | null
+          items_count?: number | null
+          run_id: string
+          started_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          cost_usd?: number | null
+          created_at?: string
+          dataset_id?: string | null
+          finished_at?: string | null
+          id?: string
+          input_data?: Json | null
+          items_count?: number | null
+          run_id?: string
+          started_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      generated_scripts: {
+        Row: {
+          brand_voice: string | null
+          call_to_action: string
+          created_at: string
+          format_type: string | null
+          hook: string
+          hook_style: string | null
+          id: string
+          is_favorite: boolean | null
+          main_content: string
+          niche: string | null
+          optimal_posting_time: string | null
+          performance_score: number | null
+          reel_id: string | null
+          suggested_hashtags: string[] | null
+          target_audience: string | null
+          title: string
+          tone_of_voice: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand_voice?: string | null
+          call_to_action: string
+          created_at?: string
+          format_type?: string | null
+          hook: string
+          hook_style?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          main_content: string
+          niche?: string | null
+          optimal_posting_time?: string | null
+          performance_score?: number | null
+          reel_id?: string | null
+          suggested_hashtags?: string[] | null
+          target_audience?: string | null
+          title: string
+          tone_of_voice?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand_voice?: string | null
+          call_to_action?: string
+          created_at?: string
+          format_type?: string | null
+          hook?: string
+          hook_style?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          main_content?: string
+          niche?: string | null
+          optimal_posting_time?: string | null
+          performance_score?: number | null
+          reel_id?: string | null
+          suggested_hashtags?: string[] | null
+          target_audience?: string | null
+          title?: string
+          tone_of_voice?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_scripts_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "instagram_reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_reels: {
+        Row: {
+          apify_run_id: string | null
+          caption: string | null
+          comments: number | null
+          created_at: string
+          dataset_id: string | null
+          display_name: string | null
+          engagement_rate: number | null
+          followers: number | null
+          hashtags: string[] | null
+          id: string
+          likes: number | null
+          mentions: string[] | null
+          post_id: string
+          scraped_at: string | null
+          shortcode: string | null
+          thumbnail_url: string | null
+          timestamp: string | null
+          url: string
+          username: string | null
+          verified: boolean | null
+          video_play_count: number | null
+          video_view_count: number | null
+          viral_score: number | null
+        }
+        Insert: {
+          apify_run_id?: string | null
+          caption?: string | null
+          comments?: number | null
+          created_at?: string
+          dataset_id?: string | null
+          display_name?: string | null
+          engagement_rate?: number | null
+          followers?: number | null
+          hashtags?: string[] | null
+          id?: string
+          likes?: number | null
+          mentions?: string[] | null
+          post_id: string
+          scraped_at?: string | null
+          shortcode?: string | null
+          thumbnail_url?: string | null
+          timestamp?: string | null
+          url: string
+          username?: string | null
+          verified?: boolean | null
+          video_play_count?: number | null
+          video_view_count?: number | null
+          viral_score?: number | null
+        }
+        Update: {
+          apify_run_id?: string | null
+          caption?: string | null
+          comments?: number | null
+          created_at?: string
+          dataset_id?: string | null
+          display_name?: string | null
+          engagement_rate?: number | null
+          followers?: number | null
+          hashtags?: string[] | null
+          id?: string
+          likes?: number | null
+          mentions?: string[] | null
+          post_id?: string
+          scraped_at?: string | null
+          shortcode?: string | null
+          thumbnail_url?: string | null
+          timestamp?: string | null
+          url?: string
+          username?: string | null
+          verified?: boolean | null
+          video_play_count?: number | null
+          video_view_count?: number | null
+          viral_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_reels_apify_run_id_fkey"
+            columns: ["apify_run_id"]
+            isOneToOne: false
+            referencedRelation: "apify_runs"
+            referencedColumns: ["run_id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          instagram_username: string | null
+          subscription_status: string | null
+          subscription_tier: string | null
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          instagram_username?: string | null
+          subscription_status?: string | null
+          subscription_tier?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          instagram_username?: string | null
+          subscription_status?: string | null
+          subscription_tier?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      user_analytics: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
