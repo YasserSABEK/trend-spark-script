@@ -52,6 +52,12 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				instagram: {
+					pink: 'hsl(var(--instagram-pink))',
+					purple: 'hsl(var(--instagram-purple))',
+					orange: 'hsl(var(--instagram-orange))',
+					yellow: 'hsl(var(--instagram-yellow))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

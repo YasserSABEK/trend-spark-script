@@ -1,0 +1,77 @@
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/auth/AuthContext";
+import { LogOut, User, Zap } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+
+export const Navbar = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  return (
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
+                Viraltify
+              </span>
+            </Link>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <>
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="sm">
+                    Dashboard
+                  </Button>
+                </Link>
+                <Link to="/viral-reels">
+                  <Button variant="ghost" size="sm">
+                    Viral Reels
+                  </Button>
+                </Link>
+                <Link to="/script-generator">
+                  <Button variant="ghost" size="sm">
+                    Script Generator
+                  </Button>
+                </Link>
+                <Link to="/my-scripts">
+                  <Button variant="ghost" size="sm">
+                    My Scripts
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button size="sm" className="bg-gradient-to-r from-instagram-pink to-instagram-purple">
+                    Start Free Trial
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
