@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           resultsLimit: 30,
-          username: [`@${username}`],
+          username: [username.startsWith('@') ? username : `@${username}`],
         }),
       }
     );
