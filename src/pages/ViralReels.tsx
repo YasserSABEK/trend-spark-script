@@ -13,7 +13,9 @@ import {
   Clock, 
   TrendingUp,
   RefreshCw,
-  Zap
+  Zap,
+  User,
+  Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +44,9 @@ export const ViralReels = () => {
   const [reels, setReels] = useState<InstagramReel[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [instagramUsername, setInstagramUsername] = useState("");
+  const [scrapingLoading, setScrapingLoading] = useState(false);
+  const [visibleReels, setVisibleReels] = useState(6);
   const [filterOptions, setFilterOptions] = useState({
     minViralScore: 50,
     minLikes: 1000,
@@ -52,6 +57,47 @@ export const ViralReels = () => {
   useEffect(() => {
     loadViralReels();
   }, []);
+
+  const scrapeInstagramUser = async () => {
+    if (!instagramUsername.trim()) {
+      toast({
+        title: "Username required",
+        description: "Please enter an Instagram username",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setScrapingLoading(true);
+      
+      const { data, error } = await supabase.functions.invoke('scrape-instagram', {
+        body: { username: instagramUsername.trim() }
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.data) {
+        setReels(data.data);
+        setVisibleReels(6); // Reset to show first 6
+        toast({
+          title: "Success!",
+          description: `Fetched ${data.data.length} posts from @${instagramUsername}`,
+        });
+      } else {
+        throw new Error(data.error || 'Failed to scrape Instagram data');
+      }
+    } catch (error) {
+      console.error('Error scraping Instagram:', error);
+      toast({
+        title: "Scraping failed",
+        description: "Failed to fetch Instagram data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setScrapingLoading(false);
+    }
+  };
 
   const loadViralReels = async () => {
     try {
@@ -186,6 +232,45 @@ export const ViralReels = () => {
         </Button>
       </div>
 
+      {/* Instagram Username Scraper */}
+      <Card className="p-6 bg-gradient-to-r from-instagram-pink/10 via-instagram-purple/10 to-instagram-orange/10 border-instagram-purple/20">
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <User className="w-5 h-5 text-instagram-purple" />
+              Scrape Instagram User
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Enter an Instagram username to fetch their latest posts sorted by engagement
+            </p>
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <span className="absolute left-3 top-3 text-muted-foreground">@</span>
+                <Input
+                  placeholder="instagram_username"
+                  value={instagramUsername}
+                  onChange={(e) => setInstagramUsername(e.target.value)}
+                  className="pl-8"
+                  onKeyDown={(e) => e.key === 'Enter' && !scrapingLoading && scrapeInstagramUser()}
+                />
+              </div>
+              <Button 
+                onClick={scrapeInstagramUser} 
+                disabled={scrapingLoading}
+                className="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
+              >
+                {scrapingLoading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4 mr-2" />
+                )}
+                Scrape
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
       {/* Search and Filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative">
@@ -239,7 +324,7 @@ export const ViralReels = () => {
 
       {/* Reels Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredReels.map((reel) => (
+        {filteredReels.slice(0, visibleReels).map((reel) => (
           <Card key={reel.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
             {/* Thumbnail */}
             <div className="aspect-video bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative">
@@ -340,10 +425,13 @@ export const ViralReels = () => {
         </div>
       )}
 
-      {filteredReels.length > 0 && (
+      {filteredReels.length > visibleReels && (
         <div className="text-center">
-          <Button variant="outline" onClick={loadViralReels}>
-            Load More Reels
+          <Button 
+            variant="outline" 
+            onClick={() => setVisibleReels(prev => prev + 6)}
+          >
+            Load More Reels ({filteredReels.length - visibleReels} remaining)
           </Button>
         </div>
       )}
