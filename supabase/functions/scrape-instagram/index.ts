@@ -59,9 +59,8 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          usernames: [username],
-          resultsType: 'posts',
-          resultsLimit: 20, // Get more than 6 to allow sorting
+          resultsLimit: 30,
+          username: [`@${username}`],
         }),
       }
     );
