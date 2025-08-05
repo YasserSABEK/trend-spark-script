@@ -6,14 +6,38 @@ const corsHeaders = {
 }
 
 interface ApifyInstagramPost {
-  displayUrl: string;
+  inputUrl: string;
+  id: string;
+  type: string;
+  shortCode: string;
   caption: string;
-  ownerFullName: string;
-  ownerUsername: string;
+  hashtags: string[];
+  mentions: string[];
   url: string;
   commentsCount: number;
+  firstComment: string;
+  latestComments: any[];
+  dimensionsHeight: number;
+  dimensionsWidth: number;
+  displayUrl: string;
+  images: any[];
+  videoUrl: string;
+  alt: string | null;
   likesCount: number;
+  videoViewCount: number;
+  videoPlayCount: number | null;
   timestamp: string;
+  childPosts: any[];
+  locationName: string;
+  locationId: string;
+  ownerFullName: string;
+  ownerUsername: string;
+  ownerId: string;
+  productType: string;
+  videoDuration: number;
+  isSponsored: boolean;
+  taggedUsers: any[];
+  isCommentsDisabled: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -59,8 +83,15 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          addParentData: false,
+          directUrls: [`https://www.instagram.com/${username.startsWith('@') ? username.slice(1) : username}`],
+          enhanceUserSearchWithFacebookPage: false,
+          isUserReelFeedURL: false,
+          isUserTaggedFeedURL: false,
           resultsLimit: 30,
-          username: [username.startsWith('@') ? username : `@${username}`],
+          resultsType: "stories",
+          searchLimit: 1,
+          searchType: "hashtag"
         }),
       }
     );
@@ -151,24 +182,27 @@ Deno.serve(async (req) => {
           hasLikes: !!post.likesCount,
           hasDisplayUrl: !!post.displayUrl,
           hasCaption: !!post.caption,
-          post: post
+          hasVideoUrl: !!post.videoUrl,
+          type: post.type,
+          error: post.error || 'none'
         });
-        return post.displayUrl && post.caption; // Removed likesCount requirement for now
+        // Filter out error posts and ensure we have basic required data
+        return post.type === 'Video' && post.displayUrl && post.caption && !post.error;
       })
-      .sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0))
+      .sort((a, b) => (b.videoViewCount || b.likesCount || 0) - (a.videoViewCount || a.likesCount || 0))
       .map(post => ({
         id: `apify-${Date.now()}-${Math.random()}`,
-        post_id: post.url?.split('/p/')[1]?.split('/')[0] || post.url?.split('/reel/')[1]?.split('/')[0] || '',
+        post_id: post.shortCode || post.id,
         url: post.url,
         caption: post.caption || '',
-        hashtags: extractHashtags(post.caption || ''),
+        hashtags: post.hashtags || extractHashtags(post.caption || ''),
         username: post.ownerUsername || '',
         display_name: post.ownerFullName || '',
         followers: 0, // Not available in this data
         verified: false, // Not available in this data
         likes: post.likesCount || 0,
         comments: post.commentsCount || 0,
-        video_view_count: (post.likesCount || 0) * 10, // Approximation
+        video_view_count: post.videoViewCount || (post.likesCount || 0) * 10,
         viral_score: calculateViralScore(post.likesCount || 0, post.commentsCount || 0),
         engagement_rate: calculateEngagementRate(post.likesCount || 0, post.commentsCount || 0),
         timestamp: post.timestamp || new Date().toISOString(),
