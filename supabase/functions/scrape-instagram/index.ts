@@ -142,27 +142,36 @@ Deno.serve(async (req) => {
 
     const results: ApifyInstagramPost[] = await resultsResponse.json();
     console.log(`Received ${results.length} posts from Apify`);
+    console.log('Sample post data:', JSON.stringify(results[0], null, 2));
 
     // Filter and sort by likes (most viewed approximation)
     const processedResults = results
-      .filter(post => post.likesCount && post.displayUrl && post.caption)
-      .sort((a, b) => b.likesCount - a.likesCount)
+      .filter(post => {
+        console.log('Processing post:', {
+          hasLikes: !!post.likesCount,
+          hasDisplayUrl: !!post.displayUrl,
+          hasCaption: !!post.caption,
+          post: post
+        });
+        return post.displayUrl && post.caption; // Removed likesCount requirement for now
+      })
+      .sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0))
       .map(post => ({
         id: `apify-${Date.now()}-${Math.random()}`,
-        post_id: post.url.split('/p/')[1]?.split('/')[0] || '',
+        post_id: post.url?.split('/p/')[1]?.split('/')[0] || post.url?.split('/reel/')[1]?.split('/')[0] || '',
         url: post.url,
-        caption: post.caption,
-        hashtags: extractHashtags(post.caption),
-        username: post.ownerUsername,
-        display_name: post.ownerFullName,
+        caption: post.caption || '',
+        hashtags: extractHashtags(post.caption || ''),
+        username: post.ownerUsername || '',
+        display_name: post.ownerFullName || '',
         followers: 0, // Not available in this data
         verified: false, // Not available in this data
-        likes: post.likesCount,
-        comments: post.commentsCount,
-        video_view_count: post.likesCount * 10, // Approximation
-        viral_score: calculateViralScore(post.likesCount, post.commentsCount),
-        engagement_rate: calculateEngagementRate(post.likesCount, post.commentsCount),
-        timestamp: post.timestamp,
+        likes: post.likesCount || 0,
+        comments: post.commentsCount || 0,
+        video_view_count: (post.likesCount || 0) * 10, // Approximation
+        viral_score: calculateViralScore(post.likesCount || 0, post.commentsCount || 0),
+        engagement_rate: calculateEngagementRate(post.likesCount || 0, post.commentsCount || 0),
+        timestamp: post.timestamp || new Date().toISOString(),
         scraped_at: new Date().toISOString(),
         thumbnail_url: post.displayUrl,
       }));
