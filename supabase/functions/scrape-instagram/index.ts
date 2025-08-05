@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
 
     // Start Apify actor run
     const actorRunResponse = await fetch(
-      'https://api.apify.com/v2/acts/apify~instagram-scraper/runs',
+      'https://api.apify.com/v2/acts/apify/instagram-reel-scraper/runs',
       {
         method: 'POST',
         headers: {
