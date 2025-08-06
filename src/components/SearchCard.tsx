@@ -107,14 +107,21 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
       <div className="aspect-[4/3] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden">
         {search.profile_photo_url ? (
           <img 
-            src={search.profile_photo_url}
+            src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(search.profile_photo_url)}`}
             alt={`${search.username} profile`}
             className="w-20 h-20 rounded-full object-cover border-2 border-white/20"
             onError={(e) => {
               const target = e.currentTarget;
-              target.style.display = 'none';
-              const fallback = target.nextElementSibling as HTMLElement;
-              if (fallback) fallback.style.display = 'flex';
+              if (search.profile_photo_url && !target.src.includes('placeholder.svg')) {
+                // Try direct URL as fallback
+                if (target.src.includes('image-proxy')) {
+                  target.src = search.profile_photo_url;
+                } else {
+                  target.style.display = 'none';
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }
+              }
             }}
           />
         ) : null}

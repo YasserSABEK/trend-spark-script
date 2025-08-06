@@ -81,7 +81,7 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         {reel.thumbnail_url ? (
           <>
             <img 
-              src={reel.thumbnail_url} 
+              src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(reel.thumbnail_url)}`}
               alt="Reel thumbnail"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               style={{ opacity: '0', transition: 'opacity 0.3s' }}
@@ -90,13 +90,17 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
                 target.style.opacity = '1';
               }}
               onError={(e) => {
-                // Hide broken image and show fallback
+                // Try direct URL as fallback, then hide if that fails too
                 const target = e.currentTarget;
-                target.style.display = 'none';
-                const parent = target.parentElement;
-                const fallback = parent?.querySelector('.thumbnail-fallback') as HTMLElement;
-                if (fallback) {
-                  fallback.style.display = 'flex';
+                if (target.src.includes('image-proxy')) {
+                  target.src = reel.thumbnail_url; // Try direct URL as fallback
+                } else {
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  const fallback = parent?.querySelector('.thumbnail-fallback') as HTMLElement;
+                  if (fallback) {
+                    fallback.style.display = 'flex';
+                  }
                 }
               }}
             />
