@@ -72,12 +72,22 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
             src={reel.thumbnail_url} 
             alt="Reel thumbnail"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            onError={(e) => {
+              // Hide broken image and show fallback
+              e.currentTarget.style.display = 'none';
+              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+              if (fallback) fallback.style.display = 'flex';
+            }}
           />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-instagram-pink/30 to-instagram-purple/30 flex items-center justify-center">
-            <Play className="w-16 h-16 text-white opacity-80" />
-          </div>
-        )}
+        ) : null}
+        
+        {/* Fallback when thumbnail fails or doesn't exist */}
+        <div 
+          className="w-full h-full bg-gradient-to-br from-instagram-pink/30 to-instagram-purple/30 flex items-center justify-center"
+          style={{ display: reel.thumbnail_url ? 'none' : 'flex' }}
+        >
+          <Play className="w-16 h-16 text-white opacity-80" />
+        </div>
         
         {/* Overlay Elements */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
