@@ -145,17 +145,26 @@ export type Database = {
           followers: number | null
           hashtags: string[] | null
           id: string
+          is_video: boolean | null
           likes: number | null
           mentions: string[] | null
           post_id: string
+          processing_time_seconds: number | null
+          product_type: string | null
           scraped_at: string | null
+          search_id: string | null
+          search_requested_at: string | null
+          search_status: string | null
+          search_username: string | null
           shortcode: string | null
           thumbnail_url: string | null
           timestamp: string | null
           url: string
           username: string | null
           verified: boolean | null
+          video_duration: number | null
           video_play_count: number | null
+          video_url: string | null
           video_view_count: number | null
           viral_score: number | null
         }
@@ -170,17 +179,26 @@ export type Database = {
           followers?: number | null
           hashtags?: string[] | null
           id?: string
+          is_video?: boolean | null
           likes?: number | null
           mentions?: string[] | null
           post_id: string
+          processing_time_seconds?: number | null
+          product_type?: string | null
           scraped_at?: string | null
+          search_id?: string | null
+          search_requested_at?: string | null
+          search_status?: string | null
+          search_username?: string | null
           shortcode?: string | null
           thumbnail_url?: string | null
           timestamp?: string | null
           url: string
           username?: string | null
           verified?: boolean | null
+          video_duration?: number | null
           video_play_count?: number | null
+          video_url?: string | null
           video_view_count?: number | null
           viral_score?: number | null
         }
@@ -195,17 +213,26 @@ export type Database = {
           followers?: number | null
           hashtags?: string[] | null
           id?: string
+          is_video?: boolean | null
           likes?: number | null
           mentions?: string[] | null
           post_id?: string
+          processing_time_seconds?: number | null
+          product_type?: string | null
           scraped_at?: string | null
+          search_id?: string | null
+          search_requested_at?: string | null
+          search_status?: string | null
+          search_username?: string | null
           shortcode?: string | null
           thumbnail_url?: string | null
           timestamp?: string | null
           url?: string
           username?: string | null
           verified?: boolean | null
+          video_duration?: number | null
           video_play_count?: number | null
+          video_url?: string | null
           video_view_count?: number | null
           viral_score?: number | null
         }
@@ -261,6 +288,42 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      search_queue: {
+        Row: {
+          completed_at: string | null
+          error_message: string | null
+          id: string
+          processing_time_seconds: number | null
+          requested_at: string
+          status: string
+          total_results: number | null
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          processing_time_seconds?: number | null
+          requested_at?: string
+          status?: string
+          total_results?: number | null
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          processing_time_seconds?: number | null
+          requested_at?: string
+          status?: string
+          total_results?: number | null
+          user_id?: string | null
+          username?: string
         }
         Relationships: []
       }

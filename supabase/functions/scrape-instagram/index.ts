@@ -61,12 +61,13 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           directUrls: [`https://www.instagram.com/${username.replace('@', '')}`],
           resultsType: 'posts',
-          resultsLimit: 30,
+          resultsLimit: 50,
           searchLimit: 1,
           addParentData: false,
           enhanceUserSearchWithFacebookPage: false,
           isUserReelFeedURL: false,
-          isUserTaggedFeedURL: false
+          isUserTaggedFeedURL: false,
+          onlyPostsNewerThan: "2024-07-01"
         }),
       }
     );
@@ -149,21 +150,24 @@ Deno.serve(async (req) => {
     const results: ApifyInstagramPost[] = await resultsResponse.json();
     console.log(`Received ${results.length} posts from Apify`);
 
-    // Filter and sort by likes (most viewed approximation)
+    // Filter for REELS ONLY and sort by engagement
     const processedResults = results
       .filter(post => {
         // Skip error entries and profile info
         if (post.error || !post.url || !post.id) return false;
-        // Must have either displayUrl or images array, and basic engagement metrics
-        return (post.displayUrl || post.images) && 
-               typeof post.likesCount === 'number' && 
+        // ONLY VIDEO CONTENT (REELS)
+        if (post.type !== 'Video') return false;
+        // Must have video URL or productType indicating it's a reel
+        if (!post.videoUrl && post.productType !== 'clips') return false;
+        // Must have basic engagement metrics
+        return typeof post.likesCount === 'number' && 
                typeof post.commentsCount === 'number';
       })
-      .sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0))
+      .sort((a, b) => (b.videoViewCount || b.likesCount || 0) - (a.videoViewCount || a.likesCount || 0))
       .map(post => {
         const postId = post.shortCode || post.url.split('/p/')[1]?.split('/')[0] || '';
         const thumbnailUrl = post.displayUrl || (post.images && post.images[0]) || '';
-        const videoUrl = post.videoUrl || (post.type === 'Video' ? post.displayUrl : null);
+        const videoUrl = post.videoUrl;
         
         return {
           id: `apify-${Date.now()}-${Math.random()}`,
@@ -177,15 +181,17 @@ Deno.serve(async (req) => {
           verified: false, // Not available in this data
           likes: post.likesCount || 0,
           comments: post.commentsCount || 0,
-          video_view_count: post.videoViewCount || (post.likesCount * 10) || 0,
-          viral_score: calculateViralScore(post.likesCount || 0, post.commentsCount || 0),
+          video_view_count: post.videoViewCount || post.videoPlayCount || (post.likesCount * 10) || 0,
+          viral_score: calculateViralScore(post.likesCount || 0, post.commentsCount || 0, post.videoViewCount || 0),
           engagement_rate: calculateEngagementRate(post.likesCount || 0, post.commentsCount || 0),
           timestamp: post.timestamp,
           scraped_at: new Date().toISOString(),
           thumbnail_url: thumbnailUrl,
           video_url: videoUrl,
-          type: post.type || 'Image',
-          is_video: post.type === 'Video' || !!post.videoUrl
+          video_duration: post.videoDuration || null,
+          product_type: post.productType || 'clips',
+          is_video: true,
+          search_username: username
         };
       });
 
@@ -219,10 +225,10 @@ function extractHashtags(caption: string): string[] {
   return caption.match(hashtagRegex) || [];
 }
 
-function calculateViralScore(likes: number, comments: number): number {
-  // Simple viral score calculation
-  const engagementScore = likes + (comments * 10);
-  return Math.min(100, Math.floor(engagementScore / 1000));
+function calculateViralScore(likes: number, comments: number, views: number = 0): number {
+  // Enhanced viral score calculation for reels
+  const engagementScore = likes + (comments * 15) + (views * 0.1);
+  return Math.min(100, Math.floor(engagementScore / 2000));
 }
 
 function calculateEngagementRate(likes: number, comments: number): number {
