@@ -15,6 +15,7 @@ import { ReelResults } from "./pages/ReelResults";
 import { Profile } from "./pages/Profile";
 import { ScriptGenerator } from "./pages/ScriptGenerator";
 import { MyScripts } from "./pages/MyScripts";
+import { InstagramData } from "./pages/InstagramData";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,7 +59,7 @@ function AppContent() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/script-generator" element={<ScriptGenerator />} />
               <Route path="/my-scripts" element={<MyScripts />} />
-              <Route path="/instagram-data" element={<NotFound />} />
+              <Route path="/instagram-data" element={<InstagramData />} />
               <Route path="/analytics" element={<NotFound />} />
               <Route path="/settings" element={<NotFound />} />
               <Route path="*" element={<NotFound />} />
