@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,7 @@ interface InstagramReel {
 }
 
 export const ViralReels = () => {
+  const navigate = useNavigate();
   const [reels, setReels] = useState<InstagramReel[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -279,7 +281,7 @@ export const ViralReels = () => {
   });
 
   const handleViewResults = (username: string) => {
-    loadViralReels(username);
+    navigate(`/reels/${username}`);
   };
 
   const formatNumber = (num: number) => {
