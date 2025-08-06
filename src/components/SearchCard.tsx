@@ -14,6 +14,7 @@ interface SearchQueueItem {
   total_results: number;
   processing_time_seconds: number;
   error_message?: string;
+  profile_photo_url?: string;
 }
 
 interface SearchCardProps {
@@ -104,7 +105,22 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group">
       {/* Header with avatar-like design */}
       <div className="aspect-[4/3] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center">
+        {search.profile_photo_url ? (
+          <img 
+            src={search.profile_photo_url}
+            alt={`${search.username} profile`}
+            className="w-20 h-20 rounded-full object-cover border-2 border-white/20"
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.style.display = 'none';
+              const fallback = target.nextElementSibling as HTMLElement;
+              if (fallback) fallback.style.display = 'flex';
+            }}
+          />
+        ) : null}
+        <div 
+          className={`w-20 h-20 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center ${search.profile_photo_url ? 'hidden' : ''}`}
+        >
           <span className="text-white font-bold text-xl">
             @{search.username.slice(0, 2)}
           </span>

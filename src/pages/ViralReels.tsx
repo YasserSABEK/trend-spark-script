@@ -52,6 +52,7 @@ export const ViralReels = () => {
   const [scrapingLoading, setScrapingLoading] = useState(false);
   const [visibleReels, setVisibleReels] = useState(12);
   const [queueRefresh, setQueueRefresh] = useState(0);
+  const [processingSearch, setProcessingSearch] = useState<string | null>(null);
   const [filterOptions, setFilterOptions] = useState({
     minViralScore: 30,
     minLikes: 1000,
@@ -76,8 +77,9 @@ export const ViralReels = () => {
 
     try {
       setScrapingLoading(true);
+      setProcessingSearch(instagramUsername.trim());
       
-      // Add to search queue
+      // Add to search queue and immediately show in UI
       const startTime = Date.now();
       const { data: queueData, error: queueError } = await supabase
         .from('search_queue')
@@ -89,6 +91,9 @@ export const ViralReels = () => {
         .single();
 
       if (queueError) throw queueError;
+      
+      // Refresh UI to show processing search
+      loadSearchQueue();
       
       const { data, error } = await supabase.functions.invoke('scrape-instagram', {
         body: { username: instagramUsername.trim() }
@@ -182,6 +187,7 @@ export const ViralReels = () => {
       });
     } finally {
       setScrapingLoading(false);
+      setProcessingSearch(null);
     }
   };
 
@@ -329,61 +335,6 @@ export const ViralReels = () => {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by caption, username, or hashtags..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button variant="outline">
-          <Filter className="w-4 h-4 mr-2" />
-          Filters
-        </Button>
-      </div>
-
-      {/* Reels Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredReels.slice(0, visibleReels).map((reel) => (
-          <ReelCard 
-            key={reel.id} 
-            reel={reel}
-            onGenerateScript={() => {
-              toast({
-                title: "Script Generator",
-                description: "Script generation feature coming soon!",
-              });
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Load More */}
-      {filteredReels.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No viral reels found</h3>
-          <p className="text-muted-foreground">
-            Search for an Instagram username to discover viral reels, or try adjusting your filters
-          </p>
-        </div>
-      )}
-
-      {filteredReels.length > visibleReels && (
-        <div className="text-center">
-          <Button 
-            variant="outline" 
-            onClick={() => setVisibleReels(prev => prev + 12)}
-            className="bg-gradient-to-r from-instagram-pink/10 to-instagram-purple/10 hover:from-instagram-pink/20 hover:to-instagram-purple/20"
-          >
-            Load More Reels ({filteredReels.length - visibleReels} remaining)
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

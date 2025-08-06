@@ -10,6 +10,8 @@ import {
   Eye,
   ExternalLink
 } from "lucide-react";
+import { VideoPlayer } from "./VideoPlayer";
+import { useState } from "react";
 
 interface InstagramReel {
   id: string;
@@ -38,6 +40,7 @@ interface ReelCardProps {
 }
 
 export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -60,12 +63,20 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
     window.open(reel.url, '_blank');
   };
 
+  const handlePlayVideo = () => {
+    if (reel.video_url) {
+      setShowVideoPlayer(true);
+    } else {
+      openInstagramPost();
+    }
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group">
       {/* Video Thumbnail */}
       <div 
         className="aspect-[9/16] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden"
-        onClick={openInstagramPost}
+        onClick={handlePlayVideo}
       >
         {reel.thumbnail_url ? (
           <>
@@ -113,7 +124,7 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         </div>
         <div className="absolute center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <ExternalLink className="w-8 h-8 text-white" />
+            <Play className="w-8 h-8 text-white" />
           </div>
         </div>
       </div>
@@ -208,6 +219,15 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
           </Button>
         </div>
       </CardContent>
+
+      <VideoPlayer
+        isOpen={showVideoPlayer}
+        onClose={() => setShowVideoPlayer(false)}
+        videoUrl={reel.video_url || ''}
+        thumbnailUrl={reel.thumbnail_url || ''}
+        title={reel.caption}
+        instagramUrl={reel.url}
+      />
     </Card>
   );
 };

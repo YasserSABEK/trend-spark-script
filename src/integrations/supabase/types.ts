@@ -297,6 +297,7 @@ export type Database = {
           error_message: string | null
           id: string
           processing_time_seconds: number | null
+          profile_photo_url: string | null
           requested_at: string
           status: string
           total_results: number | null
@@ -308,6 +309,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           processing_time_seconds?: number | null
+          profile_photo_url?: string | null
           requested_at?: string
           status?: string
           total_results?: number | null
@@ -319,6 +321,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           processing_time_seconds?: number | null
+          profile_photo_url?: string | null
           requested_at?: string
           status?: string
           total_results?: number | null
