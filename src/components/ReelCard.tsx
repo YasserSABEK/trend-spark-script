@@ -68,26 +68,35 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         onClick={openInstagramPost}
       >
         {reel.thumbnail_url ? (
-          <img 
-            src={reel.thumbnail_url} 
-            alt="Reel thumbnail"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-            onError={(e) => {
-              // Hide broken image and show fallback
-              e.currentTarget.style.display = 'none';
-              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-              if (fallback) fallback.style.display = 'flex';
-            }}
-          />
-        ) : null}
-        
-        {/* Fallback when thumbnail fails or doesn't exist */}
-        <div 
-          className="w-full h-full bg-gradient-to-br from-instagram-pink/30 to-instagram-purple/30 flex items-center justify-center"
-          style={{ display: reel.thumbnail_url ? 'none' : 'flex' }}
-        >
-          <Play className="w-16 h-16 text-white opacity-80" />
-        </div>
+          <>
+            <img 
+              src={reel.thumbnail_url} 
+              alt="Reel thumbnail"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              onError={(e) => {
+                // Hide broken image and show fallback
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                const fallback = parent?.querySelector('.thumbnail-fallback') as HTMLElement;
+                if (fallback) {
+                  fallback.style.display = 'flex';
+                }
+              }}
+            />
+            {/* Fallback when thumbnail fails */}
+            <div 
+              className="thumbnail-fallback absolute inset-0 w-full h-full bg-gradient-to-br from-instagram-pink/30 to-instagram-purple/30 flex items-center justify-center"
+              style={{ display: 'none' }}
+            >
+              <Play className="w-16 h-16 text-white opacity-80" />
+            </div>
+          </>
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-instagram-pink/30 to-instagram-purple/30 flex items-center justify-center">
+            <Play className="w-16 h-16 text-white opacity-80" />
+          </div>
+        )}
         
         {/* Overlay Elements */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />

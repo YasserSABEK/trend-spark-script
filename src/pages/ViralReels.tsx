@@ -4,22 +4,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Search, 
-  Filter, 
-  Heart, 
-  MessageSquare, 
-  TrendingUp,
-  RefreshCw,
-  User,
-  Loader2,
-  Play,
-  Clock
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { SearchQueue } from "@/components/SearchQueue";
+import { Filter, TrendingUp, Search, ChevronDown, Loader2 } from "lucide-react";
 import { ReelCard } from "@/components/ReelCard";
+import { SearchCard } from "@/components/SearchCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+
+interface SearchQueueItem {
+  id: string;
+  username: string;
+  status: string;
+  requested_at: string;
+  completed_at?: string;
+  total_results: number;
+  processing_time_seconds: number;
+  error_message?: string;
+}
 
 interface InstagramReel {
   id: string;
@@ -45,6 +45,7 @@ interface InstagramReel {
 export const ViralReels = () => {
   const navigate = useNavigate();
   const [reels, setReels] = useState<InstagramReel[]>([]);
+  const [searches, setSearches] = useState<SearchQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [instagramUsername, setInstagramUsername] = useState("");
@@ -60,7 +61,8 @@ export const ViralReels = () => {
 
   useEffect(() => {
     loadViralReels();
-  }, []);
+    loadSearchQueue();
+  }, [queueRefresh]);
 
   const scrapeInstagramUser = async () => {
     if (!instagramUsername.trim()) {
@@ -220,6 +222,21 @@ export const ViralReels = () => {
     }
   };
 
+  const loadSearchQueue = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('search_queue')
+        .select('*')
+        .order('requested_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setSearches(data || []);
+    } catch (error) {
+      console.error('Error loading search queue:', error);
+    }
+  };
+
   const generateMockReels = (): InstagramReel[] => {
     return Array.from({ length: 20 }, (_, i) => ({
       id: `mock-${i}`,
@@ -284,6 +301,10 @@ export const ViralReels = () => {
     navigate(`/reels/${username}`);
   };
 
+  const handleSearchDeleted = () => {
+    loadSearchQueue();
+  };
+
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -312,52 +333,93 @@ export const ViralReels = () => {
             Discover viral Instagram reels and trending content patterns
           </p>
         </div>
-        <Button onClick={() => loadViralReels()} disabled={loading}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh Data
-        </Button>
       </div>
 
-      {/* Search Section */}
+      {/* Instagram Search */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <Card className="p-6 bg-gradient-to-r from-instagram-pink/10 via-instagram-purple/10 to-instagram-orange/10 border-instagram-purple/20">
-            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <User className="w-5 h-5 text-instagram-purple" />
-              Find Viral Reels
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Enter an Instagram username to discover their most viral reels
-            </p>
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <span className="absolute left-3 top-3 text-muted-foreground">@</span>
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
+                Discover Viral Instagram Reels
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Search for any Instagram username to analyze their most viral reels and get insights for your content strategy.
+              </p>
+              <div className="flex gap-2">
                 <Input
-                  placeholder="instagram_username"
+                  placeholder="Enter Instagram username (e.g., nike, cristiano)"
                   value={instagramUsername}
                   onChange={(e) => setInstagramUsername(e.target.value)}
-                  className="pl-8"
-                  onKeyDown={(e) => e.key === 'Enter' && !scrapingLoading && scrapeInstagramUser()}
+                  className="flex-1"
+                  disabled={scrapingLoading}
                 />
+                <Button 
+                  onClick={scrapeInstagramUser}
+                  disabled={scrapingLoading || !instagramUsername.trim()}
+                  className="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
+                >
+                  {scrapingLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4 mr-2" />
+                  )}
+                  {scrapingLoading ? 'Searching...' : 'Search Reels'}
+                </Button>
               </div>
-              <Button 
-                onClick={scrapeInstagramUser} 
-                disabled={scrapingLoading}
-                className="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
-              >
-                {scrapingLoading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Search className="w-4 h-4 mr-2" />
-                )}
-                {scrapingLoading ? 'Searching...' : 'Search Reels'}
-              </Button>
-            </div>
+            </CardContent>
           </Card>
+
+          {/* Recent Searches */}
+          {searches.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-4">Recent Searches</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {searches.map((search) => (
+                  <SearchCard
+                    key={search.id}
+                    search={search}
+                    onViewResults={handleViewResults}
+                    onDelete={handleSearchDeleted}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         
-        <div>
-          <SearchQueue onViewResults={handleViewResults} triggerRefresh={queueRefresh} />
+        <div className="lg:col-span-1">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-instagram-pink to-instagram-purple rounded-full flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">AI-Powered Analysis</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Get detailed insights including engagement rates, viral scores, and content performance metrics for any Instagram account.
+                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span>Viral Score Analysis</span>
+                    <span className="text-green-500">✓</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Engagement Metrics</span>
+                    <span className="text-green-500">✓</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Content Insights</span>
+                    <span className="text-green-500">✓</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Script Generation</span>
+                    <span className="text-green-500">✓</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
