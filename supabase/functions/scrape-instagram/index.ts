@@ -6,38 +6,14 @@ const corsHeaders = {
 }
 
 interface ApifyInstagramPost {
-  inputUrl: string;
-  id: string;
-  type: string;
-  shortCode: string;
-  caption: string;
-  hashtags: string[];
-  mentions: string[];
-  url: string;
-  commentsCount: number;
-  firstComment: string;
-  latestComments: any[];
-  dimensionsHeight: number;
-  dimensionsWidth: number;
   displayUrl: string;
-  images: any[];
-  videoUrl: string;
-  alt: string | null;
-  likesCount: number;
-  videoViewCount: number;
-  videoPlayCount: number | null;
-  timestamp: string;
-  childPosts: any[];
-  locationName: string;
-  locationId: string;
+  caption: string;
   ownerFullName: string;
   ownerUsername: string;
-  ownerId: string;
-  productType: string;
-  videoDuration: number;
-  isSponsored: boolean;
-  taggedUsers: any[];
-  isCommentsDisabled: boolean;
+  url: string;
+  commentsCount: number;
+  likesCount: number;
+  timestamp: string;
 }
 
 Deno.serve(async (req) => {
@@ -73,9 +49,9 @@ Deno.serve(async (req) => {
 
     console.log(`Starting Instagram scrape for username: ${username}`);
 
-    // Start Apify actor run - using the working actor
+    // Start Apify actor run
     const actorRunResponse = await fetch(
-      'https://api.apify.com/v2/acts/apify/instagram-scraper/runs',
+      'https://api.apify.com/v2/acts/apify~instagram-scraper/runs',
       {
         method: 'POST',
         headers: {
@@ -83,14 +59,12 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: [username.startsWith('@') ? username.slice(1) : username],
-          resultsLimit: 30
+          usernames: [username],
+          resultsType: 'posts',
+          resultsLimit: 20, // Get more than 6 to allow sorting
         }),
       }
     );
-
-    console.log('Actor run response status:', actorRunResponse.status);
-    console.log('Actor run response headers:', Object.fromEntries(actorRunResponse.headers.entries()));
 
     if (!actorRunResponse.ok) {
       const errorText = await actorRunResponse.text();
@@ -169,39 +143,27 @@ Deno.serve(async (req) => {
 
     const results: ApifyInstagramPost[] = await resultsResponse.json();
     console.log(`Received ${results.length} posts from Apify`);
-    console.log('Sample post data:', JSON.stringify(results[0], null, 2));
 
     // Filter and sort by likes (most viewed approximation)
     const processedResults = results
-      .filter(post => {
-        console.log('Processing post:', {
-          hasLikes: !!post.likesCount,
-          hasDisplayUrl: !!post.displayUrl,
-          hasCaption: !!post.caption,
-          hasVideoUrl: !!post.videoUrl,
-          type: post.type,
-          error: post.error || 'none'
-        });
-        // Filter out error posts and ensure we have basic required data
-        return post.type === 'Video' && post.displayUrl && post.caption && !post.error;
-      })
-      .sort((a, b) => (b.videoViewCount || b.likesCount || 0) - (a.videoViewCount || a.likesCount || 0))
+      .filter(post => post.likesCount && post.displayUrl && post.caption)
+      .sort((a, b) => b.likesCount - a.likesCount)
       .map(post => ({
         id: `apify-${Date.now()}-${Math.random()}`,
-        post_id: post.shortCode || post.id,
+        post_id: post.url.split('/p/')[1]?.split('/')[0] || '',
         url: post.url,
-        caption: post.caption || '',
-        hashtags: post.hashtags || extractHashtags(post.caption || ''),
-        username: post.ownerUsername || '',
-        display_name: post.ownerFullName || '',
+        caption: post.caption,
+        hashtags: extractHashtags(post.caption),
+        username: post.ownerUsername,
+        display_name: post.ownerFullName,
         followers: 0, // Not available in this data
         verified: false, // Not available in this data
-        likes: post.likesCount || 0,
-        comments: post.commentsCount || 0,
-        video_view_count: post.videoViewCount || (post.likesCount || 0) * 10,
-        viral_score: calculateViralScore(post.likesCount || 0, post.commentsCount || 0),
-        engagement_rate: calculateEngagementRate(post.likesCount || 0, post.commentsCount || 0),
-        timestamp: post.timestamp || new Date().toISOString(),
+        likes: post.likesCount,
+        comments: post.commentsCount,
+        video_view_count: post.likesCount * 10, // Approximation
+        viral_score: calculateViralScore(post.likesCount, post.commentsCount),
+        engagement_rate: calculateEngagementRate(post.likesCount, post.commentsCount),
+        timestamp: post.timestamp,
         scraped_at: new Date().toISOString(),
         thumbnail_url: post.displayUrl,
       }));
