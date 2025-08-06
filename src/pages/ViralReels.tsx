@@ -203,20 +203,15 @@ export const ViralReels = () => {
 
       if (error) throw error;
 
-      // If no real data, show mock data for demo
-      if (!data || data.length === 0) {
-        setReels(generateMockReels());
-      } else {
-        setReels(data);
-      }
+      setReels(data || []);
     } catch (error) {
       console.error('Error loading reels:', error);
       toast({
         title: "Error loading reels",
-        description: "Using demo data for now",
+        description: "Failed to load reels from database",
         variant: "destructive",
       });
-      setReels(generateMockReels());
+      setReels([]);
     } finally {
       setLoading(false);
     }
@@ -237,52 +232,7 @@ export const ViralReels = () => {
     }
   };
 
-  const generateMockReels = (): InstagramReel[] => {
-    return Array.from({ length: 20 }, (_, i) => ({
-      id: `mock-${i}`,
-      post_id: `post_${i}`,
-      url: `https://instagram.com/p/mock${i}`,
-      caption: [
-        "This morning routine changed my life! ✨ Try it for 30 days and see the difference #morningroutine #productivity #wellness",
-        "POV: You're the main character in your own story 💫 Stop waiting for permission to shine #confidence #selflove #motivation",
-        "5 books that will change your mindset forever 📚 Save this post! #books #mindset #personalgrowth #reading",
-        "The outfit formula that never fails ✨ Comment 'YES' if you want more style tips #fashion #style #ootd #outfit",
-        "Healthy meal prep in 20 minutes! 🥗 Your future self will thank you #mealprep #healthy #nutrition #wellness"
-      ][i % 5],
-      hashtags: [
-        ['#viral', '#trending', '#fyp'],
-        ['#motivation', '#inspiration', '#mindset'],
-        ['#lifestyle', '#wellness', '#selfcare'],
-        ['#fashion', '#style', '#outfit'],
-        ['#fitness', '#health', '#wellness']
-      ][i % 5],
-      username: [
-        'wellness_guru',
-        'mindset_coach',
-        'book_lover',
-        'style_maven',
-        'fit_lifestyle'
-      ][i % 5],
-      display_name: [
-        'Wellness Guru',
-        'Mindset Coach',
-        'Book Lover',
-        'Style Maven',
-        'Fit Lifestyle'
-      ][i % 5],
-      followers: Math.floor(Math.random() * 500000) + 50000,
-      verified: Math.random() > 0.7,
-      likes: Math.floor(Math.random() * 100000) + 10000,
-      comments: Math.floor(Math.random() * 5000) + 500,
-      video_view_count: Math.floor(Math.random() * 1000000) + 100000,
-      viral_score: Math.floor(Math.random() * 50) + 50,
-      engagement_rate: Math.floor(Math.random() * 10) + 5,
-      timestamp: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString(),
-      scraped_at: new Date(Date.now() - Math.random() * 6 * 60 * 60 * 1000).toISOString(),
-      thumbnail_url: '',
-      video_url: `https://example.com/video${i}.mp4`
-    }));
-  };
+  // Mock data generation removed since we now have real data
 
   const filteredReels = reels.filter(reel => {
     const matchesSearch = !searchTerm || 
