@@ -11,7 +11,13 @@ import {
   Zap, 
   Play,
   ArrowRight,
-  RefreshCw
+  RefreshCw,
+  Search,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Eye,
+  Trash2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -21,6 +27,8 @@ interface DashboardStats {
   reelsFoundToday: number;
   scriptsGenerated: number;
   savedIdeas: number;
+  activeSearches: number;
+  totalSearches: number;
   lastScrapeTime: string;
 }
 
@@ -30,9 +38,11 @@ export const Dashboard = () => {
     reelsFoundToday: 0,
     scriptsGenerated: 0,
     savedIdeas: 0,
+    activeSearches: 0,
+    totalSearches: 0,
     lastScrapeTime: 'Never'
   });
-  const [recentReels, setRecentReels] = useState<any[]>([]);
+  const [recentSearches, setRecentSearches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,12 +59,33 @@ export const Dashboard = () => {
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user?.id);
 
-      // Load recent Instagram reels (public data)
-      const { data: reels } = await supabase
-        .from('instagram_reels')
+      // Load recent searches (user's own searches)
+      const { data: searches } = await supabase
+        .from('search_queue')
         .select('*')
-        .order('scraped_at', { ascending: false })
+        .eq('user_id', user?.id)
+        .order('requested_at', { ascending: false })
         .limit(6);
+
+      // Load active searches count
+      const { count: activeSearchesCount } = await supabase
+        .from('search_queue')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id)
+        .in('status', ['pending', 'processing']);
+
+      // Load total searches count
+      const { count: totalSearchesCount } = await supabase
+        .from('search_queue')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id);
+
+      // Load favorite scripts count
+      const { count: favoritesCount } = await supabase
+        .from('generated_scripts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id)
+        .eq('is_favorite', true);
 
       // Load reels found today
       const today = new Date().toISOString().split('T')[0];
@@ -74,11 +105,13 @@ export const Dashboard = () => {
       setStats({
         reelsFoundToday: reelsToday || 0,
         scriptsGenerated: scriptsCount || 0,
-        savedIdeas: 0, // Will be implemented with favorites
+        savedIdeas: favoritesCount || 0,
+        activeSearches: activeSearchesCount || 0,
+        totalSearches: totalSearchesCount || 0,
         lastScrapeTime: lastReel ? new Date(lastReel.scraped_at).toLocaleTimeString() : 'Never'
       });
 
-      setRecentReels(reels || []);
+      setRecentSearches(searches || []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -168,12 +201,12 @@ export const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Success Rate
+                  Active Searches
                 </p>
-                <p className="text-2xl font-bold">89%</p>
+                <p className="text-2xl font-bold">{stats.activeSearches}</p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                <Search className="w-6 h-6 text-white" />
               </div>
             </div>
           </CardContent>
@@ -217,72 +250,99 @@ export const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Recent Viral Reels */}
+      {/* Recent Searches */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Recent Viral Reels</CardTitle>
+            <CardTitle>Recent Searches</CardTitle>
             <CardDescription>
-              Latest trending content from Instagram
+              Your latest Instagram profile searches
             </CardDescription>
           </div>
           <Link to="/viral-reels">
             <Button variant="outline" size="sm">
-              View All
+              New Search
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
         </CardHeader>
         <CardContent>
-          {recentReels.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recentReels.map((reel) => (
-                <Card key={reel.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-video bg-gradient-to-br from-instagram-pink/20 to-instagram-purple/20 flex items-center justify-center">
-                    <Play className="w-12 h-12 text-primary" />
-                  </div>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <Badge variant="secondary" className="bg-gradient-to-r from-instagram-pink to-instagram-purple text-white">
-                        Viral Score: {reel.viral_score || 85}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {reel.scraped_at ? new Date(reel.scraped_at).toLocaleDateString() : 'Recent'}
-                      </span>
-                    </div>
-                    <p className="text-sm font-medium mb-2">@{reel.username || 'creator'}</p>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {reel.caption || 'Viral content that\'s taking Instagram by storm...'}
-                    </p>
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Heart className="w-4 h-4" />
-                          {reel.likes ? `${(reel.likes / 1000).toFixed(1)}k` : '12.5k'}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Play className="w-4 h-4" />
-                          {reel.video_view_count ? `${(reel.video_view_count / 1000).toFixed(1)}k` : '89.2k'}
-                        </span>
+          {recentSearches.length > 0 ? (
+            <div className="space-y-4">
+              {recentSearches.map((search) => {
+                const getStatusIcon = (status: string) => {
+                  switch (status) {
+                    case 'completed':
+                      return <CheckCircle className="w-4 h-4 text-green-500" />;
+                    case 'processing':
+                      return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
+                    case 'failed':
+                      return <AlertCircle className="w-4 h-4 text-red-500" />;
+                    default:
+                      return <Clock className="w-4 h-4 text-yellow-500" />;
+                  }
+                };
+
+                const getStatusBadge = (status: string) => {
+                  const statusConfig = {
+                    completed: { text: 'Completed', className: 'bg-green-500/10 text-green-700 border-green-200' },
+                    processing: { text: 'Processing', className: 'bg-blue-500/10 text-blue-700 border-blue-200' },
+                    failed: { text: 'Failed', className: 'bg-red-500/10 text-red-700 border-red-200' },
+                    pending: { text: 'Pending', className: 'bg-yellow-500/10 text-yellow-700 border-yellow-200' }
+                  };
+                  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+                  return <Badge variant="outline" className={config.className}>{config.text}</Badge>;
+                };
+
+                return (
+                  <Card key={search.id} className="p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center text-white font-semibold text-sm">
+                          {search.username ? search.username.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                        <div>
+                          <p className="font-medium">@{search.username}</p>
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(search.status)}
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(search.requested_at).toLocaleDateString()} at {new Date(search.requested_at).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <Button size="sm" variant="outline">
-                        Generate Script
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(search.status)}
+                        {search.status === 'completed' && search.total_results > 0 && (
+                          <Link to={`/reel-results?username=${search.username}`}>
+                            <Button size="sm" variant="outline" className="gap-1">
+                              <Eye className="w-4 h-4" />
+                              View Results ({search.total_results})
+                            </Button>
+                          </Link>
+                        )}
+                        {search.status === 'failed' && (
+                          <Button size="sm" variant="outline" className="gap-1 text-red-600 hover:text-red-700">
+                            <Trash2 className="w-4 h-4" />
+                            Remove
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-12">
-              <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No viral content yet</h3>
+              <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No searches yet</h3>
               <p className="text-muted-foreground mb-4">
-                Start by browsing viral reels to discover trending content
+                Start by searching for Instagram profiles to analyze their viral content
               </p>
               <Link to="/viral-reels">
                 <Button>
-                  Browse Viral Reels
+                  Start Searching
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
