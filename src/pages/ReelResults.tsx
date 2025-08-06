@@ -35,7 +35,7 @@ export const ReelResults = () => {
   const navigate = useNavigate();
   const [reels, setReels] = useState<InstagramReel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  // Removed searchTerm since search bar is removed
 
   useEffect(() => {
     if (username) {
@@ -75,16 +75,8 @@ export const ReelResults = () => {
     }
   };
 
-  const filteredReels = reels.filter(reel => {
-    if (!searchTerm) return true;
-    
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      reel.caption?.toLowerCase().includes(searchLower) ||
-      reel.username?.toLowerCase().includes(searchLower) ||
-      reel.hashtags?.some(tag => tag.toLowerCase().includes(searchLower))
-    );
-  });
+  // Since search bar is removed, show all reels
+  const filteredReels = reels;
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -109,25 +101,12 @@ export const ReelResults = () => {
           <div className="flex-1">
             <h1 className="text-2xl font-bold">Results for @{username}</h1>
             <p className="text-muted-foreground">
-              {loading ? 'Loading...' : `${filteredReels.length} reels found`}
+              {loading ? 'Loading...' : `${reels.length} reels found`}
             </p>
           </div>
         </div>
 
-        {/* Search Bar */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by caption, username, or hashtags..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Search Bar - Removed as requested */}
 
         {/* Stats */}
         {!loading && reels.length > 0 && (
@@ -175,22 +154,19 @@ export const ReelResults = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
             <p className="mt-4 text-muted-foreground">Loading reels...</p>
           </div>
-        ) : filteredReels.length === 0 ? (
+        ) : reels.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">No reels found</h3>
               <p className="text-muted-foreground">
-                {searchTerm 
-                  ? `No reels match your search for "${searchTerm}"`
-                  : `No reels found for @${username}`
-                }
+                No reels found for @{username}
               </p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredReels.map((reel) => (
+            {reels.map((reel) => (
               <ReelCard key={reel.id} reel={reel} />
             ))}
           </div>
