@@ -32,7 +32,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <video 
               controls 
               autoPlay 
-              className="w-full rounded-lg"
+              muted
+              className="w-full rounded-lg aspect-[9/16] object-cover"
               poster={thumbnailUrl}
             >
               <source src={videoUrl} type="video/mp4" />
@@ -45,13 +46,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           )}
           
           <Button 
-            variant="outline" 
+            variant="ghost" 
             size="sm"
             onClick={() => window.open(instagramUrl, '_blank')}
-            className="w-full"
+            className="w-full text-xs text-muted-foreground"
           >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            View on Instagram
+            <ExternalLink className="w-3 h-3 mr-1" />
+            Open in Instagram
           </Button>
         </div>
       </DialogContent>

@@ -10,6 +10,7 @@ interface ApifyInstagramPost {
   caption: string;
   ownerFullName: string;
   ownerUsername: string;
+  ownerProfilePicUrl: string;
   url: string;
   commentsCount: number;
   likesCount: number;
@@ -149,6 +150,22 @@ Deno.serve(async (req) => {
 
     const results: ApifyInstagramPost[] = await resultsResponse.json();
     console.log(`Received ${results.length} posts from Apify`);
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    // Get profile photo from the first post
+    const profilePhotoUrl = results.length > 0 ? results[0].ownerProfilePicUrl : null;
+    
+    // Update search queue with profile photo
+    if (profilePhotoUrl) {
+      await supabase
+        .from('search_queue')
+        .update({ profile_photo_url: profilePhotoUrl })
+        .eq('username', username.replace('@', ''));
+    }
 
     // Filter for REELS ONLY and sort by engagement
     const processedResults = results

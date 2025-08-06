@@ -84,6 +84,11 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
               src={reel.thumbnail_url} 
               alt="Reel thumbnail"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              style={{ opacity: '0', transition: 'opacity 0.3s' }}
+              onLoad={(e) => {
+                const target = e.currentTarget;
+                target.style.opacity = '1';
+              }}
               onError={(e) => {
                 // Hide broken image and show fallback
                 const target = e.currentTarget;
