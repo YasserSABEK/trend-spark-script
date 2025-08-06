@@ -13,6 +13,8 @@ import { Dashboard } from "./pages/Dashboard";
 import { ViralReels } from "./pages/ViralReels";
 import { ReelResults } from "./pages/ReelResults";
 import { Profile } from "./pages/Profile";
+import { ScriptGenerator } from "./pages/ScriptGenerator";
+import { MyScripts } from "./pages/MyScripts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,8 +56,8 @@ function AppContent() {
               <Route path="/viral-reels" element={<ViralReels />} />
               <Route path="/reels/:username" element={<ReelResults />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/script-generator" element={<NotFound />} />
-              <Route path="/my-scripts" element={<NotFound />} />
+              <Route path="/script-generator" element={<ScriptGenerator />} />
+              <Route path="/my-scripts" element={<MyScripts />} />
               <Route path="/instagram-data" element={<NotFound />} />
               <Route path="/analytics" element={<NotFound />} />
               <Route path="/settings" element={<NotFound />} />

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { VideoPlayer } from "./VideoPlayer";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface InstagramReel {
   id: string;
@@ -36,7 +37,7 @@ interface InstagramReel {
 
 interface ReelCardProps {
   reel: InstagramReel;
-  onGenerateScript?: () => void;
+  onGenerateScript?: (script: any) => void;
 }
 
 export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
@@ -68,6 +69,32 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
       setShowVideoPlayer(true);
     } else {
       openInstagramPost();
+    }
+  };
+
+  const handleGenerateScript = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-script', {
+        body: {
+          prompt: `Generate a viral script based on this reel about: ${reel.caption || 'content creation'}`,
+          niche: 'Social Media',
+          toneOfVoice: 'Engaging',
+          targetAudience: 'Content Creators',
+          hookStyle: 'Question',
+          reelData: reel
+        }
+      });
+
+      if (error) throw error;
+
+      if (onGenerateScript) {
+        onGenerateScript(data.script);
+      }
+      
+      // Navigate to script generator with success message
+      window.location.href = '/my-scripts';
+    } catch (error) {
+      console.error('Script generation error:', error);
     }
   };
 
@@ -222,7 +249,7 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
           <Button 
             size="sm" 
             className="flex-1 bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
-            onClick={onGenerateScript}
+            onClick={handleGenerateScript}
           >
             <Zap className="w-4 h-4 mr-2" />
             Generate Script
