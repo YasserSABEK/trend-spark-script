@@ -88,14 +88,14 @@ export const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-8">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -107,7 +107,7 @@ export const Dashboard = () => {
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="w-4 h-4" />
           Last updated: {stats.lastScrapeTime}
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={loadDashboardData}>
             <RefreshCw className="w-4 h-4" />
           </Button>
         </div>
