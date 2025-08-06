@@ -73,9 +73,9 @@ Deno.serve(async (req) => {
 
     console.log(`Starting Instagram scrape for username: ${username}`);
 
-    // Start Apify actor run - trying different actor
+    // Start Apify actor run - using the working actor
     const actorRunResponse = await fetch(
-      'https://api.apify.com/v2/acts/dtrungtin/instagram-scraper/runs',
+      'https://api.apify.com/v2/acts/apify/instagram-scraper/runs',
       {
         method: 'POST',
         headers: {
