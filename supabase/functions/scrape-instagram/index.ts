@@ -150,21 +150,62 @@ Deno.serve(async (req) => {
 
     const results: ApifyInstagramPost[] = await resultsResponse.json();
     console.log(`Received ${results.length} posts from Apify`);
+    
+    // Debug: Log first result structure to understand available fields
+    if (results.length > 0) {
+      console.log('First result structure:', JSON.stringify(results[0], null, 2));
+      console.log('Available profile photo fields:', {
+        ownerProfilePicUrl: results[0].ownerProfilePicUrl,
+        profilePicUrl: results[0].profilePicUrl,
+        profilePic: results[0].profilePic,
+        avatar: results[0].avatar,
+        image: results[0].image
+      });
+    }
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Get profile photo from the first post
-    const profilePhotoUrl = results.length > 0 ? results[0].ownerProfilePicUrl : null;
+    // Enhanced profile photo extraction with multiple fallbacks
+    let profilePhotoUrl = null;
+    if (results.length > 0) {
+      const firstPost = results[0];
+      // Try multiple possible field names for profile photo
+      profilePhotoUrl = firstPost.ownerProfilePicUrl || 
+                       firstPost.profilePicUrl || 
+                       firstPost.profilePic || 
+                       firstPost.avatar || 
+                       firstPost.image || 
+                       null;
+      
+      console.log('Profile photo extraction attempt:', {
+        username: username,
+        profilePhotoUrl: profilePhotoUrl,
+        originalFields: {
+          ownerProfilePicUrl: firstPost.ownerProfilePicUrl,
+          profilePicUrl: firstPost.profilePicUrl,
+          profilePic: firstPost.profilePic,
+          avatar: firstPost.avatar,
+          image: firstPost.image
+        }
+      });
+    }
     
     // Update search queue with profile photo
-    if (profilePhotoUrl) {
-      await supabase
+    try {
+      const updateResult = await supabase
         .from('search_queue')
         .update({ profile_photo_url: profilePhotoUrl })
         .eq('username', username.replace('@', ''));
+      
+      console.log('Profile photo update result:', updateResult);
+      if (updateResult.error) {
+        console.error('Failed to update profile photo:', updateResult.error);
+      }
+    } catch (error) {
+      console.error('Error updating profile photo:', error);
     }
 
     // Filter for REELS ONLY and sort by engagement
