@@ -73,9 +73,9 @@ Deno.serve(async (req) => {
 
     console.log(`Starting Instagram scrape for username: ${username}`);
 
-    // Start Apify actor run
+    // Start Apify actor run - trying different actor
     const actorRunResponse = await fetch(
-      'https://api.apify.com/v2/acts/apify/instagram-scraper/runs',
+      'https://api.apify.com/v2/acts/dtrungtin/instagram-scraper/runs',
       {
         method: 'POST',
         headers: {
@@ -83,18 +83,14 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          addParentData: false,
-          directUrls: [`https://www.instagram.com/${username.startsWith('@') ? username.slice(1) : username}`],
-          enhanceUserSearchWithFacebookPage: false,
-          isUserReelFeedURL: false,
-          isUserTaggedFeedURL: false,
-          resultsLimit: 30,
-          resultsType: "stories",
-          searchLimit: 1,
-          searchType: "hashtag"
+          username: [username.startsWith('@') ? username.slice(1) : username],
+          resultsLimit: 30
         }),
       }
     );
+
+    console.log('Actor run response status:', actorRunResponse.status);
+    console.log('Actor run response headers:', Object.fromEntries(actorRunResponse.headers.entries()));
 
     if (!actorRunResponse.ok) {
       const errorText = await actorRunResponse.text();
