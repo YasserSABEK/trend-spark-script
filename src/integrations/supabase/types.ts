@@ -249,11 +249,18 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          billing_cycle_start: string | null
           bio: string | null
           created_at: string
+          credits_used_this_month: number | null
+          current_credits: number | null
           full_name: string | null
           id: string
           instagram_username: string | null
+          monthly_credit_limit: number | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_plan: string | null
           subscription_status: string | null
           subscription_tier: string | null
           trial_ends_at: string | null
@@ -263,11 +270,18 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          billing_cycle_start?: string | null
           bio?: string | null
           created_at?: string
+          credits_used_this_month?: number | null
+          current_credits?: number | null
           full_name?: string | null
           id?: string
           instagram_username?: string | null
+          monthly_credit_limit?: number | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_plan?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           trial_ends_at?: string | null
@@ -277,11 +291,18 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          billing_cycle_start?: string | null
           bio?: string | null
           created_at?: string
+          credits_used_this_month?: number | null
+          current_credits?: number | null
           full_name?: string | null
           id?: string
           instagram_username?: string | null
+          monthly_credit_limit?: number | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_plan?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
           trial_ends_at?: string | null
@@ -365,7 +386,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_credits: {
+        Args: { user_id_param: string; credits_to_add: number }
+        Returns: undefined
+      }
+      deduct_credits: {
+        Args: { user_id_param: string; credits_to_deduct: number }
+        Returns: boolean
+      }
+      get_user_credits: {
+        Args: { user_id_param: string }
+        Returns: {
+          current_credits: number
+          monthly_limit: number
+          credits_used: number
+          subscription_plan: string
+          billing_cycle_start: string
+        }[]
+      }
+      update_subscription_plan: {
+        Args: {
+          user_id_param: string
+          plan_name: string
+          credit_limit: number
+          stripe_customer_id_param?: string
+          stripe_subscription_id_param?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
