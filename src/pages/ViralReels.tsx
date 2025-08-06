@@ -107,6 +107,46 @@ export const ViralReels = () => {
       }
 
       if (data.success && data.data) {
+        // Save reels to database with search_username
+        const reelsToInsert = data.data.map((reel: any) => ({
+          post_id: reel.post_id || reel.id,
+          url: reel.url,
+          video_url: reel.video_url,
+          caption: reel.caption,
+          hashtags: reel.hashtags,
+          mentions: reel.mentions,
+          username: reel.username,
+          display_name: reel.display_name,
+          followers: reel.followers,
+          verified: reel.verified,
+          likes: reel.likes,
+          comments: reel.comments,
+          video_view_count: reel.video_view_count,
+          video_play_count: reel.video_play_count,
+          viral_score: reel.viral_score,
+          engagement_rate: reel.engagement_rate,
+          timestamp: reel.timestamp,
+          video_duration: reel.video_duration,
+          is_video: reel.is_video,
+          product_type: reel.product_type,
+          shortcode: reel.shortcode,
+          thumbnail_url: reel.thumbnail_url,
+          search_username: instagramUsername.trim(), // Add this field
+          search_requested_at: new Date().toISOString(),
+          processing_time_seconds: processingTime,
+          search_status: 'completed'
+        }));
+
+        // Insert reels into database
+        const { error: insertError } = await supabase
+          .from('instagram_reels')
+          .insert(reelsToInsert);
+
+        if (insertError) {
+          console.error('Error inserting reels:', insertError);
+          // Continue with success but log the error
+        }
+
         // Update queue with success
         await supabase
           .from('search_queue')
@@ -123,7 +163,7 @@ export const ViralReels = () => {
         setQueueRefresh(prev => prev + 1);
         toast({
           title: "Success!",
-          description: `Found ${data.data.length} reels from @${instagramUsername}`,
+          description: `Found ${data.data.length} reels from @${instagramUsername} and saved to database`,
         });
         setInstagramUsername(''); // Clear input
       } else {
