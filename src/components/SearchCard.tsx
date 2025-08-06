@@ -107,22 +107,30 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
       <div className="aspect-[4/3] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden">
         {search.profile_photo_url ? (
           <img 
-            src={search.profile_photo_url}
-            data-proxy-src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(search.profile_photo_url)}`}
+            src={`${search.profile_photo_url}${search.profile_photo_url.includes('?') ? '&' : '?'}v=${Date.now()}`}
+            data-proxy-src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(search.profile_photo_url)}&v=${Date.now()}`}
             alt={`${search.username} profile`}
             className="w-20 h-20 rounded-full object-cover border-2 border-white/20"
             onLoad={(e) => {
+              console.log(`✅ Profile photo loaded for ${search.username}:`, e.currentTarget.src);
               e.currentTarget.style.opacity = '1';
             }}
             style={{ opacity: '0', transition: 'opacity 0.3s' }}
             onError={(e) => {
               const target = e.currentTarget;
               const proxyUrl = target.getAttribute('data-proxy-src');
+              console.log(`❌ Profile photo error for ${search.username}:`, {
+                originalUrl: search.profile_photo_url,
+                currentSrc: target.src,
+                hasProxy: !!proxyUrl,
+                usingProxy: target.src.includes('image-proxy')
+              });
+              
               if (proxyUrl && !target.src.includes('image-proxy')) {
-                console.log('Direct profile photo failed, trying proxy:', proxyUrl);
+                console.log('🔄 Trying proxy for', search.username, proxyUrl);
                 target.src = proxyUrl;
               } else {
-                console.log('All profile photo loading failed, showing fallback');
+                console.log('🚫 All loading failed for', search.username, '- showing fallback');
                 target.style.display = 'none';
                 const fallback = target.nextElementSibling as HTMLElement;
                 if (fallback) fallback.style.display = 'flex';

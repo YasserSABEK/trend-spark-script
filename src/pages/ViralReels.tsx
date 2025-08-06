@@ -9,6 +9,7 @@ import { ReelCard } from "@/components/ReelCard";
 import { SearchCard } from "@/components/SearchCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthContext";
 
 interface SearchQueueItem {
   id: string;
@@ -44,6 +45,7 @@ interface InstagramReel {
 
 export const ViralReels = () => {
   const navigate = useNavigate();
+  const { user, session, loading: authLoading } = useAuth();
   const [reels, setReels] = useState<InstagramReel[]>([]);
   const [searches, setSearches] = useState<SearchQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,9 +63,19 @@ export const ViralReels = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Debug authentication state
+    console.log('🔍 ViralReels Debug Info:', {
+      userAuthenticated: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      sessionExists: !!session,
+      authLoading,
+      timestamp: new Date().toISOString()
+    });
+    
     loadViralReels();
     loadSearchQueue();
-  }, [queueRefresh]);
+  }, [queueRefresh, user, session]);
 
   const scrapeInstagramUser = async () => {
     if (!instagramUsername.trim()) {
@@ -225,13 +237,31 @@ export const ViralReels = () => {
 
   const loadSearchQueue = async () => {
     try {
+      console.log('🔍 Loading search queue with auth state:', {
+        userAuthenticated: !!user,
+        userId: user?.id
+      });
+      
       const { data, error } = await supabase
         .from('search_queue')
         .select('*')
         .order('requested_at', { ascending: false })
         .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Search queue error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Search queue loaded:', {
+        count: data?.length || 0,
+        searches: data?.map(s => ({
+          username: s.username,
+          status: s.status,
+          profile_photo_url: s.profile_photo_url
+        }))
+      });
+      
       setSearches(data || []);
     } catch (error) {
       console.error('Error loading search queue:', error);
