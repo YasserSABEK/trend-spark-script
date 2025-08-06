@@ -70,14 +70,20 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
   };
 
   const handleDelete = async () => {
+    console.log('Delete button clicked for search:', search.id);
     try {
+      console.log('Attempting to delete search with ID:', search.id);
       const { error } = await supabase
         .from('search_queue')
         .delete()
         .eq('id', search.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase delete error:', error);
+        throw error;
+      }
 
+      console.log('Search deleted successfully');
       toast({
         title: "Search deleted",
         description: `Removed search for @${search.username}`,
@@ -116,6 +122,7 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
             variant="destructive"
             className="h-8 w-8 p-0"
             onClick={(e) => {
+              console.log('Delete button clicked - stopping propagation');
               e.stopPropagation();
               handleDelete();
             }}

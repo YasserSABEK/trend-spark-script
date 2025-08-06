@@ -273,21 +273,9 @@ export const ViralReels = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
-            ViralFindr
-          </h1>
-          <p className="text-muted-foreground">
-            Discover viral Instagram reels and trending content patterns
-          </p>
-        </div>
-      </div>
-
       {/* Instagram Search */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6">
+        <div>
           <Card>
             <CardContent className="p-6">
               <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
@@ -336,40 +324,6 @@ export const ViralReels = () => {
               </div>
             </div>
           )}
-        </div>
-        
-        <div className="lg:col-span-1">
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-instagram-pink to-instagram-purple rounded-full flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">AI-Powered Analysis</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Get detailed insights including engagement rates, viral scores, and content performance metrics for any Instagram account.
-                </p>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span>Viral Score Analysis</span>
-                    <span className="text-green-500">✓</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Engagement Metrics</span>
-                    <span className="text-green-500">✓</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Content Insights</span>
-                    <span className="text-green-500">✓</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Script Generation</span>
-                    <span className="text-green-500">✓</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
 
