@@ -8,7 +8,7 @@ import { Filter, TrendingUp, Search, ChevronDown, Loader2 } from "lucide-react";
 import { ReelCard } from "@/components/ReelCard";
 import { SearchCard } from "@/components/SearchCard";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface SearchQueueItem {
   id: string;
@@ -252,7 +252,9 @@ export const ViralReels = () => {
   };
 
   const handleSearchDeleted = () => {
+    console.log('handleSearchDeleted called - refreshing search queue');
     loadSearchQueue();
+    setQueueRefresh(prev => prev + 1); // Force refresh
   };
 
   const formatNumber = (num: number) => {
@@ -342,40 +344,6 @@ export const ViralReels = () => {
           <Filter className="w-4 h-4 mr-2" />
           Filters
         </Button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-primary">{filteredReels.length}</p>
-            <p className="text-sm text-muted-foreground">Viral Reels</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-green-600">
-              {Math.round(filteredReels.reduce((acc, reel) => acc + reel.viral_score, 0) / filteredReels.length) || 0}
-            </p>
-            <p className="text-sm text-muted-foreground">Avg Viral Score</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-instagram-orange/10 to-instagram-orange/5 border-instagram-orange/20">
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-instagram-orange">
-              {formatNumber(filteredReels.reduce((acc, reel) => acc + reel.likes, 0))}
-            </p>
-            <p className="text-sm text-muted-foreground">Total Likes</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-instagram-purple/10 to-instagram-purple/5 border-instagram-purple/20">
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-instagram-purple">
-              {Math.round(filteredReels.reduce((acc, reel) => acc + reel.engagement_rate, 0) / filteredReels.length * 100) / 100 || 0}%
-            </p>
-            <p className="text-sm text-muted-foreground">Avg Engagement</p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Reels Grid */}
