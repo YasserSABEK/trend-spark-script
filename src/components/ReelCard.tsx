@@ -81,7 +81,8 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         {reel.thumbnail_url ? (
           <>
             <img 
-              src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(reel.thumbnail_url)}`}
+              src={reel.thumbnail_url}
+              data-proxy-src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(reel.thumbnail_url)}`}
               alt="Reel thumbnail"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               style={{ opacity: '0', transition: 'opacity 0.3s' }}
@@ -90,11 +91,14 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
                 target.style.opacity = '1';
               }}
               onError={(e) => {
-                // Try direct URL as fallback, then hide if that fails too
+                // Try proxy as fallback for CORS issues
                 const target = e.currentTarget;
-                if (target.src.includes('image-proxy')) {
-                  target.src = reel.thumbnail_url; // Try direct URL as fallback
+                const proxyUrl = target.getAttribute('data-proxy-src');
+                if (proxyUrl && !target.src.includes('image-proxy')) {
+                  console.log('Direct image failed, trying proxy:', proxyUrl);
+                  target.src = proxyUrl;
                 } else {
+                  console.log('All image loading failed, showing fallback');
                   target.style.display = 'none';
                   const parent = target.parentElement;
                   const fallback = parent?.querySelector('.thumbnail-fallback') as HTMLElement;
