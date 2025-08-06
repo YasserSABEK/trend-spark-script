@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthContext";
-import { LogOut, User, Zap } from "lucide-react";
+import { LogOut, User, Zap, Coins } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useCredits } from "@/hooks/useCredits";
 
 export const Navbar = () => {
   const { user, signOut } = useAuth();
+  const { credits } = useCredits();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -30,6 +32,14 @@ export const Navbar = () => {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
+                {credits && (
+                  <Link to="/billing">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Coins className="w-4 h-4" />
+                      {credits.current_credits} credits
+                    </Button>
+                  </Link>
+                )}
                 <Link to="/dashboard">
                   <Button variant="ghost" size="sm">
                     Dashboard

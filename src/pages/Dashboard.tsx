@@ -22,6 +22,8 @@ import {
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { CreditDisplay } from "@/components/credits/CreditDisplay";
+import { CreditWarning } from "@/components/credits/CreditWarning";
 
 interface DashboardStats {
   reelsFoundToday: number;
@@ -129,20 +131,26 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-8">
+      {/* Credit Warning */}
+      <CreditWarning />
+      
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div className="flex-1">
           <h1 className="text-3xl font-bold">Welcome back!</h1>
           <p className="text-muted-foreground">
             Here's what's trending on Instagram today
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="w-4 h-4" />
-          Last updated: {stats.lastScrapeTime}
-          <Button size="sm" variant="outline" onClick={loadDashboardData}>
-            <RefreshCw className="w-4 h-4" />
-          </Button>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="w-4 h-4" />
+            Last updated: {stats.lastScrapeTime}
+            <Button size="sm" variant="outline" onClick={loadDashboardData}>
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </div>
+          <CreditDisplay />
         </div>
       </div>
 

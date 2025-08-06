@@ -8,7 +8,8 @@ import {
   Database, 
   BarChart3, 
   Settings,
-  Zap
+  Zap,
+  CreditCard
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,6 +33,7 @@ const navigationItems = [
   { title: "My Scripts", url: "/my-scripts", icon: FileText },
   { title: "Instagram Data", url: "/instagram-data", icon: Database },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Billing", url: "/billing", icon: CreditCard },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
