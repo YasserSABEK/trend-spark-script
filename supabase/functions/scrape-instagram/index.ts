@@ -59,9 +59,14 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          usernames: [username],
+          directUrls: [`https://www.instagram.com/${username.replace('@', '')}`],
           resultsType: 'posts',
-          resultsLimit: 20, // Get more than 6 to allow sorting
+          resultsLimit: 30,
+          searchLimit: 1,
+          addParentData: false,
+          enhanceUserSearchWithFacebookPage: false,
+          isUserReelFeedURL: false,
+          isUserTaggedFeedURL: false
         }),
       }
     );
@@ -146,27 +151,43 @@ Deno.serve(async (req) => {
 
     // Filter and sort by likes (most viewed approximation)
     const processedResults = results
-      .filter(post => post.likesCount && post.displayUrl && post.caption)
-      .sort((a, b) => b.likesCount - a.likesCount)
-      .map(post => ({
-        id: `apify-${Date.now()}-${Math.random()}`,
-        post_id: post.url.split('/p/')[1]?.split('/')[0] || '',
-        url: post.url,
-        caption: post.caption,
-        hashtags: extractHashtags(post.caption),
-        username: post.ownerUsername,
-        display_name: post.ownerFullName,
-        followers: 0, // Not available in this data
-        verified: false, // Not available in this data
-        likes: post.likesCount,
-        comments: post.commentsCount,
-        video_view_count: post.likesCount * 10, // Approximation
-        viral_score: calculateViralScore(post.likesCount, post.commentsCount),
-        engagement_rate: calculateEngagementRate(post.likesCount, post.commentsCount),
-        timestamp: post.timestamp,
-        scraped_at: new Date().toISOString(),
-        thumbnail_url: post.displayUrl,
-      }));
+      .filter(post => {
+        // Skip error entries and profile info
+        if (post.error || !post.url || !post.id) return false;
+        // Must have either displayUrl or images array, and basic engagement metrics
+        return (post.displayUrl || post.images) && 
+               typeof post.likesCount === 'number' && 
+               typeof post.commentsCount === 'number';
+      })
+      .sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0))
+      .map(post => {
+        const postId = post.shortCode || post.url.split('/p/')[1]?.split('/')[0] || '';
+        const thumbnailUrl = post.displayUrl || (post.images && post.images[0]) || '';
+        const videoUrl = post.videoUrl || (post.type === 'Video' ? post.displayUrl : null);
+        
+        return {
+          id: `apify-${Date.now()}-${Math.random()}`,
+          post_id: postId,
+          url: post.url,
+          caption: post.caption || '',
+          hashtags: extractHashtags(post.caption || ''),
+          username: post.ownerUsername,
+          display_name: post.ownerFullName,
+          followers: 0, // Not available in this data
+          verified: false, // Not available in this data
+          likes: post.likesCount || 0,
+          comments: post.commentsCount || 0,
+          video_view_count: post.videoViewCount || (post.likesCount * 10) || 0,
+          viral_score: calculateViralScore(post.likesCount || 0, post.commentsCount || 0),
+          engagement_rate: calculateEngagementRate(post.likesCount || 0, post.commentsCount || 0),
+          timestamp: post.timestamp,
+          scraped_at: new Date().toISOString(),
+          thumbnail_url: thumbnailUrl,
+          video_url: videoUrl,
+          type: post.type || 'Image',
+          is_video: post.type === 'Video' || !!post.videoUrl
+        };
+      });
 
     console.log(`Processed ${processedResults.length} posts, sending response`);
 
