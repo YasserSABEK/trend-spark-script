@@ -10,6 +10,7 @@ import { SearchCard } from "@/components/SearchCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthContext";
+import { CreditGuard } from "@/components/credits/CreditGuard";
 
 interface SearchQueueItem {
   id: string;
@@ -330,18 +331,23 @@ export const ViralReels = () => {
                   className="flex-1"
                   disabled={scrapingLoading}
                 />
-                <Button 
-                  onClick={scrapeInstagramUser}
-                  disabled={scrapingLoading || !instagramUsername.trim()}
-                  className="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
+                <CreditGuard
+                  requiredCredits={2}
+                  action="search for reels"
                 >
-                  {scrapingLoading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Search className="w-4 h-4 mr-2" />
-                  )}
-                  {scrapingLoading ? 'Searching...' : 'Search Reels'}
-                </Button>
+                  <Button
+                    onClick={scrapeInstagramUser}
+                    disabled={scrapingLoading || !instagramUsername.trim()}
+                    className="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
+                  >
+                    {scrapingLoading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4 mr-2" />
+                    )}
+                    {scrapingLoading ? 'Searching...' : 'Search Reels (2 Credits)'}
+                  </Button>
+                </CreditGuard>
               </div>
             </CardContent>
           </Card>

@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Sparkles, Copy, Heart, Star } from 'lucide-react';
+import { CreditGuard } from '@/components/credits/CreditGuard';
 
 interface GeneratedScript {
   hook: string;
@@ -199,24 +200,29 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
               </div>
             </div>
 
-            <Button 
-              onClick={handleGenerate} 
-              disabled={isGenerating || !formData.prompt.trim()}
-              className="w-full"
-              size="lg"
+            <CreditGuard
+              requiredCredits={1}
+              action="generate a script"
             >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating Script...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Generate Script
-                </>
-              )}
-            </Button>
+              <Button 
+                onClick={handleGenerate} 
+                disabled={isGenerating || !formData.prompt.trim()}
+                className="w-full"
+                size="lg"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating Script...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate Script (1 Credit)
+                  </>
+                )}
+              </Button>
+            </CreditGuard>
           </CardContent>
         </Card>
 

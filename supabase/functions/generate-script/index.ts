@@ -40,6 +40,27 @@ serve(async (req) => {
       );
     }
 
+    // Deduct 1 credit before processing
+    const { data: creditResult, error: creditError } = await supabaseClient.rpc('deduct_credits', {
+      user_id_param: user.id,
+      credits_to_deduct: 1
+    });
+
+    if (creditError) {
+      console.error('Credit deduction error:', creditError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to process credits' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
+    if (!creditResult) {
+      return new Response(
+        JSON.stringify({ error: 'Insufficient credits. You need 1 credit to generate a script.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 402 }
+      );
+    }
+
     const { 
       prompt, 
       niche, 

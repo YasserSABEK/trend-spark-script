@@ -13,6 +13,7 @@ import {
 import { VideoPlayer } from "./VideoPlayer";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { CreditGuard } from "@/components/credits/CreditGuard";
 
 interface InstagramReel {
   id: string;
@@ -246,14 +247,19 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <Button 
-            size="sm" 
-            className="flex-1 bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
-            onClick={handleGenerateScript}
+          <CreditGuard
+            requiredCredits={1}
+            action="generate a script"
           >
-            <Zap className="w-4 h-4 mr-2" />
-            Generate Script
-          </Button>
+            <Button 
+              size="sm" 
+              className="flex-1 bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
+              onClick={handleGenerateScript}
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Generate Script (1 Credit)
+            </Button>
+          </CreditGuard>
           <Button size="sm" variant="outline" onClick={openInstagramPost}>
             <ExternalLink className="w-4 h-4" />
           </Button>

@@ -24,6 +24,44 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Get user from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    let userId = null;
+    
+    if (authHeader) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const jwt = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: userError } = await supabase.auth.getUser(jwt);
+      
+      if (!userError && user) {
+        userId = user.id;
+        
+        // Deduct 2 credits before processing
+        const { data: creditResult, error: creditError } = await supabase.rpc('deduct_credits', {
+          user_id_param: userId,
+          credits_to_deduct: 2
+        });
+
+        if (creditError) {
+          console.error('Credit deduction error:', creditError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to process credits' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          );
+        }
+
+        if (!creditResult) {
+          return new Response(
+            JSON.stringify({ error: 'Insufficient credits. You need 2 credits to search for reels.' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 402 }
+          );
+        }
+      }
+    }
+
     const { username } = await req.json();
 
     if (!username) {
@@ -163,7 +201,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client (reuse if already created)
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
