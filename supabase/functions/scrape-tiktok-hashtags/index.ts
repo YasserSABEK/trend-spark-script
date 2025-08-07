@@ -77,15 +77,22 @@ serve(async (req) => {
       throw new Error('Apify API key not configured');
     }
 
-    const actorId = 'clockworks/free-tiktok-scraper';
+    const actorId = 'clockworks/tiktok-scraper';
     const input = {
+      excludePinnedPosts: false,
       hashtags: [cleanHashtag],
+      proxyCountryCode: "None",
       resultsPerPage: 100,
-      shouldDownloadVideos: false,
-      shouldDownloadSubtitles: false,
+      scrapeRelatedVideos: false,
+      shouldDownloadAvatars: false,
       shouldDownloadCovers: false,
-      shouldDownloadSlideshowImages: false
+      shouldDownloadMusicCovers: false,
+      shouldDownloadSlideshowImages: false,
+      shouldDownloadSubtitles: false,
+      shouldDownloadVideos: false
     };
+
+    console.log('Starting Apify run with input:', JSON.stringify(input, null, 2));
 
     // Start Apify run
     const startResponse = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs`, {
@@ -144,6 +151,11 @@ serve(async (req) => {
 
     const videos = await datasetResponse.json();
     console.log(`Retrieved ${videos.length} videos for hashtag: ${cleanHashtag}`);
+    
+    // Log sample video structure for debugging
+    if (videos.length > 0) {
+      console.log('Sample video structure:', JSON.stringify(videos[0], null, 2));
+    }
 
     // Filter videos from the last year
     const oneYearAgo = new Date();
@@ -183,9 +195,9 @@ serve(async (req) => {
         web_video_url: video.webVideoUrl,
         caption: video.text,
         hashtags,
-        username: video['authorMeta.name'],
-        display_name: video['authorMeta.name'],
-        author_avatar: video['authorMeta.avatar'],
+        username: video.authorMeta?.name || video.author?.name,
+        display_name: video.authorMeta?.nickname || video.author?.nickname,
+        author_avatar: video.authorMeta?.avatar || video.author?.avatar,
         
         // TikTok engagement metrics
         digg_count: video.diggCount || 0,
@@ -195,13 +207,15 @@ serve(async (req) => {
         collect_count: video.collectCount || 0,
         
         // Video metadata
-        video_duration: video['videoMeta.duration'],
+        video_duration: video.videoMeta?.duration || video.duration,
         is_video: true,
+        thumbnail_url: video.videoMeta?.cover || video.cover,
+        video_url: video.videoUrl || video.downloadUrl,
         
         // Music metadata
-        music_name: video['musicMeta.musicName'],
-        music_author: video['musicMeta.musicAuthor'],
-        music_original: video['musicMeta.musicOriginal'],
+        music_name: video.musicMeta?.musicName || video.music?.title,
+        music_author: video.musicMeta?.musicAuthor || video.music?.authorName,
+        music_original: video.musicMeta?.musicOriginal || false,
         
         // Calculated metrics
         viral_score: viralScore,
