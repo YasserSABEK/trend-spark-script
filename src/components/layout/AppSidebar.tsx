@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Video, 
+  Hash,
   Edit3, 
   FileText, 
   Zap,
@@ -26,6 +27,7 @@ import { SidebarProfileSection } from "@/components/profile/SidebarProfileSectio
 const navigationItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Viral Reels", url: "/viral-reels", icon: Video },
+  { title: "Hashtag Search", url: "/hashtag-search", icon: Hash },
   { title: "Script Generator", url: "/script-generator", icon: Edit3 },
   { title: "My Scripts", url: "/my-scripts", icon: FileText },
   { title: "Billing", url: "/billing", icon: CreditCard },

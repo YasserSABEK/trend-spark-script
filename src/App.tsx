@@ -11,11 +11,11 @@ import { LandingPage } from "./pages/LandingPage";
 import { AuthPage } from "./pages/AuthPage";
 import { Dashboard } from "./pages/Dashboard";
 import { ViralReels } from "./pages/ViralReels";
+import { HashtagSearch } from "./pages/HashtagSearch";
 import { ReelResults } from "./pages/ReelResults";
 import { Profile } from "./pages/Profile";
 import { ScriptGenerator } from "./pages/ScriptGenerator";
 import { MyScripts } from "./pages/MyScripts";
-
 import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 
@@ -56,6 +56,7 @@ function AppContent() {
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/viral-reels" element={<ViralReels />} />
+              <Route path="/hashtag-search" element={<HashtagSearch />} />
               <Route path="/reels/:username" element={<ReelResults />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/script-generator" element={<ScriptGenerator />} />

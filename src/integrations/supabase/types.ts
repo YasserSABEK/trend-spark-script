@@ -152,6 +152,7 @@ export type Database = {
           processing_time_seconds: number | null
           product_type: string | null
           scraped_at: string | null
+          search_hashtag: string | null
           search_id: string | null
           search_requested_at: string | null
           search_status: string | null
@@ -186,6 +187,7 @@ export type Database = {
           processing_time_seconds?: number | null
           product_type?: string | null
           scraped_at?: string | null
+          search_hashtag?: string | null
           search_id?: string | null
           search_requested_at?: string | null
           search_status?: string | null
@@ -220,6 +222,7 @@ export type Database = {
           processing_time_seconds?: number | null
           product_type?: string | null
           scraped_at?: string | null
+          search_hashtag?: string | null
           search_id?: string | null
           search_requested_at?: string | null
           search_status?: string | null
@@ -316,10 +319,12 @@ export type Database = {
         Row: {
           completed_at: string | null
           error_message: string | null
+          hashtag: string | null
           id: string
           processing_time_seconds: number | null
           profile_photo_url: string | null
           requested_at: string
+          search_type: string | null
           status: string
           total_results: number | null
           user_id: string | null
@@ -328,10 +333,12 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           error_message?: string | null
+          hashtag?: string | null
           id?: string
           processing_time_seconds?: number | null
           profile_photo_url?: string | null
           requested_at?: string
+          search_type?: string | null
           status?: string
           total_results?: number | null
           user_id?: string | null
@@ -340,10 +347,12 @@ export type Database = {
         Update: {
           completed_at?: string | null
           error_message?: string | null
+          hashtag?: string | null
           id?: string
           processing_time_seconds?: number | null
           profile_photo_url?: string | null
           requested_at?: string
+          search_type?: string | null
           status?: string
           total_results?: number | null
           user_id?: string | null
