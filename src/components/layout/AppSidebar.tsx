@@ -5,9 +5,6 @@ import {
   Video, 
   Edit3, 
   FileText, 
-  Database, 
-  BarChart3, 
-  Settings,
   Zap,
   CreditCard
 } from "lucide-react";
@@ -31,10 +28,7 @@ const navigationItems = [
   { title: "Viral Reels", url: "/viral-reels", icon: Video },
   { title: "Script Generator", url: "/script-generator", icon: Edit3 },
   { title: "My Scripts", url: "/my-scripts", icon: FileText },
-  { title: "Instagram Data", url: "/instagram-data", icon: Database },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Billing", url: "/billing", icon: CreditCard },
-  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
