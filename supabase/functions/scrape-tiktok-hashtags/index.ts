@@ -77,19 +77,12 @@ serve(async (req) => {
       throw new Error('Apify API key not configured');
     }
 
-    const actorId = 'clockworks/tiktok-scraper';
+    const actorId = 'clockworks/tiktok-hashtag-scraper';
     const input = {
-      excludePinnedPosts: false,
-      hashtags: [cleanHashtag],
-      proxyCountryCode: "None",
+      hashtag: cleanHashtag,
       resultsPerPage: 100,
-      scrapeRelatedVideos: false,
-      shouldDownloadAvatars: false,
-      shouldDownloadCovers: false,
-      shouldDownloadMusicCovers: false,
-      shouldDownloadSlideshowImages: false,
-      shouldDownloadSubtitles: false,
-      shouldDownloadVideos: false
+      shouldDownloadVideos: false,
+      shouldDownloadCovers: false
     };
 
     console.log('Starting Apify run with input:', JSON.stringify(input, null, 2));
