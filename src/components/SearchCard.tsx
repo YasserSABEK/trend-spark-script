@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,10 @@ interface SearchCardProps {
 
 export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps) => {
   const { toast } = useToast();
+
+  // Handle null/undefined username safely
+  const displayUsername = search.username || 'Unknown';
+  const usernameInitials = displayUsername.slice(0, 2);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -87,7 +92,7 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
       console.log('Search deleted successfully');
       toast({
         title: "Search deleted",
-        description: `Removed search for @${search.username}`,
+        description: `Removed search for @${displayUsername}`,
       });
       
       onDelete();
@@ -109,17 +114,17 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
           <img 
             src={`${search.profile_photo_url}${search.profile_photo_url.includes('?') ? '&' : '?'}v=${Date.now()}`}
             data-proxy-src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(search.profile_photo_url)}&v=${Date.now()}`}
-            alt={`${search.username} profile`}
+            alt={`${displayUsername} profile`}
             className="w-20 h-20 rounded-full object-cover border-2 border-white/20"
             onLoad={(e) => {
-              console.log(`✅ Profile photo loaded for ${search.username}:`, e.currentTarget.src);
+              console.log(`✅ Profile photo loaded for ${displayUsername}:`, e.currentTarget.src);
               e.currentTarget.style.opacity = '1';
             }}
             style={{ opacity: '0', transition: 'opacity 0.3s' }}
             onError={(e) => {
               const target = e.currentTarget;
               const proxyUrl = target.getAttribute('data-proxy-src');
-              console.log(`❌ Profile photo error for ${search.username}:`, {
+              console.log(`❌ Profile photo error for ${displayUsername}:`, {
                 originalUrl: search.profile_photo_url,
                 currentSrc: target.src,
                 hasProxy: !!proxyUrl,
@@ -127,10 +132,10 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
               });
               
               if (proxyUrl && !target.src.includes('image-proxy')) {
-                console.log('🔄 Trying proxy for', search.username, proxyUrl);
+                console.log('🔄 Trying proxy for', displayUsername, proxyUrl);
                 target.src = proxyUrl;
               } else {
-                console.log('🚫 All loading failed for', search.username, '- showing fallback');
+                console.log('🚫 All loading failed for', displayUsername, '- showing fallback');
                 target.style.display = 'none';
                 const fallback = target.nextElementSibling as HTMLElement;
                 if (fallback) fallback.style.display = 'flex';
@@ -142,7 +147,7 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
           className={`w-20 h-20 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center ${search.profile_photo_url ? 'hidden' : ''}`}
         >
           <span className="text-white font-bold text-xl">
-            @{search.username.slice(0, 2)}
+            @{usernameInitials}
           </span>
         </div>
         
@@ -172,7 +177,7 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
         {/* Username and status */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <p className="font-semibold text-sm">@{search.username}</p>
+            <p className="font-semibold text-sm">@{displayUsername}</p>
           </div>
           {getStatusBadge(search.status)}
         </div>
@@ -196,7 +201,7 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
         )}
 
         {/* Action button */}
-        {search.status === 'completed' && search.total_results > 0 ? (
+        {search.status === 'completed' && search.total_results > 0 && search.username ? (
           <Button
             size="sm"
             className="w-full bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
