@@ -77,7 +77,7 @@ serve(async (req) => {
       throw new Error('Apify API key not configured');
     }
 
-    const actorId = 'clockworks/tiktok-scraper';
+    const actorId = 'GdWCkxBtKWOsKjdch'; // Corrected TikTok scraper actor ID
     const input = {
       hashtags: [cleanHashtag],
       proxyCountryCode: "None",
@@ -101,7 +101,9 @@ serve(async (req) => {
     });
 
     if (!startResponse.ok) {
-      throw new Error(`Failed to start Apify run: ${startResponse.statusText}`);
+      const errorText = await startResponse.text();
+      console.error(`Apify API Error: ${startResponse.status} ${startResponse.statusText}`, errorText);
+      throw new Error(`Failed to start Apify run: ${startResponse.statusText} - ${errorText}`);
     }
 
     const startData = await startResponse.json();
