@@ -293,14 +293,7 @@ export function HashtagSearch() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex flex-col space-y-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">TikTok Hashtag Search</h1>
-          <p className="text-muted-foreground">
-            Discover viral TikTok videos from popular hashtags and analyze trends
-          </p>
-        </div>
-
+      <div className="flex flex-col space-y-6">
         {/* Search Form */}
         <Card>
           <CardHeader>
@@ -348,7 +341,7 @@ export function HashtagSearch() {
         </Card>
 
         {/* My Hashtags Section */}
-        {searches.length > 0 && (
+        {searches.length > 0 ? (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">My Hashtags</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -362,200 +355,19 @@ export function HashtagSearch() {
               ))}
             </div>
           </div>
-        )}
-
-        {/* Filters Section */}
-        {filteredVideos.length > 0 && (
-          <div id="results-section" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Results</h3>
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2"
-              >
-                <Filter className="w-4 h-4" />
-                Filters
-                <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-              </Button>
-            </div>
-
-            {showFilters && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Filter className="w-5 h-5" />
-                    Filters & Sorting
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* Sort By */}
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Sort By</label>
-                      <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="viral_score">Viral Score (High to Low)</SelectItem>
-                          <SelectItem value="views">Views (High to Low)</SelectItem>
-                          <SelectItem value="likes">Likes (High to Low)</SelectItem>
-                          <SelectItem value="date">Date (Newest First)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Time Range */}
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Time Range</label>
-                      <Select value={timeRange} onValueChange={setTimeRange}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Time</SelectItem>
-                          <SelectItem value="24h">Last 24 Hours</SelectItem>
-                          <SelectItem value="week">Last Week</SelectItem>
-                          <SelectItem value="month">Last Month</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Hashtag Filter */}
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Hashtag</label>
-                      <Select value={hashtagFilter} onValueChange={setHashtagFilter}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Hashtags</SelectItem>
-                          {getUniqueHashtags().map((hashtag) => (
-                            <SelectItem key={hashtag} value={hashtag!}>#{hashtag}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Min Viral Score */}
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Min Viral Score: {minViralScore[0]}
-                      </label>
-                      <Slider
-                        value={minViralScore}
-                        onValueChange={setMinViralScore}
-                        max={100}
-                        min={0}
-                        step={5}
-                        className="w-full"
-                      />
-                    </div>
-
-                    {/* Min Views */}
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Min Views: {formatNumber(minViews[0])}
-                      </label>
-                      <Slider
-                        value={minViews}
-                        onValueChange={setMinViews}
-                        max={10000000}
-                        min={1000}
-                        step={10000}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Active Filters */}
-                  {(selectedHashtag || hashtagFilter !== "all" || minViralScore[0] > 30 || minViews[0] > 1000 || timeRange !== "all") && (
-                    <div className="flex flex-wrap gap-2 items-center">
-                      <span className="text-sm font-medium">Active filters:</span>
-                      {selectedHashtag && (
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          #{selectedHashtag}
-                          <button onClick={() => setSelectedHashtag(null)}>×</button>
-                        </Badge>
-                      )}
-                      {hashtagFilter !== "all" && (
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          #{hashtagFilter}
-                          <button onClick={() => setHashtagFilter("all")}>×</button>
-                        </Badge>
-                      )}
-                      {minViralScore[0] > 30 && (
-                        <Badge variant="secondary">Viral Score ≥ {minViralScore[0]}</Badge>
-                      )}
-                      {minViews[0] > 1000 && (
-                        <Badge variant="secondary">Views ≥ {formatNumber(minViews[0])}</Badge>
-                      )}
-                      {timeRange !== "all" && (
-                        <Badge variant="secondary">{timeRange}</Badge>
-                      )}
-                      <Button size="sm" variant="outline" onClick={clearFilters}>
-                        Clear All
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Results Summary */}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <TrendingUp className="w-4 h-4" />
-                <span>{filteredVideos.length} viral TikToks found</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                <span>From {new Set(filteredVideos.map(v => v.username)).size} creators</span>
-              </div>
-            </div>
-
-            {/* Results Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredVideos.slice(0, visibleVideos).map((video) => (
-                <TikTokVideoCard
-                  key={video.id}
-                  video={video}
-                  onGenerateScript={handleGenerateScript}
-                />
-              ))}
-            </div>
-            
-            {/* Load More Button */}
-            {visibleVideos < filteredVideos.length && (
-              <div className="flex justify-center">
-                <Button 
-                  onClick={() => setVisibleVideos(prev => prev + 12)}
-                  variant="outline"
-                >
-                  Load More Videos ({filteredVideos.length - visibleVideos} remaining)
-                </Button>
-              </div>
-            )}
+        ) : (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">My Hashtags</h3>
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Hash className="w-12 h-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No hashtag searches yet</h3>
+                <p className="text-muted-foreground text-center">
+                  Search for a hashtag above to get started
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        )}
-
-        {/* Empty State */}
-        {filteredVideos.length === 0 && !loading && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Hash className="w-12 h-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No TikTok videos found</h3>
-              <p className="text-muted-foreground text-center">
-                {searches.length === 0 
-                  ? "Search for a hashtag to discover viral TikTok content"
-                  : "Try adjusting your filters or search for new hashtags"
-                }
-              </p>
-            </CardContent>
-          </Card>
         )}
       </div>
     </div>
