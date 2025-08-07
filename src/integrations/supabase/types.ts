@@ -321,6 +321,7 @@ export type Database = {
           error_message: string | null
           hashtag: string | null
           id: string
+          platform: string | null
           processing_time_seconds: number | null
           profile_photo_url: string | null
           requested_at: string
@@ -335,6 +336,7 @@ export type Database = {
           error_message?: string | null
           hashtag?: string | null
           id?: string
+          platform?: string | null
           processing_time_seconds?: number | null
           profile_photo_url?: string | null
           requested_at?: string
@@ -349,6 +351,7 @@ export type Database = {
           error_message?: string | null
           hashtag?: string | null
           id?: string
+          platform?: string | null
           processing_time_seconds?: number | null
           profile_photo_url?: string | null
           requested_at?: string
@@ -357,6 +360,129 @@ export type Database = {
           total_results?: number | null
           user_id?: string | null
           username?: string
+        }
+        Relationships: []
+      }
+      tiktok_videos: {
+        Row: {
+          apify_run_id: string | null
+          author_avatar: string | null
+          caption: string | null
+          collect_count: number | null
+          comment_count: number | null
+          created_at: string
+          dataset_id: string | null
+          digg_count: number | null
+          display_name: string | null
+          engagement_rate: number | null
+          followers: number | null
+          hashtags: string[] | null
+          id: string
+          is_video: boolean | null
+          mentions: string[] | null
+          music_author: string | null
+          music_name: string | null
+          music_original: boolean | null
+          platform: string | null
+          play_count: number | null
+          post_id: string
+          processing_time_seconds: number | null
+          scraped_at: string | null
+          search_hashtag: string | null
+          search_id: string | null
+          search_requested_at: string | null
+          search_status: string | null
+          share_count: number | null
+          shortcode: string | null
+          thumbnail_url: string | null
+          timestamp: string | null
+          url: string
+          username: string | null
+          verified: boolean | null
+          video_duration: number | null
+          video_url: string | null
+          viral_score: number | null
+          web_video_url: string | null
+        }
+        Insert: {
+          apify_run_id?: string | null
+          author_avatar?: string | null
+          caption?: string | null
+          collect_count?: number | null
+          comment_count?: number | null
+          created_at?: string
+          dataset_id?: string | null
+          digg_count?: number | null
+          display_name?: string | null
+          engagement_rate?: number | null
+          followers?: number | null
+          hashtags?: string[] | null
+          id?: string
+          is_video?: boolean | null
+          mentions?: string[] | null
+          music_author?: string | null
+          music_name?: string | null
+          music_original?: boolean | null
+          platform?: string | null
+          play_count?: number | null
+          post_id: string
+          processing_time_seconds?: number | null
+          scraped_at?: string | null
+          search_hashtag?: string | null
+          search_id?: string | null
+          search_requested_at?: string | null
+          search_status?: string | null
+          share_count?: number | null
+          shortcode?: string | null
+          thumbnail_url?: string | null
+          timestamp?: string | null
+          url: string
+          username?: string | null
+          verified?: boolean | null
+          video_duration?: number | null
+          video_url?: string | null
+          viral_score?: number | null
+          web_video_url?: string | null
+        }
+        Update: {
+          apify_run_id?: string | null
+          author_avatar?: string | null
+          caption?: string | null
+          collect_count?: number | null
+          comment_count?: number | null
+          created_at?: string
+          dataset_id?: string | null
+          digg_count?: number | null
+          display_name?: string | null
+          engagement_rate?: number | null
+          followers?: number | null
+          hashtags?: string[] | null
+          id?: string
+          is_video?: boolean | null
+          mentions?: string[] | null
+          music_author?: string | null
+          music_name?: string | null
+          music_original?: boolean | null
+          platform?: string | null
+          play_count?: number | null
+          post_id?: string
+          processing_time_seconds?: number | null
+          scraped_at?: string | null
+          search_hashtag?: string | null
+          search_id?: string | null
+          search_requested_at?: string | null
+          search_status?: string | null
+          share_count?: number | null
+          shortcode?: string | null
+          thumbnail_url?: string | null
+          timestamp?: string | null
+          url?: string
+          username?: string | null
+          verified?: boolean | null
+          video_duration?: number | null
+          video_url?: string | null
+          viral_score?: number | null
+          web_video_url?: string | null
         }
         Relationships: []
       }

@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthContext";
 import { useCredits } from "@/hooks/useCredits";
 import { CreditGuard } from "@/components/credits/CreditGuard";
-import { ReelCard } from "@/components/ReelCard";
+import { TikTokVideoCard } from "@/components/TikTokVideoCard";
 
 interface HashtagSearch {
   id: string;
@@ -20,25 +20,33 @@ interface HashtagSearch {
   completed_at?: string;
 }
 
-interface InstagramReel {
+interface TikTokVideo {
   id: string;
   post_id: string;
   url: string;
-  caption: string;
-  likes: number;
-  comments: number;
-  video_view_count: number;
-  viral_score: number;
-  engagement_rate: number;
-  timestamp: string;
-  thumbnail_url: string;
-  username: string;
-  display_name: string;
-  followers: number;
-  verified: boolean;
-  hashtags: string[];
-  video_url?: string;
-  scraped_at: string;
+  web_video_url?: string;
+  caption?: string;
+  hashtags?: string[];
+  digg_count: number; // likes in TikTok
+  share_count: number;
+  play_count: number;
+  comment_count: number;
+  collect_count: number;
+  viral_score?: number;
+  engagement_rate?: number;
+  timestamp?: string;
+  username?: string;
+  display_name?: string;
+  author_avatar?: string;
+  verified?: boolean;
+  followers?: number;
+  video_duration?: number;
+  music_name?: string;
+  music_author?: string;
+  music_original?: boolean;
+  search_hashtag?: string;
+  scraped_at?: string;
+  platform: string;
 }
 
 export function HashtagSearch() {
@@ -46,29 +54,29 @@ export function HashtagSearch() {
   const { credits, hasCredits } = useCredits();
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
-  const [reels, setReels] = useState<InstagramReel[]>([]);
+  const [videos, setVideos] = useState<TikTokVideo[]>([]);
   const [searches, setSearches] = useState<HashtagSearch[]>([]);
-  const [filteredReels, setFilteredReels] = useState<InstagramReel[]>([]);
+  const [filteredVideos, setFilteredVideos] = useState<TikTokVideo[]>([]);
 
   useEffect(() => {
     if (user) {
-      loadHashtagReels();
+      loadHashtagVideos();
       loadSearchHistory();
     }
   }, [user]);
 
   useEffect(() => {
-    // Filter reels based on search term
+    // Filter videos based on search term
     if (searchTerm.trim()) {
-      const filtered = reels.filter(reel =>
-        reel.caption?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reel.hashtags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      const filtered = videos.filter(video =>
+        video.caption?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        video.hashtags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       );
-      setFilteredReels(filtered);
+      setFilteredVideos(filtered);
     } else {
-      setFilteredReels(reels);
+      setFilteredVideos(videos);
     }
-  }, [reels, searchTerm]);
+  }, [videos, searchTerm]);
 
   const scrapeHashtagPosts = async (hashtag: string) => {
     if (!user) {
@@ -84,7 +92,7 @@ export function HashtagSearch() {
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('scrape-instagram-hashtags', {
+      const { data, error } = await supabase.functions.invoke('scrape-tiktok-hashtags', {
         body: { hashtag: hashtag.replace('#', '') }
       });
 
@@ -95,8 +103,8 @@ export function HashtagSearch() {
       }
 
       if (data?.success) {
-        toast.success(`Found ${data.totalPosts} posts for #${data.hashtag}`);
-        await loadHashtagReels();
+        toast.success(`Found ${data.videosFound} TikTok videos for #${hashtag}`);
+        await loadHashtagVideos();
         await loadSearchHistory();
       } else {
         toast.error(data?.error || "Failed to search hashtag");
@@ -109,23 +117,23 @@ export function HashtagSearch() {
     }
   };
 
-  const loadHashtagReels = async () => {
+  const loadHashtagVideos = async () => {
     try {
       const { data, error } = await supabase
-        .from('instagram_reels')
+        .from('tiktok_videos')
         .select('*')
         .not('search_hashtag', 'is', null)
         .order('viral_score', { ascending: false })
         .limit(50);
 
       if (error) {
-        console.error('Error loading hashtag reels:', error);
+        console.error('Error loading TikTok videos:', error);
         return;
       }
 
-      setReels(data || []);
+      setVideos(data || []);
     } catch (error) {
-      console.error('Error loading hashtag reels:', error);
+      console.error('Error loading TikTok videos:', error);
     }
   };
 
@@ -138,6 +146,7 @@ export function HashtagSearch() {
         .select('*')
         .eq('user_id', user.id)
         .eq('search_type', 'hashtag')
+        .eq('platform', 'tiktok')
         .order('requested_at', { ascending: false })
         .limit(10);
 
@@ -186,9 +195,9 @@ export function HashtagSearch() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex flex-col space-y-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Hashtag Search</h1>
+          <h1 className="text-3xl font-bold text-foreground">TikTok Hashtag Search</h1>
           <p className="text-muted-foreground">
-            Discover trending posts from popular hashtags in the last year
+            Discover viral TikTok videos from popular hashtags in the last year
           </p>
         </div>
 
@@ -197,10 +206,10 @@ export function HashtagSearch() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Hash className="w-5 h-5" />
-              Search Hashtag Posts
+              Search TikTok Hashtags
             </CardTitle>
             <CardDescription>
-              Search for viral content by hashtag (2 credits per search)
+              Search for viral TikTok videos by hashtag (2 credits per search)
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -209,7 +218,7 @@ export function HashtagSearch() {
                 <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   type="text"
-                  placeholder="Enter hashtag (e.g., fashion, fitness, travel)"
+                  placeholder="Enter hashtag (e.g., makemoneyonline, fitness, travel)"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -222,7 +231,7 @@ export function HashtagSearch() {
                   className="flex items-center gap-2"
                 >
                   <Search className="w-4 h-4" />
-                  {loading ? "Searching..." : "Search Posts"}
+                  {loading ? "Searching..." : "Search TikToks"}
                 </Button>
               </CreditGuard>
             </form>
@@ -265,26 +274,26 @@ export function HashtagSearch() {
         )}
 
         {/* Results Summary */}
-        {filteredReels.length > 0 && (
+        {filteredVideos.length > 0 && (
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <TrendingUp className="w-4 h-4" />
-              <span>{filteredReels.length} viral posts found</span>
+              <span>{filteredVideos.length} viral TikToks found</span>
             </div>
             <div className="flex items-center gap-1">
               <Users className="w-4 h-4" />
-              <span>From {new Set(filteredReels.map(r => r.username)).size} creators</span>
+              <span>From {new Set(filteredVideos.map(v => v.username)).size} creators</span>
             </div>
           </div>
         )}
 
         {/* Results Grid */}
-        {filteredReels.length > 0 ? (
+        {filteredVideos.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredReels.map((reel) => (
-              <ReelCard
-                key={reel.id}
-                reel={reel}
+            {filteredVideos.map((video) => (
+              <TikTokVideoCard
+                key={video.id}
+                video={video}
                 onGenerateScript={handleGenerateScript}
               />
             ))}
@@ -293,9 +302,9 @@ export function HashtagSearch() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Hash className="w-12 h-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No hashtag posts yet</h3>
+              <h3 className="text-lg font-semibold mb-2">No TikTok videos yet</h3>
               <p className="text-muted-foreground text-center">
-                Search for a hashtag to discover trending posts and viral content
+                Search for a hashtag to discover viral TikTok content
               </p>
             </CardContent>
           </Card>
