@@ -170,59 +170,178 @@ export const LandingPage = () => {
 
       {/* Pricing Section */}
       <section className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Simple, Transparent Pricing
+            Simple, Credit-Based Pricing
           </h2>
           <p className="text-xl text-muted-foreground mb-12">
-            Everything you need to create viral content, in one plan
+            Choose the plan that fits your content creation needs
           </p>
 
-          <Card className="border-2 border-primary/50 relative overflow-hidden max-w-md mx-auto">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-instagram-pink to-instagram-purple"></div>
-            <CardHeader className="text-center pt-8">
-              <Badge className="mx-auto mb-4 bg-gradient-to-r from-instagram-pink to-instagram-purple text-white border-none">
-                Most Popular
-              </Badge>
-              <CardTitle className="text-2xl">Pro Plan</CardTitle>
-              <div className="text-4xl font-bold mt-4">
-                $97
-                <span className="text-lg font-normal text-muted-foreground">/month</span>
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Free Plan */}
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
+                  <Star className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <CardTitle className="text-xl">Free</CardTitle>
+                <div className="text-3xl font-bold mt-4">
+                  $0
+                  <span className="text-lg font-normal text-muted-foreground">/month</span>
+                </div>
+                <CardDescription>Perfect for getting started</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">10 credits per month</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Instagram searches (2 credits)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Script generation (1 credit)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Basic analytics</span>
+                  </div>
+                </div>
+                <Link to="/auth">
+                  <Button variant="outline" className="w-full">
+                    Get Started Free
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Pro Plan */}
+            <Card className="border-2 border-primary/50 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-instagram-pink to-instagram-purple"></div>
+              <CardHeader className="text-center pt-8">
+                <Badge className="mx-auto mb-4 bg-gradient-to-r from-instagram-pink to-instagram-purple text-white border-none">
+                  Most Popular
+                </Badge>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle className="text-xl">Pro</CardTitle>
+                <div className="text-3xl font-bold mt-4">
+                  $29
+                  <span className="text-lg font-normal text-muted-foreground">/month</span>
+                </div>
+                <CardDescription>Best for active creators</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">100 credits per month</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Instagram searches (2 credits)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Script generation (1 credit)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Advanced analytics</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Priority support</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Export features</span>
+                  </div>
+                </div>
+                <Link to="/auth">
+                  <Button className="w-full bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90">
+                    Start 7-Day Free Trial
+                  </Button>
+                </Link>
+                <p className="text-xs text-muted-foreground mt-3 text-center">
+                  No credit card required. Cancel anytime.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Premium Plan */}
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle className="text-xl">Premium</CardTitle>
+                <div className="text-3xl font-bold mt-4">
+                  $97
+                  <span className="text-lg font-normal text-muted-foreground">/month</span>
+                </div>
+                <CardDescription>For power users & agencies</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm font-medium">Unlimited credits</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Unlimited searches</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Unlimited script generation</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Advanced analytics</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Custom integrations</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm">Dedicated account manager</span>
+                  </div>
+                </div>
+                <Link to="/auth">
+                  <Button variant="outline" className="w-full">
+                    Contact Sales
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-12 text-center">
+            <p className="text-sm text-muted-foreground mb-4">
+              Need more? We offer custom plans for enterprises and agencies.
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>7-day free trial on all plans</span>
               </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-4 mb-8">
-                <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span>Unlimited viral content discovery</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span>AI script generation (unlimited)</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span>Advanced analytics & insights</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span>Real-time Instagram scraping</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span>Priority support</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>No setup fees</span>
               </div>
-              <Link to="/auth">
-                <Button className="w-full bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90">
-                  Start 7-Day Free Trial
-                </Button>
-              </Link>
-              <p className="text-sm text-muted-foreground mt-4">
-                No credit card required. Cancel anytime.
-              </p>
-            </CardContent>
-          </Card>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>Cancel anytime</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -307,8 +426,12 @@ export const LandingPage = () => {
                 a: "Our system continuously scrapes Instagram for new viral content throughout the day. You'll always have access to the freshest trending content and emerging viral patterns."
               },
               {
+                q: "How do credits work?",
+                a: "Credits are used for different actions: Instagram searches cost 2 credits, script generation costs 1 credit. Your credits reset every month based on your subscription plan. Free users get 10 credits, Pro users get 100, and Premium users get unlimited."
+              },
+              {
                 q: "Is there a limit to how many scripts I can generate?",
-                a: "No limits! With our Pro plan, you get unlimited script generation. Create as many scripts as you need to fuel your content creation."
+                a: "It depends on your plan! Free users can generate up to 10 scripts per month, Pro users can generate 100, and Premium users have unlimited script generation."
               },
               {
                 q: "Do you provide analytics on my generated content performance?",
