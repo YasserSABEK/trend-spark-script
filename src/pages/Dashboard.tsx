@@ -22,7 +22,7 @@ import {
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditDisplay } from "@/components/credits/CreditDisplay";
+
 import { CreditWarning } from "@/components/credits/CreditWarning";
 
 interface DashboardStats {
@@ -150,7 +150,7 @@ export const Dashboard = () => {
               <RefreshCw className="w-4 h-4" />
             </Button>
           </div>
-          <CreditDisplay />
+          
         </div>
       </div>
 

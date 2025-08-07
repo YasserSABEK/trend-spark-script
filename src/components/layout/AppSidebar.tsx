@@ -24,7 +24,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ProfileDropdown } from "@/components/profile/ProfileDropdown";
+import { SidebarProfileSection } from "@/components/profile/SidebarProfileSection";
 
 const navigationItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -91,8 +91,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-2">
-        <ProfileDropdown collapsed={collapsed} />
+      <SidebarFooter className="border-t border-sidebar-border p-0">
+        <SidebarProfileSection collapsed={collapsed} />
       </SidebarFooter>
     </Sidebar>
   );
