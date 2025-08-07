@@ -329,7 +329,7 @@ export type Database = {
           status: string
           total_results: number | null
           user_id: string | null
-          username: string
+          username: string | null
         }
         Insert: {
           completed_at?: string | null
@@ -344,7 +344,7 @@ export type Database = {
           status?: string
           total_results?: number | null
           user_id?: string | null
-          username: string
+          username?: string | null
         }
         Update: {
           completed_at?: string | null
@@ -359,7 +359,7 @@ export type Database = {
           status?: string
           total_results?: number | null
           user_id?: string | null
-          username?: string
+          username?: string | null
         }
         Relationships: []
       }

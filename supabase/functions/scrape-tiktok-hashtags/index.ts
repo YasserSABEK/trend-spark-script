@@ -61,7 +61,8 @@ serve(async (req) => {
         search_type: 'hashtag',
         platform: 'tiktok',
         status: 'pending',
-        user_id: user.id
+        user_id: user.id,
+        username: null // Explicitly set to null for hashtag searches
       })
       .select()
       .single();
@@ -76,19 +77,14 @@ serve(async (req) => {
       throw new Error('Apify API key not configured');
     }
 
-    const actorId = 'clockworks/tiktok-scraper';
+    const actorId = 'clockworks/free-tiktok-scraper';
     const input = {
-      excludePinnedPosts: false,
       hashtags: [cleanHashtag],
-      proxyCountryCode: "None",
       resultsPerPage: 100,
-      scrapeRelatedVideos: false,
-      shouldDownloadAvatars: false,
-      shouldDownloadCovers: false,
-      shouldDownloadMusicCovers: false,
-      shouldDownloadSlideshowImages: false,
+      shouldDownloadVideos: false,
       shouldDownloadSubtitles: false,
-      shouldDownloadVideos: false
+      shouldDownloadCovers: false,
+      shouldDownloadSlideshowImages: false
     };
 
     // Start Apify run
@@ -98,7 +94,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${apifyToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ startUrls: [], ...input }),
+      body: JSON.stringify(input),
     });
 
     if (!startResponse.ok) {
