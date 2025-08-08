@@ -325,13 +325,10 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
           </div>
         </div>
 
-        {/* Engagement Rate and Viral Score */}
-        <div className="flex justify-between items-center mb-4">
+        {/* Engagement Rate */}
+        <div className="flex justify-start items-center mb-4">
           <Badge variant="outline" className="text-xs">
             {video.engagement_rate ? `${video.engagement_rate.toFixed(1)}% ER` : 'N/A ER'}
-          </Badge>
-          <Badge className={`${getViralScoreColor(calculateViralScore(video))} text-white text-xs`}>
-            Viral Score: {calculateViralScore(video)}
           </Badge>
         </div>
 
