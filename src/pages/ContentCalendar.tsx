@@ -151,7 +151,10 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
         </div>
 
         {/* Delete Button */}
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div 
+          className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          onClick={(e) => e.stopPropagation()} // Prevent click from bubbling to parent
+        >
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
@@ -159,6 +162,7 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
                 variant="destructive"
                 className="w-8 h-8 p-0 rounded-full bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 hover:border-destructive/40 backdrop-blur-sm"
                 disabled={isDeleting}
+                onClick={(e) => e.stopPropagation()} // Extra protection against bubbling
               >
                 <Trash2 className="w-3.5 h-3.5 text-destructive" />
               </Button>
@@ -173,7 +177,10 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction 
-                  onClick={handleDelete} 
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent bubbling when delete is confirmed
+                    handleDelete();
+                  }}
                   className="bg-destructive hover:bg-destructive/90"
                   disabled={isDeleting}
                 >
