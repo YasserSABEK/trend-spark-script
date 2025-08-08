@@ -131,6 +131,33 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
     return "bg-gradient-to-r from-gray-500 to-gray-600";
   };
 
+  const calculateViralScore = (video: TikTokVideo) => {
+    if (video.viral_score && video.viral_score <= 100) {
+      return video.viral_score;
+    }
+    
+    // Calculate viral score based on engagement metrics (out of 100)
+    const likes = video.digg_count || 0;
+    const views = video.play_count || 0;
+    const comments = video.comment_count || 0;
+    const shares = video.share_count || 0;
+    
+    if (views === 0) return 0;
+    
+    const engagementRate = ((likes + comments + shares) / views) * 100;
+    const likeRatio = (likes / views) * 100;
+    
+    // Weighted score calculation (out of 100)
+    let score = Math.min(100, (engagementRate * 0.7) + (likeRatio * 0.3));
+    
+    // Boost score based on absolute numbers
+    if (views > 1000000) score = Math.min(100, score + 10);
+    if (views > 10000000) score = Math.min(100, score + 15);
+    if (likes > 100000) score = Math.min(100, score + 5);
+    
+    return Math.round(score);
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group">
       {/* Video Thumbnail */}
@@ -205,7 +232,7 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
         </div>
       </div>
 
-      <CardContent className="p-4">
+      <CardContent className="p-4 flex flex-col h-full">
         {/* Creator Info */}
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
@@ -239,7 +266,7 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
         </div>
 
         {/* Caption */}
-        <p className="text-sm mb-3 line-clamp-3 leading-relaxed">{video.caption}</p>
+        <p className="text-sm mb-3 line-clamp-2 leading-relaxed">{video.caption}</p>
 
         {/* Music Info */}
         {video.music_name && (
@@ -267,7 +294,7 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
         </div>
 
         {/* Engagement Stats */}
-        <div className="grid grid-cols-4 gap-2 mb-4 text-center">
+        <div className="grid grid-cols-4 gap-2 mb-3 text-center">
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-1 text-sm font-medium">
               <Heart className="w-4 h-4 text-red-500" />
@@ -298,18 +325,18 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
           </div>
         </div>
 
-        {/* Engagement Rate */}
+        {/* Engagement Rate and Viral Score */}
         <div className="flex justify-between items-center mb-4">
           <Badge variant="outline" className="text-xs">
             {video.engagement_rate ? `${video.engagement_rate.toFixed(1)}% ER` : 'N/A ER'}
           </Badge>
-          <Badge className={`${getViralScoreColor(video.viral_score)} text-white text-xs`}>
-            Viral Score: {video.viral_score || 0}
+          <Badge className={`${getViralScoreColor(calculateViralScore(video))} text-white text-xs`}>
+            Viral Score: {calculateViralScore(video)}
           </Badge>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-2">
+        {/* Actions - Fixed at bottom */}
+        <div className="mt-auto flex gap-2">
           <Button 
             size="sm" 
             className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90"
