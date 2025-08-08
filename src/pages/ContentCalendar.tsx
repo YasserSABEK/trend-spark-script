@@ -213,11 +213,10 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
           <Button 
             size="sm" 
             variant="outline"
-            className="flex-1 h-10 text-xs font-medium border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+            className="w-12 h-10 p-0 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
             onClick={handleViewOriginal}
           >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Watch Original
+            <ExternalLink className="w-4 h-4" />
           </Button>
 
           <Button 
