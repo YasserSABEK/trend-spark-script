@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Filter, TrendingUp, Search, ChevronDown, Loader2, ArrowLeft, Hash } from "lucide-react";
 import { ReelCard } from "@/components/ReelCard";
+import { TikTokEmbed } from "@/components/media/TikTokEmbed";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -289,26 +290,10 @@ export const HashtagVideos = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVideos.slice(0, visibleVideos).map((video) => (
               <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div className="aspect-[9/16] bg-gradient-to-br from-primary/10 to-primary/5 relative">
-                  {video.thumbnail_url ? (
-                    <img
-                      src={video.thumbnail_url}
-                      alt={`Video by ${video.username}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                        <Hash className="w-8 h-8 text-primary" />
-                      </div>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <Button size="lg" className="rounded-full">
-                      <span className="text-xl">▶</span>
-                    </Button>
-                  </div>
-                </div>
+                <TikTokEmbed 
+                  url={video.url}
+                  className="w-full"
+                />
                 
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">

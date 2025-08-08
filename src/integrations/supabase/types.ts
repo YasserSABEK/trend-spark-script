@@ -417,6 +417,39 @@ export type Database = {
         }
         Relationships: []
       }
+      tiktok_oembed_cache: {
+        Row: {
+          fetched_at: string
+          height: number | null
+          html: string | null
+          id: string
+          thumbnail_url: string | null
+          url: string
+          video_id: string
+          width: number | null
+        }
+        Insert: {
+          fetched_at?: string
+          height?: number | null
+          html?: string | null
+          id?: string
+          thumbnail_url?: string | null
+          url: string
+          video_id: string
+          width?: number | null
+        }
+        Update: {
+          fetched_at?: string
+          height?: number | null
+          html?: string | null
+          id?: string
+          thumbnail_url?: string | null
+          url?: string
+          video_id?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
       tiktok_videos: {
         Row: {
           apify_run_id: string | null
