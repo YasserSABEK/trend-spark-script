@@ -8,7 +8,8 @@ import {
   FileText, 
   Zap,
   CreditCard,
-  Bookmark
+  Bookmark,
+  CalendarDays
 } from "lucide-react";
 import {
   Sidebar,
