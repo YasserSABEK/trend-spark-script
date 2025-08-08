@@ -215,6 +215,7 @@ export type Database = {
           thumbnail_url: string | null
           timestamp: string | null
           url: string
+          user_id: string | null
           username: string | null
           verified: boolean | null
           video_duration: number | null
@@ -250,6 +251,7 @@ export type Database = {
           thumbnail_url?: string | null
           timestamp?: string | null
           url: string
+          user_id?: string | null
           username?: string | null
           verified?: boolean | null
           video_duration?: number | null
@@ -285,6 +287,7 @@ export type Database = {
           thumbnail_url?: string | null
           timestamp?: string | null
           url?: string
+          user_id?: string | null
           username?: string | null
           verified?: boolean | null
           video_duration?: number | null
@@ -484,6 +487,7 @@ export type Database = {
           thumbnail_url: string | null
           timestamp: string | null
           url: string
+          user_id: string | null
           username: string | null
           verified: boolean | null
           video_duration: number | null
@@ -524,6 +528,7 @@ export type Database = {
           thumbnail_url?: string | null
           timestamp?: string | null
           url: string
+          user_id?: string | null
           username?: string | null
           verified?: boolean | null
           video_duration?: number | null
@@ -564,6 +569,7 @@ export type Database = {
           thumbnail_url?: string | null
           timestamp?: string | null
           url?: string
+          user_id?: string | null
           username?: string | null
           verified?: boolean | null
           video_duration?: number | null
@@ -626,6 +632,10 @@ export type Database = {
           billing_cycle_start: string
         }[]
       }
+      safe_deduct_credits: {
+        Args: { user_id_param: string; credits_to_deduct: number }
+        Returns: Json
+      }
       update_subscription_plan: {
         Args: {
           user_id_param: string
@@ -635,6 +645,10 @@ export type Database = {
           stripe_subscription_id_param?: string
         }
         Returns: undefined
+      }
+      user_owns_content: {
+        Args: { content_user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
