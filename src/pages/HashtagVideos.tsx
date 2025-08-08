@@ -59,6 +59,19 @@ export const HashtagVideos = () => {
   const [sort, setSort] = useState<'views' | 'likes' | 'comments' | 'newest'>((searchParams.get('sort') as any) || 'views');
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
+  // Update URL when sort changes
+  useEffect(() => {
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      if (sort !== 'views') {
+        newParams.set('sort', sort);
+      } else {
+        newParams.delete('sort');
+      }
+      return newParams;
+    });
+  }, [sort, setSearchParams]);
+
   useEffect(() => {
     if (!hashtagId) return;
     // Reset pagination
@@ -67,6 +80,24 @@ export const HashtagVideos = () => {
     setHasMore(true);
     loadHashtagVideos(0, false);
   }, [hashtagId, sort]);
+
+  // Infinite scroll effect
+  useEffect(() => {
+    if (!sentinelRef.current || !hasMore || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadHashtagVideos(page + 1, true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(sentinelRef.current);
+
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, page]);
 
   const loadHashtagVideos = async (pageIndex = 0, append = false) => {
     try {
@@ -297,36 +328,44 @@ export const HashtagVideos = () => {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredVideos.map((video) => (
-              <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
+              <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col">
                 <TikTokEmbed 
                   url={video.url}
                   thumbnailUrl={video.thumbnail_url}
-                  className="w-full"
                 />
                 
-                <CardContent className="p-4">
+                <CardContent className="p-4 flex-1 flex flex-col">
                   <div className="flex items-center gap-2 mb-2">
                     <img
                       src={video.author_avatar || '/placeholder.svg'}
                       alt={video.username}
-                      className="w-6 h-6 rounded-full"
+                      className="w-6 h-6 rounded-full flex-shrink-0"
                       loading="lazy"
                     />
-                    <span className="text-sm font-medium">@{video.username}</span>
-                    {video.verified && <span className="text-xs">✓</span>}
+                    <span className="text-sm font-medium truncate">@{video.username}</span>
+                    {video.verified && <span className="text-xs flex-shrink-0">✓</span>}
                   </div>
                   
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2 flex-1">
                     {video.caption}
                   </p>
                   
-                  <div className="flex justify-between items-center text-xs text-muted-foreground">
-                    <span>♥ {formatNumber(video.digg_count)}</span>
-                    <span>💬 {formatNumber(video.comment_count)}</span>
-                    <span>↗ {formatNumber(video.share_count)}</span>
-                    <Badge variant="outline" className="text-xs">
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <span>♥</span>
+                      <span className="truncate">{formatNumber(video.digg_count)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>💬</span>
+                      <span className="truncate">{formatNumber(video.comment_count)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>↗</span>
+                      <span className="truncate">{formatNumber(video.share_count)}</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs justify-self-end">
                       {video.viral_score}
                     </Badge>
                   </div>

@@ -29,7 +29,10 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handlePlay = async () => {
+  const handlePlay = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (isPlaying || oembedData) {
       setIsPlaying(true);
       return;
@@ -70,13 +73,17 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
       setOembedData(data);
       setIsPlaying(true);
 
-      // Ensure TikTok embed script is loaded
-      if (!document.querySelector('script[src*="tiktok.com/embed.js"]')) {
-        const script = document.createElement('script');
-        script.src = 'https://www.tiktok.com/embed.js';
-        script.async = true;
-        document.head.appendChild(script);
-      }
+      // Ensure TikTok embed script is loaded and initialize
+      setTimeout(() => {
+        if (typeof (window as any).tiktokEmbedLoad === 'function') {
+          (window as any).tiktokEmbedLoad();
+        } else if (!document.querySelector('script[src*="tiktok.com/embed.js"]')) {
+          const script = document.createElement('script');
+          script.src = 'https://www.tiktok.com/embed.js';
+          script.async = true;
+          document.head.appendChild(script);
+        }
+      }, 100);
 
     } catch (err) {
       console.error('TikTok embed error:', err);
@@ -90,21 +97,23 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
 
   if (isPlaying && oembedData) {
     return (
-      <div 
-        className={`tiktok-embed ${className}`}
-        dangerouslySetInnerHTML={{ __html: oembedData.html }}
-      />
+      <div className={`aspect-[9/16] w-full overflow-hidden rounded-xl ${className}`}>
+        <div 
+          className="tiktok-embed w-full h-full"
+          dangerouslySetInnerHTML={{ __html: oembedData.html }}
+        />
+      </div>
     );
   }
 
   return (
-    <div className={`relative group cursor-pointer ${className}`} onClick={handlePlay}>
-      <div className="w-full aspect-[9/16] bg-muted rounded-lg overflow-hidden">
+    <div className={`relative group cursor-pointer ${className}`}>
+      <div className="aspect-[9/16] w-full overflow-hidden rounded-xl bg-muted">
         {oembedData?.thumbnail_url || thumbnailUrl ? (
           <img 
             src={oembedData?.thumbnail_url || thumbnailUrl!} 
             alt="TikTok video thumbnail"
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
             loading="lazy"
           />
         ) : (
@@ -121,8 +130,9 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
           <Button
             variant="secondary"
             size="lg"
-            className="bg-white/90 hover:bg-white text-black"
+            className="bg-white/90 hover:bg-white text-black pointer-events-auto z-10"
             disabled={isLoading}
+            onClick={handlePlay}
           >
             {isLoading ? (
               <div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin" />
