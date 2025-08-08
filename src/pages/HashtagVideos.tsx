@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Filter, TrendingUp, Search, ChevronDown, Loader2, ArrowLeft, Hash } from "lucide-react";
-import { ReelCard } from "@/components/ReelCard";
 import { TikTokEmbed } from "@/components/media/TikTokEmbed";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,62 +47,78 @@ export const HashtagVideos = () => {
   const { hashtagId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [videos, setVideos] = useState<TikTokVideo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [total, setTotal] = useState(0);
+  const pageSize = 24;
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [visibleVideos, setVisibleVideos] = useState(12);
-  const [filterOptions, setFilterOptions] = useState({
-    minViralScore: 30,
-    minLikes: 100,
-    timeRange: '24h'
-  });
+  const [sort, setSort] = useState<'views' | 'likes' | 'comments' | 'newest'>((searchParams.get('sort') as any) || 'views');
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (hashtagId) {
-      loadHashtagVideos();
-    }
-  }, [hashtagId]);
+    if (!hashtagId) return;
+    // Reset pagination
+    setVideos([]);
+    setPage(0);
+    setHasMore(true);
+    loadHashtagVideos(0, false);
+  }, [hashtagId, sort]);
 
-  const loadHashtagVideos = async () => {
+  const loadHashtagVideos = async (pageIndex = 0, append = false) => {
     try {
-      setLoading(true);
-      
-      // Load videos from TikTok that contain this hashtag
-      const { data, error } = await supabase
+      if (append) setLoadingMore(true); else setLoading(true);
+      const from = pageIndex * pageSize;
+      const to = from + pageSize - 1;
+
+      const sortMap: Record<string, { column: string; ascending: boolean }> = {
+        views: { column: 'play_count', ascending: false },
+        likes: { column: 'digg_count', ascending: false },
+        comments: { column: 'comment_count', ascending: false },
+        newest: { column: 'timestamp', ascending: false },
+      };
+
+      const order = sortMap[sort] || sortMap.views;
+
+      const { data, error, count } = await supabase
         .from('tiktok_videos')
-        .select('*')
-        .contains('hashtags', [hashtagId])
-        .order('viral_score', { ascending: false })
-        .limit(100);
+        .select('*', { count: 'exact' })
+        .eq('search_hashtag', hashtagId)
+        .order(order.column, { ascending: order.ascending })
+        .range(from, to);
 
       if (error) throw error;
 
-      setVideos(data || []);
+      setTotal(count || 0);
+      setVideos(prev => append ? [...prev, ...(data || [])] : (data || []));
+      setHasMore(((from + (data?.length || 0)) < (count || 0)));
+      setPage(pageIndex);
     } catch (error) {
       console.error('Error loading hashtag videos:', error);
       toast({
-        title: "Error loading videos",
-        description: "Failed to load videos from database",
-        variant: "destructive",
+        title: 'Error loading videos',
+        description: 'Failed to load videos from database',
+        variant: 'destructive',
       });
-      setVideos([]);
+      if (!append) setVideos([]);
     } finally {
-      setLoading(false);
+      if (append) setLoadingMore(false); else setLoading(false);
     }
   };
 
-  const filteredVideos = videos.filter(video => {
-    const matchesSearch = !searchTerm || 
-      video.caption.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      video.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      video.hashtags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesFilters = 
-      video.viral_score >= filterOptions.minViralScore &&
-      video.digg_count >= filterOptions.minLikes;
-
-    return matchesSearch && matchesFilters;
-  });
+  const filteredVideos = searchTerm
+    ? videos.filter((video) => {
+        const term = searchTerm.toLowerCase();
+        return (
+          (video.caption || '').toLowerCase().includes(term) ||
+          (video.username || '').toLowerCase().includes(term) ||
+          (video.hashtags || []).some((t) => (t || '').toLowerCase().includes(term))
+        );
+      })
+    : videos;
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -110,10 +126,11 @@ export const HashtagVideos = () => {
     return num.toString();
   };
 
-  const totalLikes = filteredVideos.reduce((sum, video) => sum + video.digg_count, 0);
-  const totalViews = filteredVideos.reduce((sum, video) => sum + video.play_count, 0);
-  const avgViralScore = filteredVideos.length > 0 
-    ? Math.round(filteredVideos.reduce((sum, video) => sum + video.viral_score, 0) / filteredVideos.length)
+  // Keep stats based on currently loaded videos
+  const totalLikes = videos.reduce((sum, video) => sum + video.digg_count, 0);
+  const totalViews = videos.reduce((sum, video) => sum + video.play_count, 0);
+  const avgViralScore = videos.length > 0 
+    ? Math.round(videos.reduce((sum, video) => sum + video.viral_score, 0) / videos.length)
     : 0;
 
   if (loading) {
@@ -206,7 +223,7 @@ export const HashtagVideos = () => {
             <Card className="bg-gradient-to-br from-primary/5 to-primary/10">
               <CardContent className="p-4 text-center">
                 <TrendingUp className="w-6 h-6 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold">{filteredVideos.length}</p>
+                <p className="text-2xl font-bold">{total}</p>
                 <p className="text-sm text-muted-foreground">Total Videos</p>
               </CardContent>
             </Card>
@@ -232,18 +249,25 @@ export const HashtagVideos = () => {
             </Card>
           </div>
 
-          {/* Search and Filters */}
-          <div className="flex gap-2 flex-wrap">
+          {/* Search and Sort */}
+          <div className="flex gap-2 flex-wrap items-center">
             <Input
               placeholder="Search videos by caption, username, or hashtags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 min-w-[250px]"
             />
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
-            </Button>
+            <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="views">Top Viewed</SelectItem>
+                <SelectItem value="likes">Likes</SelectItem>
+                <SelectItem value="comments">Comments</SelectItem>
+                <SelectItem value="newest">Newest</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -270,7 +294,7 @@ export const HashtagVideos = () => {
       )}
 
       {/* Videos Grid */}
-      {filteredVideos.length === 0 ? (
+      {total === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <Hash className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -279,19 +303,18 @@ export const HashtagVideos = () => {
               {searchTerm ? `No videos match your search for "${searchTerm}"` : `No videos found for hashtag #${hashtagId}`}
             </p>
             {searchTerm && (
-              <Button variant="outline" onClick={() => setSearchTerm("")}>
-                Clear search
-              </Button>
+              <Button variant="outline" onClick={() => setSearchTerm("")}>Clear search</Button>
             )}
           </CardContent>
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVideos.slice(0, visibleVideos).map((video) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredVideos.map((video) => (
               <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
                 <TikTokEmbed 
                   url={video.url}
+                  thumbnailUrl={video.thumbnail_url}
                   className="w-full"
                 />
                 
@@ -301,6 +324,7 @@ export const HashtagVideos = () => {
                       src={video.author_avatar || '/placeholder.svg'}
                       alt={video.username}
                       className="w-6 h-6 rounded-full"
+                      loading="lazy"
                     />
                     <span className="text-sm font-medium">@{video.username}</span>
                     {video.verified && <span className="text-xs">✓</span>}
@@ -323,17 +347,11 @@ export const HashtagVideos = () => {
             ))}
           </div>
 
-          {/* Load More */}
-          {visibleVideos < filteredVideos.length && (
-            <div className="text-center">
-              <Button
-                variant="outline"
-                onClick={() => setVisibleVideos(prev => prev + 12)}
-                className="mt-6"
-              >
-                <ChevronDown className="w-4 h-4 mr-2" />
-                Load More Videos ({filteredVideos.length - visibleVideos} remaining)
-              </Button>
+          {/* Infinite scroll sentinel */}
+          <div ref={sentinelRef} className="h-8" />
+          {loadingMore && (
+            <div className="flex justify-center py-4">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           )}
         </>

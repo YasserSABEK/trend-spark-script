@@ -7,6 +7,7 @@ interface TikTokEmbedProps {
   url: string;
   autoplay?: boolean;
   className?: string;
+  thumbnailUrl?: string;
 }
 
 interface OEmbedData {
@@ -20,7 +21,8 @@ interface OEmbedData {
 export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({ 
   url, 
   autoplay = false,
-  className = ""
+  className = "",
+  thumbnailUrl
 }) => {
   const [isPlaying, setIsPlaying] = useState(autoplay);
   const [oembedData, setOembedData] = useState<OEmbedData | null>(null);
@@ -97,13 +99,13 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
 
   return (
     <div className={`relative group cursor-pointer ${className}`} onClick={handlePlay}>
-      {/* Thumbnail or placeholder */}
       <div className="w-full aspect-[9/16] bg-muted rounded-lg overflow-hidden">
-        {oembedData?.thumbnail_url ? (
+        {oembedData?.thumbnail_url || thumbnailUrl ? (
           <img 
-            src={oembedData.thumbnail_url} 
+            src={oembedData?.thumbnail_url || thumbnailUrl!} 
             alt="TikTok video thumbnail"
             className="w-full h-full object-cover"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-pink-400 to-purple-600 flex items-center justify-center">
