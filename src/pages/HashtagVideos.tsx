@@ -55,7 +55,7 @@ export const HashtagVideos = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [videos, setVideos] = useState<TikTokVideo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  
   const [loadingMore, setLoadingMore] = useState(false);
   const [total, setTotal] = useState(0);
   const pageSize = 24;
@@ -146,58 +146,6 @@ export const HashtagVideos = () => {
     }
   };
 
-  const handleRefreshResults = async () => {
-    if (!hashtagId || refreshing) return;
-    
-    setRefreshing(true);
-    toast({
-      title: "Fetching latest videos with thumbnails...",
-      description: "This will take a moment to complete.",
-    });
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('scrape-tiktok-hashtags', {
-        body: { hashtag: hashtagId }
-      });
-
-      if (error) {
-        console.error('Function invoke error:', error);
-        toast({
-          title: "Failed to refresh",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (data?.success) {
-        toast({
-          title: "Success!",
-          description: `Found ${data.videosFound} new videos with thumbnails!`,
-        });
-        // Reset and reload the videos
-        setVideos([]);
-        setPage(0);
-        setHasMore(true);
-        await loadHashtagVideos(0, false);
-      } else {
-        toast({
-          title: "Failed to refresh videos",
-          description: data?.error || 'Unknown error occurred',
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Refresh error:', error);
-      toast({
-        title: "Failed to refresh videos",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   const filteredVideos = searchTerm
     ? videos.filter((video) => {
@@ -358,24 +306,6 @@ export const HashtagVideos = () => {
                 <SelectItem value="newest">Newest</SelectItem>
               </SelectContent>
             </Select>
-            <Button 
-              onClick={handleRefreshResults}
-              disabled={refreshing}
-              variant="outline"
-              className="shrink-0"
-            >
-              {refreshing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Refreshing...
-                </>
-              ) : (
-                <>
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Refresh Results
-                </>
-              )}
-            </Button>
           </div>
         </CardContent>
       </Card>

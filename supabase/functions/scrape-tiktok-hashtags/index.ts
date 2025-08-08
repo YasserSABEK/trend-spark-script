@@ -153,6 +153,17 @@ serve(async (req) => {
     // Log sample video structure for debugging
     if (videos.length > 0) {
       console.log('Sample video structure:', JSON.stringify(videos[0], null, 2));
+      
+      // Log available thumbnail fields for debugging
+      const firstVideo = videos[0];
+      console.log('Available thumbnail fields:');
+      console.log('- covers?.default:', firstVideo.covers?.default);
+      console.log('- videoMeta?.coverUrl:', firstVideo.videoMeta?.coverUrl);
+      console.log('- videoMeta?.originalCoverUrl:', firstVideo.videoMeta?.originalCoverUrl);
+      console.log('- covers?.[0]:', firstVideo.covers?.[0]);
+      console.log('- thumbnail:', firstVideo.thumbnail);
+      console.log('- thumbnailUrl:', firstVideo.thumbnailUrl);
+      console.log('- cover:', firstVideo.cover);
     }
 
     // Filter videos from the last year
@@ -207,7 +218,7 @@ serve(async (req) => {
         // Video metadata
         video_duration: video.videoMeta?.duration || video.duration,
         is_video: true,
-        thumbnail_url: video.covers?.default || video.videoMeta?.cover || video.cover,
+        thumbnail_url: video.covers?.default || video.videoMeta?.coverUrl || video.videoMeta?.originalCoverUrl || video.covers?.[0] || video.thumbnail || video.thumbnailUrl || video.cover,
         video_url: video.videoUrl || video.downloadUrl,
         
         // Music metadata
