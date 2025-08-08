@@ -232,7 +232,7 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
         </div>
       </div>
 
-      <CardContent className="p-4 flex flex-col h-full">
+      <CardContent className="p-4">
         {/* Creator Info */}
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
@@ -326,14 +326,14 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
         </div>
 
         {/* Engagement Rate */}
-        <div className="flex justify-start items-center mb-4">
+        <div className="flex justify-start items-center mb-3">
           <Badge variant="outline" className="text-xs">
             {video.engagement_rate ? `${video.engagement_rate.toFixed(1)}% ER` : 'N/A ER'}
           </Badge>
         </div>
 
-        {/* Actions - Fixed at bottom */}
-        <div className="mt-auto flex gap-2">
+        {/* Actions */}
+        <div className="flex gap-2">
           <Button 
             size="sm" 
             className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90"
