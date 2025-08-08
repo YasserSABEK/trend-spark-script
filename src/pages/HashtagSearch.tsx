@@ -314,7 +314,7 @@ export function HashtagSearch() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col space-y-6">
         {/* Search Form */}
         <Card>
