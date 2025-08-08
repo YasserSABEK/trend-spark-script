@@ -130,7 +130,7 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Credit Warning */}
       <CreditWarning />
       

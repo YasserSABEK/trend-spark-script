@@ -56,20 +56,20 @@ function AppContent() {
             </div>
           </header>
           <main className="flex-1 p-6">
-              <Routes>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/viral-reels" element={<ViralReels />} />
-                <Route path="/hashtag-search" element={<HashtagSearch />} />
-                <Route path="/hashtags/:hashtagId/videos" element={<HashtagVideos />} />
-                <Route path="/reels/:username" element={<ReelResults />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/script-generator" element={<ScriptGenerator />} />
-                <Route path="/my-scripts" element={<MyScripts />} />
-                <Route path="/content" element={<ContentCalendar />} />
-                <Route path="/content/calendar" element={<ContentCalendar />} />
-                <Route path="/billing" element={<Billing />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/viral-reels" element={<ViralReels />} />
+              <Route path="/hashtag-search" element={<HashtagSearch />} />
+              <Route path="/hashtags/:hashtagId/videos" element={<HashtagVideos />} />
+              <Route path="/reels/:username" element={<ReelResults />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/script-generator" element={<ScriptGenerator />} />
+              <Route path="/my-scripts" element={<MyScripts />} />
+              <Route path="/content" element={<Content />} />
+              <Route path="/content/calendar" element={<ContentCalendar />} />
+              <Route path="/billing" element={<Billing />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </main>
         </SidebarInset>
       </div>

@@ -329,16 +329,14 @@ export const ViralReels = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
+      <div className="flex items-center justify-center h-64 max-w-7xl mx-auto">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Instagram Search */}
       <div className="grid grid-cols-1 gap-6">
         <div>

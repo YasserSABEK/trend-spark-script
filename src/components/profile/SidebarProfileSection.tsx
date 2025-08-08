@@ -50,8 +50,8 @@ export function SidebarProfileSection({ collapsed }: SidebarProfileSectionProps)
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{userDisplayName}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
+                <p className="text-sm font-medium truncate" title={userDisplayName}>{userDisplayName}</p>
+                <p className="text-xs text-muted-foreground truncate" title={user.email}>{user.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -87,8 +87,8 @@ export function SidebarProfileSection({ collapsed }: SidebarProfileSectionProps)
         <div className="flex items-center space-x-3">
           <ProfileAvatar user={user} size="default" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{userDisplayName}</p>
-            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            <p className="text-sm font-medium truncate" title={userDisplayName}>{userDisplayName}</p>
+            <p className="text-xs text-muted-foreground truncate" title={user.email}>{user.email}</p>
           </div>
         </div>
         

@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, CalendarClock, BookmarkCheck, GripVertical } from 'lucide-react';
+import { TextTruncate } from '@/components/ui/text-truncate';
 
 interface ContentItem {
   id: string;
@@ -60,10 +61,14 @@ export function DraggableContentItem({ item, onOpenSource }: DraggableContentIte
     >
       <CardHeader className="pb-2 relative">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-base line-clamp-1 pr-8">
+          <TextTruncate 
+            lines={2} 
+            className="text-base font-semibold pr-8" 
+            tooltipContent={item.caption || `${item.platform} post`}
+          >
             {item.caption || `${item.platform} post`}
-          </CardTitle>
-          <GripVertical className="w-4 h-4 text-muted-foreground absolute top-2 right-2" />
+          </TextTruncate>
+          <GripVertical className="w-4 h-4 text-muted-foreground absolute top-2 right-2 flex-shrink-0" />
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -94,7 +99,7 @@ export function DraggableContentItem({ item, onOpenSource }: DraggableContentIte
           <span>Saved {new Date(item.created_at).toLocaleDateString()}</span>
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2">
+      <CardFooter className="pt-2 flex flex-col sm:flex-row gap-2">
         <Button 
           size="sm" 
           onClick={(e) => {
@@ -102,6 +107,7 @@ export function DraggableContentItem({ item, onOpenSource }: DraggableContentIte
             onOpenSource(item.source_url);
           }}
           variant="outline"
+          className="w-full sm:w-auto justify-center"
         >
           <ExternalLink className="w-4 h-4 mr-2" />
           Open Post

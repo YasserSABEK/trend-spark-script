@@ -104,7 +104,7 @@ export function Content() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-7xl mx-auto">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Content Library</h1>
         <p className="text-muted-foreground">All videos you saved from Instagram and TikTok.</p>
