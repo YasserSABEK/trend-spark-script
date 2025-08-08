@@ -43,6 +43,8 @@ interface ReelCardProps {
 
 export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -50,15 +52,38 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
   };
 
   const getTimeAgo = (timestamp: string) => {
-    const now = new Date();
-    const posted = new Date(timestamp);
-    const diff = now.getTime() - posted.getTime();
+    if (!timestamp) return '';
     
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    if (hours < 24) return `${hours}h ago`;
-    
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    try {
+      const now = new Date();
+      const posted = new Date(timestamp);
+      const diff = now.getTime() - posted.getTime();
+      
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      if (hours < 24) return `${hours}h ago`;
+      
+      const days = Math.floor(hours / 24);
+      return `${days}d ago`;
+    } catch (error) {
+      console.error('Error parsing timestamp:', timestamp, error);
+      return '';
+    }
+  };
+
+  const getThumbnailUrl = (url: string) => {
+    if (!url) return null;
+    return `https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(url)}`;
+  };
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
+    setImageError(false);
+  };
+
+  const handleImageError = () => {
+    console.error('Thumbnail failed to load:', reel.thumbnail_url);
+    setImageLoading(false);
+    setImageError(true);
   };
 
   const openInstagramPost = () => {
@@ -107,46 +132,47 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         className="aspect-[9/16] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden"
         onClick={handlePlayVideo}
       >
-        {reel.thumbnail_url ? (
-          <img 
-            src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(reel.thumbnail_url)}`}
-            alt="Reel thumbnail"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-            onError={(e) => {
-              console.log('Thumbnail failed to load:', reel.thumbnail_url);
-              const target = e.currentTarget;
-              target.style.display = 'none';
-              const parent = target.parentElement;
-              if (parent) {
-                parent.innerHTML = `
-                  <div class="w-full h-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center">
-                    <svg class="w-16 h-16 text-white opacity-80" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </div>
-                `;
-              }
-            }}
-          />
+        {reel.thumbnail_url && !imageError ? (
+          <>
+            {imageLoading && (
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            <img 
+              src={getThumbnailUrl(reel.thumbnail_url)}
+              alt="Reel thumbnail"
+              className={`w-full h-full object-cover group-hover:scale-110 transition-all duration-300 ${
+                imageLoading ? 'opacity-0' : 'opacity-100'
+              }`}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              loading="lazy"
+            />
+          </>
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center">
-            <Play className="w-16 h-16 text-white opacity-80" />
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 flex items-center justify-center">
+            <Play className="w-16 h-16 text-primary/60" />
           </div>
         )}
         
         {/* Overlay Elements */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-        <div className="absolute top-3 right-3">
-          <Badge className="bg-gradient-to-r from-instagram-pink to-instagram-purple text-white">
-            {reel.viral_score}
-          </Badge>
-        </div>
-        <div className="absolute bottom-3 left-3">
-          <Badge variant="secondary" className="bg-black/60 text-white border-none">
-            <Clock className="w-3 h-3 mr-1" />
-            {getTimeAgo(reel.timestamp)}
-          </Badge>
-        </div>
+        {reel.viral_score !== undefined && reel.viral_score > 0 && (
+          <div className="absolute top-3 right-3">
+            <Badge className="bg-gradient-to-r from-primary to-secondary text-primary-foreground">
+              {reel.viral_score}
+            </Badge>
+          </div>
+        )}
+        {reel.timestamp && getTimeAgo(reel.timestamp) && (
+          <div className="absolute bottom-3 left-3">
+            <Badge variant="secondary" className="bg-black/60 text-white border-none">
+              <Clock className="w-3 h-3 mr-1" />
+              {getTimeAgo(reel.timestamp)}
+            </Badge>
+          </div>
+        )}
         <div className="absolute center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <Play className="w-8 h-8 text-white" />
