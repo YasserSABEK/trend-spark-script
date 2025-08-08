@@ -250,16 +250,21 @@ serve(async (req) => {
       };
     });
 
-    // Insert videos into database
+    // Insert videos into database with ON CONFLICT handling for duplicates
     if (processedVideos.length > 0) {
       const { error: insertError } = await supabase
         .from('tiktok_videos')
-        .insert(processedVideos);
+        .upsert(processedVideos, { 
+          onConflict: 'post_id,search_hashtag',
+          ignoreDuplicates: true 
+        });
 
       if (insertError) {
         console.error('Error inserting videos:', insertError);
         throw new Error('Failed to save videos to database');
       }
+      
+      console.log(`✅ Successfully processed ${processedVideos.length} videos (duplicates ignored)`);
     }
 
     // Update search queue status - Always complete, even with 0 results
