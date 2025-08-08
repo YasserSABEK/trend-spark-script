@@ -66,7 +66,6 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
   };
 
   const handleGenerateScript = () => {
-    // Navigate to script generator with this content as context
     navigate(`/script-generator?contentId=${item.id}`);
   };
 
@@ -101,96 +100,115 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group relative">
-      {/* Thumbnail */}
-      <div className="aspect-[9/16] bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 flex items-center justify-center relative overflow-hidden">
+    <Card className="group relative overflow-hidden bg-card hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-border">
+      {/* Thumbnail Container */}
+      <div className="relative aspect-[9/16] overflow-hidden bg-gradient-to-br from-primary/5 via-background to-secondary/5">
         {item.thumbnail_url ? (
           <>
             <img 
               src={getThumbnailUrl(item.thumbnail_url)}
               alt={`${item.platform} content thumbnail`}
-              className="w-full h-full object-cover group-hover:scale-110 transition-all duration-300"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-            <div className="absolute center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Play className="w-6 h-6 text-white" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            {/* Play Button Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+              <div className="w-14 h-14 rounded-full bg-primary/90 backdrop-blur-sm flex items-center justify-center shadow-2xl transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                <Play className="w-6 h-6 text-primary-foreground ml-0.5" fill="currentColor" />
               </div>
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <ImageOff className="w-8 h-8" />
-            <span className="text-xs">No thumbnail</span>
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground/60">
+            <ImageOff className="w-10 h-10 mb-2" />
+            <span className="text-xs font-medium">No Preview</span>
           </div>
         )}
         
         {/* Platform Badge */}
-        <div className="absolute top-2 left-2">
-          <Badge variant="secondary" className="capitalize text-xs">
+        <div className="absolute top-3 left-3">
+          <Badge 
+            variant="secondary" 
+            className="bg-background/90 backdrop-blur-sm border-0 capitalize text-xs font-medium px-2 py-1 shadow-sm"
+          >
             {item.platform}
           </Badge>
         </div>
 
-        {/* Delete Button - Top Right Corner */}
-        <div className="absolute top-2 right-2">
+        {/* Time Badge */}
+        <div className="absolute bottom-3 left-3">
+          <Badge 
+            variant="outline" 
+            className="bg-black/70 backdrop-blur-sm text-white border-white/20 text-xs px-2 py-1"
+          >
+            {formatTimeAgo(item.created_at)}
+          </Badge>
+        </div>
+
+        {/* Delete Button */}
+        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
                 size="sm"
                 variant="destructive"
-                className="w-8 h-8 p-0 rounded-full bg-destructive/90 hover:bg-destructive opacity-80 hover:opacity-100 transition-opacity"
+                className="w-8 h-8 p-0 rounded-full bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 hover:border-destructive/40 backdrop-blur-sm"
                 disabled={isDeleting}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Content</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete this content? This action cannot be undone.
+                  Are you sure you want to remove this content from your saved collection? This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Delete
+                <AlertDialogAction 
+                  onClick={handleDelete} 
+                  className="bg-destructive hover:bg-destructive/90"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </div>
-
-        {/* Time Badge - Bottom Left */}
-        <div className="absolute bottom-2 left-2">
-          <Badge variant="outline" className="bg-black/60 text-white border-none text-xs">
-            {formatTimeAgo(item.created_at)}
-          </Badge>
-        </div>
       </div>
 
-      {/* Content */}
+      {/* Content Section */}
       <CardContent className="p-4">
         <div className="space-y-3">
           {/* Caption */}
           <div>
-            <p className="text-sm line-clamp-3 leading-relaxed">
+            <p className="text-sm leading-relaxed line-clamp-2 text-foreground/90">
               {item.caption || `Saved ${item.platform} content`}
             </p>
           </div>
 
           {/* Tags */}
           {item.tags && item.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {item.tags.slice(0, 3).map((tag, i) => (
-                <Badge key={i} variant="secondary" className="text-xs">
+                <Badge 
+                  key={i} 
+                  variant="outline" 
+                  className="text-xs px-2 py-0.5 bg-primary/5 border-primary/20 text-primary hover:bg-primary/10"
+                >
                   #{tag}
                 </Badge>
               ))}
               {item.tags.length > 3 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge 
+                  variant="outline" 
+                  className="text-xs px-2 py-0.5 bg-muted/50 border-muted-foreground/20 text-muted-foreground"
+                >
                   +{item.tags.length - 3}
                 </Badge>
               )}
@@ -199,36 +217,40 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
         </div>
       </CardContent>
 
-      {/* Action Bar - Bottom */}
-      <div className="border-t bg-card/50 p-3">
-        <div className="grid grid-cols-3 gap-2">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="h-9 flex items-center justify-center"
-            onClick={handleViewOriginal}
-          >
-            <ExternalLink className="w-4 h-4 mr-1.5" />
-            <span className="hidden sm:inline">View</span>
-          </Button>
+      {/* Action Bar */}
+      <div className="border-t border-border/50 bg-muted/20 p-3">
+        {/* Primary Actions Row */}
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="h-10 text-xs font-medium border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+              onClick={handleViewOriginal}
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Watch Original
+            </Button>
 
-          <Button 
-            size="sm" 
-            className="h-9 bg-gradient-to-r from-primary to-secondary hover:opacity-90 flex items-center justify-center"
-            onClick={handleGenerateScript}
-          >
-            <Edit3 className="w-4 h-4 mr-1.5" />
-            <span className="hidden sm:inline">Script</span>
-          </Button>
+            <Button 
+              size="sm" 
+              className="h-10 text-xs font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-sm"
+              onClick={handleGenerateScript}
+            >
+              <Edit3 className="w-4 h-4 mr-2" />
+              Generate Script
+            </Button>
+          </div>
 
+          {/* Secondary Action */}
           <Button 
             size="sm" 
-            variant="ghost" 
-            className="h-9 flex items-center justify-center hover:bg-muted"
+            variant="ghost"
+            className="w-full h-9 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
             onClick={handleCopyLink}
           >
-            <Copy className="w-4 h-4 mr-1.5" />
-            <span className="hidden sm:inline">Copy</span>
+            <Copy className="w-3.5 h-3.5 mr-2" />
+            Copy Link
           </Button>
         </div>
       </div>
