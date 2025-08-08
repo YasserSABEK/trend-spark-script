@@ -147,6 +147,7 @@ export const ViralReels = () => {
       if (data.success && data.data) {
         // Save reels to database with search_username
         const reelsToInsert = data.data.map((reel: any) => ({
+          user_id: user!.id, // CRITICAL: Associate with authenticated user for RLS
           post_id: reel.post_id || reel.id,
           url: reel.url,
           video_url: reel.video_url,
