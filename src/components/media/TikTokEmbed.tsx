@@ -42,22 +42,13 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
     setError(null);
 
     try {
-      // Use fetch directly since we need to pass URL parameters
-      const encodedUrl = encodeURIComponent(url);
-      const response = await fetch(
-        `https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/tiktok-oembed?url=${encodedUrl}`,
-        {
-          headers: {
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpYWZnemZwem93enRmaGxhanRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxMjA0NjUsImV4cCI6MjA2OTY5NjQ2NX0.hIptmueAg_gaSNnqwowQ40AbdmRdjoKhp9HSn-OwcXA`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      const data = await response.json();
+      // Use Supabase client to call the edge function
+      const { data, error: functionError } = await supabase.functions.invoke('tiktok-oembed', {
+        body: { url }
+      });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (functionError) {
+        throw new Error(`Function error: ${functionError.message}`);
       }
 
       // Check if the response indicates failure

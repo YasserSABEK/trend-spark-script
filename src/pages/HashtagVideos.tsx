@@ -330,14 +330,15 @@ export const HashtagVideos = () => {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredVideos.map((video) => (
-              <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col">
-                <TikTokEmbed 
+              <div key={video.id} className="group">
+                <TikTokEmbed
                   url={video.url}
                   thumbnailUrl={video.thumbnail_url}
+                  className="w-full mb-3"
                 />
                 
-                <CardContent className="p-4 flex-1 flex flex-col">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
                     <img
                       src={video.author_avatar || '/placeholder.svg'}
                       alt={video.username}
@@ -348,29 +349,17 @@ export const HashtagVideos = () => {
                     {video.verified && <span className="text-xs flex-shrink-0">✓</span>}
                   </div>
                   
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2 flex-1">
-                    {video.caption}
+                  <p className="text-sm text-muted-foreground line-clamp-2 leading-tight min-h-[2.5rem]">
+                    {video.caption || 'No caption'}
                   </p>
                   
-                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <span>♥</span>
-                      <span className="truncate">{formatNumber(video.digg_count)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span>💬</span>
-                      <span className="truncate">{formatNumber(video.comment_count)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span>↗</span>
-                      <span className="truncate">{formatNumber(video.share_count)}</span>
-                    </div>
-                    <Badge variant="outline" className="text-xs justify-self-end">
-                      {video.viral_score}
-                    </Badge>
+                  <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground pt-1 border-t">
+                    <span className="truncate">{formatNumber(video.play_count)} views</span>
+                    <span className="truncate">{formatNumber(video.digg_count)} likes</span>
+                    <span className="truncate">{formatNumber(video.comment_count)} comments</span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
 

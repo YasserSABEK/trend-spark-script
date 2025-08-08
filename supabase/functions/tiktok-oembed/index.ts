@@ -21,8 +21,16 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url)
-    const tiktokUrl = url.searchParams.get('url')
+    let tiktokUrl: string | null = null;
+    
+    // Handle both GET (URL params) and POST (body) requests
+    if (req.method === 'GET') {
+      const url = new URL(req.url)
+      tiktokUrl = url.searchParams.get('url')
+    } else if (req.method === 'POST') {
+      const body = await req.json()
+      tiktokUrl = body.url
+    }
 
     if (!tiktokUrl) {
       return new Response(
@@ -117,6 +125,21 @@ Deno.serve(async (req) => {
 
     const oembedData: OEmbedResponse = await oembedResponse.json()
 
+    // Parse width and height, handling string values like "100%"
+    const parseSize = (value: any): number => {
+      if (typeof value === 'number') return value;
+      if (typeof value === 'string') {
+        // Handle percentage values by returning sensible defaults
+        if (value.includes('%')) return 325; // Standard TikTok width
+        const parsed = parseInt(value, 10);
+        return isNaN(parsed) ? 325 : parsed;
+      }
+      return 325; // Default width for TikTok videos
+    }
+
+    const width = parseSize(oembedData.width);
+    const height = parseSize(oembedData.height);
+
     // UPSERT to cache
     const { error: upsertError } = await supabase
       .from('tiktok_oembed_cache')
@@ -125,8 +148,8 @@ Deno.serve(async (req) => {
         url: tiktokUrl,
         html: oembedData.html,
         thumbnail_url: oembedData.thumbnail_url,
-        width: oembedData.width,
-        height: oembedData.height,
+        width: width,
+        height: height,
         fetched_at: new Date().toISOString()
       }, {
         onConflict: 'video_id'
