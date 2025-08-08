@@ -37,21 +37,32 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
     setError(null);
 
     try {
-      const { data, error: functionError } = await supabase.functions.invoke('tiktok-oembed', {
-        body: { url }
-      });
+      // Use fetch directly since we need to pass URL parameters
+      const encodedUrl = encodeURIComponent(url);
+      const response = await fetch(
+        `https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/tiktok-oembed?url=${encodedUrl}`,
+        {
+          headers: {
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpYWZnemZwem93enRmaGxhanRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxMjA0NjUsImV4cCI6MjA2OTY5NjQ2NX0.hIptmueAg_gaSNnqwowQ40AbdmRdjoKhp9HSn-OwcXA`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      const data = await response.json();
 
-      if (functionError) {
-        throw new Error(functionError.message);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      if (data.error) {
+      // Check if the response indicates failure
+      if (data?.success === false) {
         // If oEmbed failed, open in new tab as fallback
         if (data.fallback_url) {
           window.open(data.fallback_url, '_blank');
           return;
         }
-        throw new Error(data.error);
+        throw new Error(data.error || 'Failed to load video');
       }
 
       setOembedData(data);

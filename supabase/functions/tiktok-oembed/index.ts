@@ -26,9 +26,12 @@ Deno.serve(async (req) => {
 
     if (!tiktokUrl) {
       return new Response(
-        JSON.stringify({ error: 'Missing url parameter' }),
+        JSON.stringify({ 
+          success: false,
+          error: 'Missing url parameter' 
+        }),
         { 
-          status: 400, 
+          status: 200, // Changed from 400 to 200
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       )
@@ -38,9 +41,13 @@ Deno.serve(async (req) => {
     const videoIdMatch = tiktokUrl.match(/\/video\/(\d+)/)
     if (!videoIdMatch) {
       return new Response(
-        JSON.stringify({ error: 'Invalid TikTok URL format' }),
+        JSON.stringify({ 
+          success: false,
+          error: 'Invalid TikTok URL format',
+          fallback_url: tiktokUrl 
+        }),
         { 
-          status: 400, 
+          status: 200, // Changed from 400 to 200
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       )
@@ -96,11 +103,13 @@ Deno.serve(async (req) => {
       console.error(`oEmbed API error: ${oembedResponse.status}`)
       return new Response(
         JSON.stringify({ 
+          success: false,
           error: 'Failed to fetch oEmbed data',
-          fallback_url: tiktokUrl 
+          fallback_url: tiktokUrl,
+          status: oembedResponse.status 
         }),
         { 
-          status: 500, 
+          status: 200, // Changed from 500 to 200
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       )
@@ -148,11 +157,13 @@ Deno.serve(async (req) => {
     console.error('TikTok oEmbed function error:', error)
     return new Response(
       JSON.stringify({ 
+        success: false,
         error: 'Internal server error',
-        message: error.message 
+        message: error.message,
+        fallback_url: new URL(req.url).searchParams.get('url') 
       }),
       { 
-        status: 500, 
+        status: 200, // Changed from 500 to 200
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     )

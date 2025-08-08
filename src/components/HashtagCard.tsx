@@ -19,7 +19,7 @@ interface HashtagSearch {
 
 interface HashtagCardProps {
   search: HashtagSearch;
-  onViewResults: (hashtag: string) => void;
+  onViewResults?: (hashtag: string) => void; // Made optional
   onDelete: () => void;
 }
 

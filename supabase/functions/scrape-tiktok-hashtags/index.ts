@@ -265,10 +265,14 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in scrape-tiktok-hashtags function:', error);
+    
+    // Return 200 with error object instead of 500
     return new Response(JSON.stringify({ 
-      error: error.message 
+      success: false,
+      error: error.message || 'An unexpected error occurred',
+      details: error.toString()
     }), {
-      status: 500,
+      status: 200, // Changed from 500 to 200
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

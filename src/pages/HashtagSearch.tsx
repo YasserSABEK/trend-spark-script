@@ -158,27 +158,58 @@ export function HashtagSearch() {
 
     setLoading(true);
     
+    // Create a pending search entry immediately for better UX
+    const cleanHashtag = hashtag.replace('#', '');
+    const tempSearchEntry: HashtagSearch = {
+      id: `temp-${Date.now()}`,
+      hashtag: cleanHashtag,
+      status: 'pending',
+      total_results: 0,
+      requested_at: new Date().toISOString()
+    };
+    
+    // Add temporary entry to show pending state
+    setSearches(prev => [tempSearchEntry, ...prev]);
+    
     try {
       const { data, error } = await supabase.functions.invoke('scrape-tiktok-hashtags', {
-        body: { hashtag: hashtag.replace('#', '') }
+        body: { hashtag: cleanHashtag }
       });
 
       if (error) {
-        console.error('Hashtag scraping error:', error);
-        toast.error(error.message || "Failed to search hashtag");
+        console.error('Function invoke error:', error);
+        toast.error(`Network error: ${error.message}`);
+        // Remove temporary entry on error
+        setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
+        return;
+      }
+
+      // Check if the response indicates success or failure
+      if (data?.success === false) {
+        console.error('Function returned error:', data);
+        toast.error(data.error || "Failed to search hashtag - please try again");
+        // Remove temporary entry on error
+        setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
         return;
       }
 
       if (data?.success) {
-        toast.success(`Found ${data.videosFound} TikTok videos for #${hashtag}`);
+        toast.success(`Found ${data.videosFound} TikTok videos for #${cleanHashtag}`);
+        // Remove temporary entry and reload actual data
+        setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
         await loadHashtagVideos();
         await loadSearchHistory();
       } else {
-        toast.error(data?.error || "Failed to search hashtag");
+        console.error('Unexpected response format:', data);
+        toast.error("Unexpected response from server - please try again");
+        // Remove temporary entry on error
+        setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
       }
     } catch (error) {
       console.error('Error during hashtag search:', error);
-      toast.error("An error occurred while searching the hashtag");
+      toast.error("Network error occurred while searching hashtag");
+      // Remove temporary entry on error
+      setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
     } finally {
       setLoading(false);
     }
@@ -243,15 +274,6 @@ export function HashtagSearch() {
   const handleGenerateScript = async (result: any) => {
     toast.success("Script generated successfully!");
     // Navigation will be handled by the ReelCard component
-  };
-
-  const handleViewHashtagResults = (hashtag: string) => {
-    setSelectedHashtag(hashtag);
-    // Scroll to results section
-    const resultsSection = document.getElementById('results-section');
-    if (resultsSection) {
-      resultsSection.scrollIntoView({ behavior: 'smooth' });
-    }
   };
 
   const handleHashtagDeleted = () => {
@@ -349,7 +371,6 @@ export function HashtagSearch() {
                 <HashtagCard
                   key={search.id}
                   search={search}
-                  onViewResults={handleViewHashtagResults}
                   onDelete={handleHashtagDeleted}
                 />
               ))}
