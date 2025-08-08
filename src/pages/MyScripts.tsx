@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
+import { DroppableArea } from '@/components/dnd/DroppableArea';
 import { 
   Search, 
   Star, 
@@ -18,7 +19,8 @@ import {
   Hash,
   TrendingUp,
   FileText,
-  Filter
+  Filter,
+  Sparkles
 } from 'lucide-react';
 
 interface Script {
@@ -253,6 +255,24 @@ export const MyScripts = () => {
               <span>{filteredScripts.length} of {scripts.length} scripts</span>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Content Drop Zone */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Generate Script from Content
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DroppableArea
+            id="my-scripts-drop"
+            placeholder="Drop a video to generate a new script"
+            icon={<Sparkles className="w-8 h-8 mb-2" />}
+            className="p-8"
+          />
         </CardContent>
       </Card>
 

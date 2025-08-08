@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Sparkles, Copy, Heart, Star } from 'lucide-react';
 import { CreditGuard } from '@/components/credits/CreditGuard';
+import { DroppableArea } from '@/components/dnd/DroppableArea';
 
 interface GeneratedScript {
   hook: string;
@@ -30,6 +32,29 @@ export const ScriptGenerator = () => {
     hookStyle: ''
   });
   const { toast } = useToast();
+
+  const { isOver, setNodeRef } = useDroppable({
+    id: 'script-generator-drop',
+    data: {
+      accepts: ['content-item'],
+    },
+  });
+
+  const handleContentDrop = (droppedContent: any) => {
+    const item = droppedContent.item;
+    const autoPrompt = `Create a script inspired by this ${item.platform} post: "${item.caption || 'viral video'}"${item.tags ? ` with hashtags: ${item.tags.slice(0, 5).join(', ')}` : ''}`;
+    
+    setFormData(prev => ({
+      ...prev,
+      prompt: autoPrompt,
+      niche: item.tags?.[0] ? item.tags[0].replace(/([A-Z])/g, ' $1').trim() : prev.niche
+    }));
+    
+    toast({
+      title: "Content Added!",
+      description: "Video content has been analyzed and added to your prompt.",
+    });
+  };
 
   const niches = [
     'Fitness & Health', 'Food & Cooking', 'Travel & Adventure', 'Fashion & Beauty',
@@ -133,13 +158,20 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="prompt">What's your script about? *</Label>
-              <Textarea
-                id="prompt"
-                placeholder="Describe what you want your script to be about... (e.g., 'morning routine for productivity', '5 fitness tips for beginners')"
-                value={formData.prompt}
-                onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
-                className="min-h-[100px]"
-              />
+              <div className="space-y-3">
+                <Textarea
+                  id="prompt"
+                  placeholder="Describe what you want your script to be about... (e.g., 'morning routine for productivity', '5 fitness tips for beginners')"
+                  value={formData.prompt}
+                  onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
+                  className="min-h-[100px]"
+                />
+                <DroppableArea
+                  id="script-generator-prompt-drop"
+                  placeholder="Drop a video to auto-generate prompt"
+                  className="p-4"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

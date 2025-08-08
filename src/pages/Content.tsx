@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { DndContext, DragEndEvent, DragStartEvent, closestCorners } from '@dnd-kit/core';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, CalendarClock, BookmarkCheck } from "lucide-react";
 import { toast } from "sonner";
+import { DraggableContentItem } from "@/components/dnd/DraggableContentItem";
+import { ContentDragOverlay } from "@/components/dnd/DragOverlay";
 
 interface ContentItem {
   id: string;
@@ -27,6 +30,7 @@ interface ContentItem {
 export function Content() {
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeItem, setActiveItem] = useState<ContentItem | null>(null);
 
   useEffect(() => {
     document.title = "Content Library | Viraltify";
@@ -71,8 +75,36 @@ export function Content() {
 
   const openSource = (url: string) => window.open(url, "_blank");
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    if (active.data.current?.type === 'content-item') {
+      setActiveItem(active.data.current.item);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveItem(null);
+    
+    const { active, over } = event;
+    if (!over || !active.data.current?.item) return;
+
+    const draggedItem = active.data.current.item as ContentItem;
+    
+    // Handle drop actions based on the drop zone
+    if (over.id === 'script-generator-drop' || over.id === 'my-scripts-drop') {
+      toast.success(`Content ready for ${over.id.includes('script-generator') ? 'script generation' : 'analysis'}!`, {
+        description: `"${draggedItem.caption || 'Video'}" has been prepared for processing.`
+      });
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <DndContext 
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Content Library</h1>
         <p className="text-muted-foreground">All videos you saved from Instagram and TikTok.</p>
@@ -114,52 +146,19 @@ export function Content() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {list.map((it) => (
-                <Card key={it.id} className="overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base line-clamp-1">
-                      {it.caption || `${it.platform} post`}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="aspect-[9/16] bg-muted rounded-md overflow-hidden flex items-center justify-center">
-                      {it.thumbnail_url ? (
-                        <img
-                          src={it.thumbnail_url}
-                          alt={`Thumbnail of ${it.platform} post`}
-                          loading="lazy"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <BookmarkCheck className="w-5 h-5" />
-                          <span>No thumbnail</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {it.tags?.slice(0, 3).map((t, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">#{t}</Badge>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <CalendarClock className="w-3 h-3" />
-                      <span>Saved {new Date(it.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex gap-2">
-                    <Button size="sm" onClick={() => openSource(it.source_url)}>
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Open Post
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <DraggableContentItem 
+                  key={it.id} 
+                  item={it} 
+                  onOpenSource={openSource}
+                />
               ))}
             </div>
           </section>
         ))
       )}
+      
+      <ContentDragOverlay activeItem={activeItem} />
     </div>
+    </DndContext>
   );
 }
