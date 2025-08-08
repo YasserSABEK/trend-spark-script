@@ -8,10 +8,12 @@ import {
   Clock, 
   Bookmark,
   Eye,
-  ExternalLink
+  ExternalLink,
+  Volume2,
+  VolumeX,
+  RotateCcw
 } from "lucide-react";
-import { VideoPlayer } from "./VideoPlayer";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -42,9 +44,11 @@ interface ReelCardProps {
 }
 
 export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
-  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -92,11 +96,35 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
 
   const handlePlayVideo = () => {
     if (reel.video_url) {
-      setShowVideoPlayer(true);
+      setIsPlaying(true);
     } else {
       openInstagramPost();
     }
   };
+
+  const handleVideoEnd = () => {
+    setIsPlaying(false);
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+    }
+  };
+
+  const handleReplay = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play();
+    }
+  };
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   const handleSaveVideo = async () => {
     try {
@@ -127,57 +155,95 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group">
-      {/* Video Thumbnail */}
-      <div 
-        className="aspect-[9/16] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden"
-        onClick={handlePlayVideo}
-      >
-        {reel.thumbnail_url && !imageError ? (
-          <>
-            {imageLoading && (
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      {/* Video Container */}
+      <div className="aspect-[9/16] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden">
+        {/* Thumbnail Image */}
+        {!isPlaying && (
+          <div className="absolute inset-0 w-full h-full" onClick={handlePlayVideo}>
+            {reel.thumbnail_url && !imageError ? (
+              <>
+                {imageLoading && (
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+                <img 
+                  src={getThumbnailUrl(reel.thumbnail_url)}
+                  alt="Reel thumbnail"
+                  className={`w-full h-full object-cover group-hover:scale-110 transition-all duration-300 ${
+                    imageLoading ? 'opacity-0' : 'opacity-100'
+                  }`}
+                  onLoad={handleImageLoad}
+                  onError={handleImageError}
+                  loading="lazy"
+                />
+              </>
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 flex items-center justify-center">
+                <Play className="w-16 h-16 text-primary/60" />
               </div>
             )}
-            <img 
-              src={getThumbnailUrl(reel.thumbnail_url)}
-              alt="Reel thumbnail"
-              className={`w-full h-full object-cover group-hover:scale-110 transition-all duration-300 ${
-                imageLoading ? 'opacity-0' : 'opacity-100'
-              }`}
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-              loading="lazy"
+            
+            {/* Thumbnail Overlays */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+            {reel.viral_score !== undefined && reel.viral_score > 0 && (
+              <div className="absolute top-3 right-3">
+                <Badge className="bg-gradient-to-r from-primary to-secondary text-primary-foreground">
+                  {reel.viral_score}
+                </Badge>
+              </div>
+            )}
+            {reel.timestamp && getTimeAgo(reel.timestamp) && (
+              <div className="absolute bottom-3 left-3">
+                <Badge variant="secondary" className="bg-black/60 text-white border-none">
+                  <Clock className="w-3 h-3 mr-1" />
+                  {getTimeAgo(reel.timestamp)}
+                </Badge>
+              </div>
+            )}
+            <div className="absolute center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Play className="w-8 h-8 text-white" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Inline Video Player */}
+        {isPlaying && reel.video_url && (
+          <div className="absolute inset-0 w-full h-full">
+            <video
+              ref={videoRef}
+              src={reel.video_url}
+              className="w-full h-full object-cover"
+              autoPlay
+              muted={isMuted}
+              playsInline
+              onEnded={handleVideoEnd}
+              poster={getThumbnailUrl(reel.thumbnail_url) || undefined}
             />
-          </>
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 flex items-center justify-center">
-            <Play className="w-16 h-16 text-primary/60" />
+            
+            {/* Video Controls */}
+            <div className="absolute bottom-4 right-4 flex gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                className="w-8 h-8 p-0 bg-black/60 hover:bg-black/80 text-white"
+                onClick={toggleMute}
+              >
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="w-8 h-8 p-0 bg-black/60 hover:bg-black/80 text-white"
+                onClick={handleReplay}
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         )}
-        
-        {/* Overlay Elements */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-        {reel.viral_score !== undefined && reel.viral_score > 0 && (
-          <div className="absolute top-3 right-3">
-            <Badge className="bg-gradient-to-r from-primary to-secondary text-primary-foreground">
-              {reel.viral_score}
-            </Badge>
-          </div>
-        )}
-        {reel.timestamp && getTimeAgo(reel.timestamp) && (
-          <div className="absolute bottom-3 left-3">
-            <Badge variant="secondary" className="bg-black/60 text-white border-none">
-              <Clock className="w-3 h-3 mr-1" />
-              {getTimeAgo(reel.timestamp)}
-            </Badge>
-          </div>
-        )}
-        <div className="absolute center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <Play className="w-8 h-8 text-white" />
-          </div>
-        </div>
       </div>
 
       <CardContent className="p-4">
@@ -271,14 +337,6 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         </div>
       </CardContent>
 
-      <VideoPlayer
-        isOpen={showVideoPlayer}
-        onClose={() => setShowVideoPlayer(false)}
-        videoUrl={reel.video_url || ''}
-        thumbnailUrl={reel.thumbnail_url || ''}
-        title={reel.caption}
-        instagramUrl={reel.url}
-      />
     </Card>
   );
 };
