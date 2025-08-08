@@ -242,13 +242,15 @@ serve(async (req) => {
       }
     }
 
-    // Update search queue status
+    // Update search queue status - Always complete, even with 0 results
     if (searchEntry) {
+      const processingTime = Math.floor((Date.now() - new Date(searchEntry.requested_at).getTime()) / 1000);
       await supabase
         .from('search_queue')
         .update({ 
           status: 'completed',
           total_results: processedVideos.length,
+          processing_time_seconds: processingTime,
           completed_at: new Date().toISOString()
         })
         .eq('id', searchEntry.id);
@@ -265,6 +267,37 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in scrape-tiktok-hashtags function:', error);
+    
+    // Try to update search queue status to failed if we have the search entry
+    try {
+      const authHeader = req.headers.get('Authorization');
+      if (authHeader) {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        // Get user and update their most recent pending hashtag search to failed
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user } } = await supabase.auth.getUser(token);
+        
+        if (user) {
+          await supabase
+            .from('search_queue')
+            .update({ 
+              status: 'failed',
+              error_message: error.message || 'An unexpected error occurred',
+              completed_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id)
+            .eq('search_type', 'hashtag')
+            .eq('status', 'pending')
+            .order('requested_at', { ascending: false })
+            .limit(1);
+        }
+      }
+    } catch (updateError) {
+      console.error('Error updating search queue status:', updateError);
+    }
     
     // Return 200 with error object instead of 500
     return new Response(JSON.stringify({ 

@@ -8,7 +8,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface SearchQueueItem {
   id: string;
-  username: string;
+  username?: string;
+  hashtag?: string;
+  search_type?: string;
+  platform?: string;
   status: string;
   requested_at: string;
   completed_at?: string;
@@ -27,9 +30,10 @@ interface SearchCardProps {
 export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps) => {
   const { toast } = useToast();
 
-  // Handle null/undefined username safely
-  const displayUsername = search.username || 'Unknown';
-  const usernameInitials = displayUsername.slice(0, 2);
+  // Determine if this is a hashtag or username search
+  const isHashtagSearch = search.search_type === 'hashtag' || (search.hashtag && !search.username);
+  const displayText = isHashtagSearch ? (search.hashtag || 'Unknown') : (search.username || 'Unknown');
+  const displayInitials = isHashtagSearch ? '#' : displayText.slice(0, 2);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -92,7 +96,7 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
       console.log('Search deleted successfully');
       toast({
         title: "Search deleted",
-        description: `Removed search for @${displayUsername}`,
+        description: `Removed search for ${isHashtagSearch ? `#${displayText}` : `@${displayText}`}`,
       });
       
       onDelete();
@@ -114,17 +118,17 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
           <img 
             src={`${search.profile_photo_url}${search.profile_photo_url.includes('?') ? '&' : '?'}v=${Date.now()}`}
             data-proxy-src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(search.profile_photo_url)}&v=${Date.now()}`}
-            alt={`${displayUsername} profile`}
+            alt={`${displayText} profile`}
             className="w-20 h-20 rounded-full object-cover border-2 border-white/20"
             onLoad={(e) => {
-              console.log(`✅ Profile photo loaded for ${displayUsername}:`, e.currentTarget.src);
+              console.log(`✅ Profile photo loaded for ${displayText}:`, e.currentTarget.src);
               e.currentTarget.style.opacity = '1';
             }}
             style={{ opacity: '0', transition: 'opacity 0.3s' }}
             onError={(e) => {
               const target = e.currentTarget;
               const proxyUrl = target.getAttribute('data-proxy-src');
-              console.log(`❌ Profile photo error for ${displayUsername}:`, {
+              console.log(`❌ Profile photo error for ${displayText}:`, {
                 originalUrl: search.profile_photo_url,
                 currentSrc: target.src,
                 hasProxy: !!proxyUrl,
@@ -132,10 +136,10 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
               });
               
               if (proxyUrl && !target.src.includes('image-proxy')) {
-                console.log('🔄 Trying proxy for', displayUsername, proxyUrl);
+                console.log('🔄 Trying proxy for', displayText, proxyUrl);
                 target.src = proxyUrl;
               } else {
-                console.log('🚫 All loading failed for', displayUsername, '- showing fallback');
+                console.log('🚫 All loading failed for', displayText, '- showing fallback');
                 target.style.display = 'none';
                 const fallback = target.nextElementSibling as HTMLElement;
                 if (fallback) fallback.style.display = 'flex';
@@ -144,10 +148,10 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
           />
         ) : null}
         <div 
-          className={`w-20 h-20 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center ${search.profile_photo_url ? 'hidden' : ''}`}
+          className={`w-20 h-20 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center ${search.profile_photo_url && !isHashtagSearch ? 'hidden' : ''}`}
         >
           <span className="text-white font-bold text-xl">
-            @{usernameInitials}
+            {isHashtagSearch ? '#' : `@${displayInitials}`}
           </span>
         </div>
         
@@ -174,10 +178,12 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
       </div>
 
       <CardContent className="p-4">
-        {/* Username and status */}
+        {/* Username/Hashtag and status */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <p className="font-semibold text-sm">@{displayUsername}</p>
+            <p className="font-semibold text-sm">
+              {isHashtagSearch ? `#${displayText}` : `@${displayText}`}
+            </p>
           </div>
           {getStatusBadge(search.status)}
         </div>
@@ -185,8 +191,8 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
         {/* Stats */}
         <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
           <span>{formatTimeAgo(search.requested_at)}</span>
-          {search.total_results > 0 && (
-            <span>{search.total_results} reels</span>
+          {search.status === 'completed' && (
+            <span>{search.total_results} {isHashtagSearch ? 'videos' : 'reels'}</span>
           )}
           {search.processing_time_seconds > 0 && (
             <span>{search.processing_time_seconds}s</span>
@@ -201,17 +207,25 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
         )}
 
         {/* Action button */}
-        {search.status === 'completed' && search.total_results > 0 && search.username ? (
+        {search.status === 'completed' && search.total_results >= 0 && (search.username || search.hashtag) ? (
           <Button
             size="sm"
             className="w-full bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
             onClick={(e) => {
               e.stopPropagation();
-              onViewResults(search.username);
+              if (isHashtagSearch) {
+                // For hashtag searches, navigate to hashtag videos page
+                window.location.href = `/hashtag-videos?hashtag=${search.hashtag}`;
+              } else {
+                onViewResults(search.username!);
+              }
             }}
           >
             <Play className="w-4 h-4 mr-2" />
-            View {search.total_results} Reels
+            {search.total_results === 0 ? 
+              `No ${isHashtagSearch ? 'videos' : 'reels'} found` : 
+              `View ${search.total_results} ${isHashtagSearch ? 'videos' : 'reels'}`
+            }
           </Button>
         ) : search.status === 'processing' ? (
           <Button size="sm" className="w-full" disabled>

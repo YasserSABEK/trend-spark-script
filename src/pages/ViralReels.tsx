@@ -14,7 +14,10 @@ import { CreditGuard } from "@/components/credits/CreditGuard";
 
 interface SearchQueueItem {
   id: string;
-  username: string;
+  username?: string;
+  hashtag?: string;
+  search_type?: string;
+  platform?: string;
   status: string;
   requested_at: string;
   completed_at?: string;
@@ -98,6 +101,8 @@ export const ViralReels = () => {
         .from('search_queue')
         .insert({
           username: instagramUsername.trim(),
+          search_type: 'username',
+          platform: 'instagram',
           status: 'processing'
         })
         .select()
@@ -246,6 +251,8 @@ export const ViralReels = () => {
       const { data, error } = await supabase
         .from('search_queue')
         .select('*')
+        .eq('search_type', 'username')
+        .is('hashtag', null)
         .order('requested_at', { ascending: false })
         .limit(10);
 
