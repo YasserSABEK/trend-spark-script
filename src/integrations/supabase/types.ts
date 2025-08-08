@@ -59,6 +59,60 @@ export type Database = {
         }
         Relationships: []
       }
+      content_items: {
+        Row: {
+          caption: string | null
+          color: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          platform: string
+          scheduled_at: string | null
+          script_id: string | null
+          source_post_id: string | null
+          source_url: string
+          status: string
+          tags: string[] | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          color?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          platform: string
+          scheduled_at?: string | null
+          script_id?: string | null
+          source_post_id?: string | null
+          source_url: string
+          status?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          color?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          platform?: string
+          scheduled_at?: string | null
+          script_id?: string | null
+          source_post_id?: string | null
+          source_url?: string
+          status?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       generated_scripts: {
         Row: {
           brand_voice: string | null
