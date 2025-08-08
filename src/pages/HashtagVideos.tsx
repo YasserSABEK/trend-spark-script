@@ -273,23 +273,11 @@ export const HashtagVideos = () => {
       </Card>
 
       {/* Filter indicators */}
-      {(filterOptions.minViralScore > 30 || filterOptions.minLikes > 100 || searchTerm) && (
+      {searchTerm && (
         <div className="flex gap-2 flex-wrap">
-          {searchTerm && (
-            <Badge variant="secondary">
-              Search: "{searchTerm}"
-            </Badge>
-          )}
-          {filterOptions.minViralScore > 30 && (
-            <Badge variant="secondary">
-              Viral Score ≥ {filterOptions.minViralScore}
-            </Badge>
-          )}
-          {filterOptions.minLikes > 100 && (
-            <Badge variant="secondary">
-              Likes ≥ {formatNumber(filterOptions.minLikes)}
-            </Badge>
-          )}
+          <Badge variant="secondary">
+            Search: "{searchTerm}"
+          </Badge>
         </div>
       )}
 
