@@ -108,45 +108,28 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         onClick={handlePlayVideo}
       >
         {reel.thumbnail_url ? (
-          <>
-            <img 
-              src={reel.thumbnail_url}
-              data-proxy-src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(reel.thumbnail_url)}`}
-              alt="Reel thumbnail"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              style={{ opacity: '0', transition: 'opacity 0.3s' }}
-              onLoad={(e) => {
-                const target = e.currentTarget;
-                target.style.opacity = '1';
-              }}
-              onError={(e) => {
-                // Try proxy as fallback for CORS issues
-                const target = e.currentTarget;
-                const proxyUrl = target.getAttribute('data-proxy-src');
-                if (proxyUrl && !target.src.includes('image-proxy')) {
-                  console.log('Direct image failed, trying proxy:', proxyUrl);
-                  target.src = proxyUrl;
-                } else {
-                  console.log('All image loading failed, showing fallback');
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  const fallback = parent?.querySelector('.thumbnail-fallback') as HTMLElement;
-                  if (fallback) {
-                    fallback.style.display = 'flex';
-                  }
-                }
-              }}
-            />
-            {/* Fallback when thumbnail fails */}
-            <div 
-              className="thumbnail-fallback absolute inset-0 w-full h-full bg-gradient-to-br from-instagram-pink/30 to-instagram-purple/30 flex items-center justify-center"
-              style={{ display: 'none' }}
-            >
-              <Play className="w-16 h-16 text-white opacity-80" />
-            </div>
-          </>
+          <img 
+            src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(reel.thumbnail_url)}`}
+            alt="Reel thumbnail"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            onError={(e) => {
+              console.log('Thumbnail failed to load:', reel.thumbnail_url);
+              const target = e.currentTarget;
+              target.style.display = 'none';
+              const parent = target.parentElement;
+              if (parent) {
+                parent.innerHTML = `
+                  <div class="w-full h-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center">
+                    <svg class="w-16 h-16 text-white opacity-80" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                `;
+              }
+            }}
+          />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-instagram-pink/30 to-instagram-purple/30 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center">
             <Play className="w-16 h-16 text-white opacity-80" />
           </div>
         )}
