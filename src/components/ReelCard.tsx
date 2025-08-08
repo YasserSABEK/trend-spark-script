@@ -5,6 +5,7 @@ import {
   Heart, 
   MessageSquare, 
   Play, 
+  Pause,
   Clock, 
   Bookmark,
   Eye,
@@ -45,6 +46,7 @@ interface ReelCardProps {
 
 export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
@@ -104,6 +106,19 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
 
   const handleVideoEnd = () => {
     setIsPlaying(false);
+    setIsPaused(false);
+  };
+
+  const togglePlayPause = () => {
+    if (videoRef.current) {
+      if (isPaused) {
+        videoRef.current.play();
+        setIsPaused(false);
+      } else {
+        videoRef.current.pause();
+        setIsPaused(true);
+      }
+    }
   };
 
   const toggleMute = () => {
@@ -117,6 +132,7 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play();
+      setIsPaused(false);
     }
   };
 
@@ -229,17 +245,25 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
                 size="sm"
                 variant="secondary"
                 className="w-8 h-8 p-0 bg-black/60 hover:bg-black/80 text-white"
-                onClick={toggleMute}
+                onClick={handleReplay}
               >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                <RotateCcw className="w-4 h-4" />
               </Button>
               <Button
                 size="sm"
                 variant="secondary"
                 className="w-8 h-8 p-0 bg-black/60 hover:bg-black/80 text-white"
-                onClick={handleReplay}
+                onClick={togglePlayPause}
               >
-                <RotateCcw className="w-4 h-4" />
+                {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="w-8 h-8 p-0 bg-black/60 hover:bg-black/80 text-white"
+                onClick={toggleMute}
+              >
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </Button>
             </div>
           </div>
