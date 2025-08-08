@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 import { 
   Trash2, 
-  ExternalLink, 
+  Copy,
   Edit3, 
   ImageOff, 
   Search,
@@ -64,6 +64,16 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
     window.open(item.source_url, '_blank');
   };
 
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(item.source_url);
+      toast.success("Link copied to clipboard");
+    } catch (error) {
+      console.error("Copy error:", error);
+      toast.error("Failed to copy link");
+    }
+  };
+
   const handleGenerateScript = () => {
     navigate(`/script-generator?contentId=${item.id}`);
   };
@@ -92,7 +102,10 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
   return (
     <Card className="group relative overflow-hidden bg-card hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-border">
       {/* Thumbnail Container */}
-      <div className="relative aspect-[9/16] overflow-hidden bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      <div 
+        className="relative aspect-[9/16] overflow-hidden bg-gradient-to-br from-primary/5 via-background to-secondary/5 cursor-pointer"
+        onClick={handleViewOriginal}
+      >
         {item.thumbnail_url ? (
           <>
             <img 
@@ -214,9 +227,9 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
             size="sm" 
             variant="outline"
             className="w-12 h-10 p-0 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
-            onClick={handleViewOriginal}
+            onClick={handleCopyLink}
           >
-            <ExternalLink className="w-4 h-4" />
+            <Copy className="w-4 h-4" />
           </Button>
 
           <Button 
