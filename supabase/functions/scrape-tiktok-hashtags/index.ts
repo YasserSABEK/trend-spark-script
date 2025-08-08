@@ -82,7 +82,7 @@ serve(async (req) => {
       hashtags: [cleanHashtag],
       proxyCountryCode: "None",
       resultsPerPage: 100,
-      shouldDownloadCovers: false,
+      shouldDownloadCovers: true,
       shouldDownloadSlideshowImages: false,
       shouldDownloadSubtitles: false,
       shouldDownloadVideos: false
@@ -207,7 +207,7 @@ serve(async (req) => {
         // Video metadata
         video_duration: video.videoMeta?.duration || video.duration,
         is_video: true,
-        thumbnail_url: video.videoMeta?.cover || video.cover,
+        thumbnail_url: video.covers?.default || video.videoMeta?.cover || video.cover,
         video_url: video.videoUrl || video.downloadUrl,
         
         // Music metadata
