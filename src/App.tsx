@@ -63,7 +63,7 @@ function AppContent() {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/script-generator" element={<ScriptGenerator />} />
                 <Route path="/my-scripts" element={<MyScripts />} />
-                <Route path="/content" element={<Content />} />
+                <Route path="/content" element={<ContentCalendar />} />
                 <Route path="/content/calendar" element={<ContentCalendar />} />
                 <Route path="/billing" element={<Billing />} />
                 <Route path="*" element={<NotFound />} />

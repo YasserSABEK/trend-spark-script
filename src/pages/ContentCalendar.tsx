@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,7 +71,7 @@ function SortableCard({ item }: { item: ContentItem }) {
         {item.tags && item.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {item.tags.slice(0, 2).map((t, i) => (
-              <Badge key={i} variant="secondary" className="text-2xs">#{t}</Badge>
+              <Badge key={i} variant="secondary" className="text-xs">#{t}</Badge>
             ))}
           </div>
         )}
@@ -81,6 +81,7 @@ function SortableCard({ item }: { item: ContentItem }) {
 }
 
 function Column({ id, title, Icon, items }: { id: ColumnKey; title: string; Icon: any; items: ContentItem[] }) {
+  const { setNodeRef, isOver } = useDroppable({ id: `column-${id}` });
   return (
     <div className="w-[300px] flex-shrink-0">
       <div className="flex items-center gap-2 mb-3">
@@ -88,7 +89,7 @@ function Column({ id, title, Icon, items }: { id: ColumnKey; title: string; Icon
         <h2 className="text-sm font-semibold">{title}</h2>
         <Badge variant="outline" className="ml-auto">{items.length}</Badge>
       </div>
-      <div id={`column-${id}`} className="rounded-lg border bg-card p-3 min-h-[300px]">
+      <div ref={setNodeRef} id={`column-${id}`} className={`rounded-lg border bg-card p-3 min-h-[300px] transition-colors ${isOver ? 'border-primary bg-primary/5' : ''}`}>
         <SortableContext items={items.map((it) => it.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
             {items.length === 0 ? (
