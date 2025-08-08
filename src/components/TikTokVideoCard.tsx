@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VideoPlayer } from "@/components/VideoPlayer";
-import { CreditGuard } from "@/components/credits/CreditGuard";
+
 import { Heart, MessageCircle, Share, Bookmark, Play, ExternalLink, Sparkles, Clock, Music } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+
 import { toast } from "sonner";
 
 interface TikTokVideo {
@@ -46,7 +46,7 @@ interface TikTokVideoCardProps {
 
 export function TikTokVideoCard({ video, onGenerateScript }: TikTokVideoCardProps) {
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
-  const navigate = useNavigate();
+  
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -82,43 +82,32 @@ export function TikTokVideoCard({ video, onGenerateScript }: TikTokVideoCardProp
     openTikTokPost();
   };
 
-  const handleGenerateScript = async () => {
+  const handleSaveVideo = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('generate-script', {
-        body: {
-          reelData: {
-            url: video.web_video_url || video.url,
-            caption: video.caption,
-            username: video.username,
-            likes: video.digg_count,
-            comments: video.comment_count,
-            views: video.play_count,
-            shares: video.share_count,
-            viral_score: video.viral_score,
-            platform: 'tiktok'
-          },
-          preferences: {
-            tone_of_voice: 'engaging',
-            target_audience: 'general',
-            brand_voice: 'authentic',
-            niche: video.search_hashtag || 'general'
-          }
-        }
-      });
-
-      if (error) {
-        console.error('Error generating script:', error);
-        toast.error("Failed to generate script");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please sign in to save videos");
         return;
       }
 
-      toast.success("Script generated successfully!");
-      
-      if (onGenerateScript) {
-        onGenerateScript(data);
+      const { error } = await supabase.from('content_items').insert({
+        user_id: user.id,
+        platform: video.platform || 'tiktok',
+        source_url: video.web_video_url || video.url,
+        source_post_id: video.post_id,
+        caption: video.caption || null,
+        tags: video.hashtags || [],
+        status: 'saved',
+        thumbnail_url: null
+      });
+
+      if (error) {
+        console.error('Error saving video:', error);
+        toast.error("Failed to save");
+        return;
       }
-      
-      navigate('/my-scripts');
+
+      toast.success("Saved to Content");
     } catch (error) {
       console.error('Error:', error);
       toast.error("An unexpected error occurred");
@@ -252,12 +241,10 @@ export function TikTokVideoCard({ video, onGenerateScript }: TikTokVideoCardProp
 
         <CardFooter className="p-4 pt-0 space-y-2">
           <div className="flex gap-2 w-full">
-            <CreditGuard requiredCredits={5} action="generate script">
-              <Button onClick={handleGenerateScript} className="flex-1" size="sm">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Generate Script
-              </Button>
-            </CreditGuard>
+            <Button onClick={handleSaveVideo} className="flex-1" size="sm">
+              <Bookmark className="w-4 h-4 mr-2" />
+              Save Video
+            </Button>
             <Button
               variant="outline"
               size="sm"

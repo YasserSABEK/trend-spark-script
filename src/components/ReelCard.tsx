@@ -6,14 +6,14 @@ import {
   MessageSquare, 
   Play, 
   Clock, 
-  Zap,
+  Bookmark,
   Eye,
   ExternalLink
 } from "lucide-react";
 import { VideoPlayer } from "./VideoPlayer";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditGuard } from "@/components/credits/CreditGuard";
+import { toast } from "sonner";
 
 interface InstagramReel {
   id: string;
@@ -73,29 +73,30 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
     }
   };
 
-  const handleGenerateScript = async () => {
+  const handleSaveVideo = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('generate-script', {
-        body: {
-          prompt: `Generate a viral script based on this reel about: ${reel.caption || 'content creation'}`,
-          niche: 'Social Media',
-          toneOfVoice: 'Engaging',
-          targetAudience: 'Content Creators',
-          hookStyle: 'Question',
-          reelData: reel
-        }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to save videos');
+        return;
+      }
+
+      const { error } = await supabase.from('content_items').insert({
+        user_id: user.id,
+        platform: 'instagram',
+        source_url: reel.url,
+        source_post_id: reel.post_id,
+        thumbnail_url: reel.thumbnail_url || null,
+        caption: reel.caption || null,
+        tags: reel.hashtags || [],
+        status: 'saved'
       });
 
       if (error) throw error;
-
-      if (onGenerateScript) {
-        onGenerateScript(data.script);
-      }
-      
-      // Navigate to script generator with success message
-      window.location.href = '/my-scripts';
+      toast.success('Saved to Content');
     } catch (error) {
-      console.error('Script generation error:', error);
+      console.error('Save video error:', error);
+      toast.error('Failed to save video');
     }
   };
 
@@ -247,19 +248,14 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <CreditGuard
-            requiredCredits={1}
-            action="generate a script"
+          <Button 
+            size="sm" 
+            className="flex-1 bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
+            onClick={handleSaveVideo}
           >
-            <Button 
-              size="sm" 
-              className="flex-1 bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
-              onClick={handleGenerateScript}
-            >
-              <Zap className="w-4 h-4 mr-2" />
-              Generate Script (1 Credit)
-            </Button>
-          </CreditGuard>
+            <Bookmark className="w-4 h-4 mr-2" />
+            Save Video
+          </Button>
           <Button size="sm" variant="outline" onClick={openInstagramPost}>
             <ExternalLink className="w-4 h-4" />
           </Button>
