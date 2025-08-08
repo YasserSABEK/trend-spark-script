@@ -159,7 +159,7 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group">
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group flex flex-col h-full">
       {/* Video Thumbnail */}
       <div 
         className="aspect-[9/16] bg-gradient-to-br from-purple-400/20 via-pink-400/20 to-red-400/20 flex items-center justify-center relative overflow-hidden"
