@@ -56,21 +56,38 @@ serve(async (req) => {
       );
     }
 
-    // Deduct credits (2 credits for hashtag search)
+    // Use secure credit deduction with proper validation
     const { data: creditResult, error: creditError } = await supabaseClient.rpc(
-      'deduct_credits',
+      'safe_deduct_credits',
       { user_id_param: user.id, credits_to_deduct: 2 }
     );
 
-    if (creditError || !creditResult) {
+    if (creditError) {
+      console.error('❌ Credit deduction error:', creditError);
       return new Response(
-        JSON.stringify({ error: 'Insufficient credits or error deducting credits' }),
+        JSON.stringify({ error: 'Failed to process credits' }),
         { 
-          status: 400, 
+          status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
+
+    if (!creditResult.success) {
+      console.log('❌ Insufficient credits for user:', user.id, creditResult.message);
+      return new Response(
+        JSON.stringify({ 
+          error: creditResult.message,
+          remaining_credits: creditResult.remaining_credits 
+        }),
+        { 
+          status: 402, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    console.log('✅ Credits deducted successfully for user:', user.id, 'Remaining:', creditResult.remaining_credits);
 
     const apifyApiKey = Deno.env.get('APIFY_API_KEY');
     if (!apifyApiKey) {
@@ -219,6 +236,7 @@ serve(async (req) => {
                 search_hashtag: cleanHashtag,
                 search_status: 'completed',
                 product_type: 'clips',
+                user_id: user.id, // Add user association for RLS
               }));
 
             // Insert posts into database

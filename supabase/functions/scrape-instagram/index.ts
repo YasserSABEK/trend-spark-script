@@ -39,26 +39,32 @@ Deno.serve(async (req) => {
       if (!userError && user) {
         userId = user.id;
         
-        // Deduct 2 credits before processing
-        const { data: creditResult, error: creditError } = await supabase.rpc('deduct_credits', {
+        // Use secure credit deduction with proper validation
+        const { data: creditResult, error: creditError } = await supabase.rpc('safe_deduct_credits', {
           user_id_param: userId,
           credits_to_deduct: 2
         });
 
         if (creditError) {
-          console.error('Credit deduction error:', creditError);
+          console.error('❌ Credit deduction error:', creditError);
           return new Response(
             JSON.stringify({ error: 'Failed to process credits' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
           );
         }
 
-        if (!creditResult) {
+        if (!creditResult.success) {
+          console.log('❌ Insufficient credits for user:', userId, creditResult.message);
           return new Response(
-            JSON.stringify({ error: 'Insufficient credits. You need 2 credits to search for reels.' }),
+            JSON.stringify({ 
+              error: creditResult.message,
+              remaining_credits: creditResult.remaining_credits 
+            }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 402 }
           );
         }
+
+        console.log('✅ Credits deducted successfully for user:', userId, 'Remaining:', creditResult.remaining_credits);
       }
     }
 
@@ -287,7 +293,8 @@ Deno.serve(async (req) => {
           video_duration: post.videoDuration || null,
           product_type: post.productType || 'clips',
           is_video: true,
-          search_username: username
+          search_username: username,
+          user_id: userId // Add user association for RLS
         };
       });
 

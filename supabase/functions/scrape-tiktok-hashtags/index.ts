@@ -40,15 +40,23 @@ serve(async (req) => {
 
     console.log(`Starting TikTok hashtag scrape for: ${hashtag}`);
 
-    // Deduct credits before starting
-    const { data: creditResult, error: creditError } = await supabase.rpc('deduct_credits', {
+    // Use secure credit deduction with proper validation
+    const { data: creditResult, error: creditError } = await supabase.rpc('safe_deduct_credits', {
       user_id_param: user.id,
       credits_to_deduct: 2
     });
 
-    if (creditError || !creditResult) {
-      throw new Error('Insufficient credits or failed to deduct credits');
+    if (creditError) {
+      console.error('❌ Credit deduction error:', creditError);
+      throw new Error('Failed to process credits: ' + creditError.message);
     }
+
+    if (!creditResult.success) {
+      console.log('❌ Insufficient credits for user:', user.id, creditResult.message);
+      throw new Error(creditResult.message);
+    }
+
+    console.log('✅ Credits deducted successfully for user:', user.id, 'Remaining:', creditResult.remaining_credits);
 
     // Clean hashtag (remove # if present)
     const cleanHashtag = hashtag.replace('#', '');
@@ -237,7 +245,8 @@ serve(async (req) => {
         search_hashtag: cleanHashtag,
         apify_run_id: runId,
         dataset_id: datasetId,
-        platform: 'tiktok'
+        platform: 'tiktok',
+        user_id: user.id // Add user association for RLS
       };
     });
 
