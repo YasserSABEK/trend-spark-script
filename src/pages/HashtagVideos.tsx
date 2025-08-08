@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Filter, TrendingUp, Search, ChevronDown, Loader2, ArrowLeft, Hash } from "lucide-react";
-import { TikTokEmbed } from "@/components/media/TikTokEmbed";
+import { TikTokVideoCard } from "@/components/TikTokVideoCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -23,24 +23,29 @@ interface TikTokVideo {
   id: string;
   post_id: string;
   url: string;
-  caption: string;
-  hashtags: string[];
-  username: string;
-  display_name: string;
-  author_avatar: string;
-  followers: number;
-  verified: boolean;
+  web_video_url?: string;
+  caption?: string;
+  hashtags?: string[];
+  username?: string;
+  display_name?: string;
+  author_avatar?: string;
+  followers?: number;
+  verified?: boolean;
   digg_count: number;
   comment_count: number;
   share_count: number;
   play_count: number;
-  viral_score: number;
-  engagement_rate: number;
-  timestamp: string;
-  scraped_at: string;
-  thumbnail_url: string;
-  video_url?: string;
-  web_video_url?: string;
+  collect_count: number;
+  viral_score?: number;
+  engagement_rate?: number;
+  timestamp?: string;
+  scraped_at?: string;
+  thumbnail_url?: string;
+  video_duration?: number;
+  music_name?: string;
+  music_author?: string;
+  music_original?: boolean;
+  platform?: string;
 }
 
 export const HashtagVideos = () => {
@@ -161,7 +166,7 @@ export const HashtagVideos = () => {
   const totalLikes = videos.reduce((sum, video) => sum + video.digg_count, 0);
   const totalViews = videos.reduce((sum, video) => sum + video.play_count, 0);
   const avgViralScore = videos.length > 0 
-    ? Math.round(videos.reduce((sum, video) => sum + video.viral_score, 0) / videos.length)
+    ? Math.round(videos.reduce((sum, video) => sum + (video.viral_score || 0), 0) / videos.length)
     : 0;
 
   if (loading) {
@@ -328,38 +333,13 @@ export const HashtagVideos = () => {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredVideos.map((video) => (
-              <div key={video.id} className="group">
-                <TikTokEmbed
-                  url={video.url}
-                  thumbnailUrl={video.thumbnail_url}
-                  className="w-full mb-3"
-                />
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={video.author_avatar || '/placeholder.svg'}
-                      alt={video.username}
-                      className="w-6 h-6 rounded-full flex-shrink-0"
-                      loading="lazy"
-                    />
-                    <span className="text-sm font-medium truncate">@{video.username}</span>
-                    {video.verified && <span className="text-xs flex-shrink-0">✓</span>}
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground line-clamp-2 leading-tight min-h-[2.5rem]">
-                    {video.caption || 'No caption'}
-                  </p>
-                  
-                  <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground pt-1 border-t">
-                    <span className="truncate">{formatNumber(video.play_count)} views</span>
-                    <span className="truncate">{formatNumber(video.digg_count)} likes</span>
-                    <span className="truncate">{formatNumber(video.comment_count)} comments</span>
-                  </div>
-                </div>
-              </div>
+              <TikTokVideoCard
+                key={video.id}
+                video={video}
+                onGenerateScript={undefined}
+              />
             ))}
           </div>
 
