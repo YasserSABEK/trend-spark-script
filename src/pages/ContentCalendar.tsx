@@ -101,7 +101,7 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group">
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group relative">
       {/* Thumbnail */}
       <div className="aspect-[9/16] bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 flex items-center justify-center relative overflow-hidden">
         {item.thumbnail_url ? (
@@ -133,8 +133,38 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
           </Badge>
         </div>
 
-        {/* Time Badge */}
+        {/* Delete Button - Top Right Corner */}
         <div className="absolute top-2 right-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="w-8 h-8 p-0 rounded-full bg-destructive/90 hover:bg-destructive opacity-80 hover:opacity-100 transition-opacity"
+                disabled={isDeleting}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Content</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this content? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+
+        {/* Time Badge - Bottom Left */}
+        <div className="absolute bottom-2 left-2">
           <Badge variant="outline" className="bg-black/60 text-white border-none text-xs">
             {formatTimeAgo(item.created_at)}
           </Badge>
@@ -166,74 +196,42 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
               )}
             </div>
           )}
-
-          {/* Action Buttons */}
-          <div className="space-y-2">
-            {/* Primary Actions Row */}
-            <div className="grid grid-cols-3 gap-2">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    size="sm" 
-                    variant="destructive" 
-                    className="h-9"
-                    disabled={isDeleting}
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Content</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this content? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="h-9"
-                onClick={handleViewOriginal}
-              >
-                <ExternalLink className="w-4 h-4 mr-1" />
-                View
-              </Button>
-
-              <Button 
-                size="sm" 
-                className="h-9 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-                onClick={handleGenerateScript}
-              >
-                <Edit3 className="w-4 h-4 mr-1" />
-                Script
-              </Button>
-            </div>
-
-            {/* Secondary Actions Row */}
-            <div className="flex justify-center">
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="h-8 text-xs text-muted-foreground hover:text-foreground"
-                onClick={handleCopyLink}
-              >
-                <Copy className="w-3 h-3 mr-1" />
-                Copy Link
-              </Button>
-            </div>
-          </div>
         </div>
       </CardContent>
+
+      {/* Action Bar - Bottom */}
+      <div className="border-t bg-card/50 p-3">
+        <div className="grid grid-cols-3 gap-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-9 flex items-center justify-center"
+            onClick={handleViewOriginal}
+          >
+            <ExternalLink className="w-4 h-4 mr-1.5" />
+            <span className="hidden sm:inline">View</span>
+          </Button>
+
+          <Button 
+            size="sm" 
+            className="h-9 bg-gradient-to-r from-primary to-secondary hover:opacity-90 flex items-center justify-center"
+            onClick={handleGenerateScript}
+          >
+            <Edit3 className="w-4 h-4 mr-1.5" />
+            <span className="hidden sm:inline">Script</span>
+          </Button>
+
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="h-9 flex items-center justify-center hover:bg-muted"
+            onClick={handleCopyLink}
+          >
+            <Copy className="w-4 h-4 mr-1.5" />
+            <span className="hidden sm:inline">Copy</span>
+          </Button>
+        </div>
+      </div>
     </Card>
   );
 }
