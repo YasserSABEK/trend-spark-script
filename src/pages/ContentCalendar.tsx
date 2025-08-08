@@ -11,7 +11,6 @@ import {
   Trash2, 
   ExternalLink, 
   Edit3, 
-  Copy, 
   ImageOff, 
   Search,
   Bookmark,
@@ -69,15 +68,6 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
     navigate(`/script-generator?contentId=${item.id}`);
   };
 
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(item.source_url);
-      toast.success("Link copied to clipboard");
-    } catch (error) {
-      console.error("Copy error:", error);
-      toast.error("Failed to copy link");
-    }
-  };
 
   const getThumbnailUrl = (url: string) => {
     if (!url) return null;
@@ -219,38 +209,24 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
 
       {/* Action Bar */}
       <div className="border-t border-border/50 bg-muted/20 p-3">
-        {/* Primary Actions Row */}
-        <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <Button 
-              size="sm" 
-              variant="outline"
-              className="h-10 text-xs font-medium border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
-              onClick={handleViewOriginal}
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Watch Original
-            </Button>
-
-            <Button 
-              size="sm" 
-              className="h-10 text-xs font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-sm"
-              onClick={handleGenerateScript}
-            >
-              <Edit3 className="w-4 h-4 mr-2" />
-              Generate Script
-            </Button>
-          </div>
-
-          {/* Secondary Action */}
+        <div className="flex gap-2">
           <Button 
             size="sm" 
-            variant="ghost"
-            className="w-full h-9 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-            onClick={handleCopyLink}
+            variant="outline"
+            className="flex-1 h-10 text-xs font-medium border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+            onClick={handleViewOriginal}
           >
-            <Copy className="w-3.5 h-3.5 mr-2" />
-            Copy Link
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Watch Original
+          </Button>
+
+          <Button 
+            size="sm" 
+            className="flex-1 h-10 text-xs font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-sm"
+            onClick={handleGenerateScript}
+          >
+            <Edit3 className="w-4 h-4 mr-2" />
+            Generate Script
           </Button>
         </div>
       </div>
@@ -370,7 +346,7 @@ export default function ContentCalendar() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-20">
       <header className="space-y-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
