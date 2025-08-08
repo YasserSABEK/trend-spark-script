@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, AlertCircle, Loader2, Play, Trash2, Hash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface HashtagSearch {
   id: string;
@@ -24,6 +25,7 @@ interface HashtagCardProps {
 
 export const HashtagCard = ({ search, onViewResults, onDelete }: HashtagCardProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const displayHashtag = search.hashtag || 'Unknown';
 
@@ -161,7 +163,7 @@ export const HashtagCard = ({ search, onViewResults, onDelete }: HashtagCardProp
             className="w-full bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
             onClick={(e) => {
               e.stopPropagation();
-              onViewResults(search.hashtag);
+              navigate(`/hashtags/${search.hashtag}/videos`);
             }}
           >
             <Play className="w-4 h-4 mr-2" />
