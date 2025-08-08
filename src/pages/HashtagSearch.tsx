@@ -369,6 +369,143 @@ export function HashtagSearch() {
             </Card>
           </div>
         )}
+
+        {/* Results Section */}
+        {selectedHashtag && (
+          <div id="results-section" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold">
+                  #{selectedHashtag} Videos
+                </h3>
+                <Badge variant="outline">{filteredVideos.length} videos</Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2"
+                >
+                  <Filter className="w-4 h-4" />
+                  Filters
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+
+            {/* Advanced Filters */}
+            {showFilters && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Sort by</label>
+                      <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="viral_score">Viral Score</SelectItem>
+                          <SelectItem value="views">Views</SelectItem>
+                          <SelectItem value="likes">Likes</SelectItem>
+                          <SelectItem value="date">Date</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Time Range</label>
+                      <Select value={timeRange} onValueChange={setTimeRange}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Time</SelectItem>
+                          <SelectItem value="24h">Last 24 Hours</SelectItem>
+                          <SelectItem value="week">Last Week</SelectItem>
+                          <SelectItem value="month">Last Month</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Min Viral Score: {minViralScore[0]}
+                      </label>
+                      <Slider
+                        value={minViralScore}
+                        onValueChange={setMinViralScore}
+                        max={100}
+                        min={0}
+                        step={5}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Min Views: {formatNumber(minViews[0])}
+                      </label>
+                      <Slider
+                        value={minViews}
+                        onValueChange={setMinViews}
+                        max={10000000}
+                        min={1000}
+                        step={1000}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Videos Grid */}
+            {filteredVideos.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <TrendingUp className="w-12 h-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No videos found</h3>
+                  <p className="text-muted-foreground text-center">
+                    Try adjusting your filters or search for a different hashtag
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredVideos.slice(0, visibleVideos).map((video) => (
+                  <TikTokVideoCard
+                    key={video.id}
+                    video={video}
+                    onGenerateScript={handleGenerateScript}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Load More Button */}
+            {filteredVideos.length > visibleVideos && (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setVisibleVideos(prev => prev + 12)}
+                  className="flex items-center gap-2"
+                >
+                  Load More Videos
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
