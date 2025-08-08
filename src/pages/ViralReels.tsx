@@ -91,6 +91,16 @@ export const ViralReels = () => {
       return;
     }
 
+    // SECURITY FIX: Ensure user is authenticated before allowing searches
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to search for reels",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setScrapingLoading(true);
       setProcessingSearch(instagramUsername.trim());
@@ -100,6 +110,7 @@ export const ViralReels = () => {
       const { data: queueData, error: queueError } = await supabase
         .from('search_queue')
         .insert({
+          user_id: user?.id,  // SECURITY FIX: Always include authenticated user ID
           username: instagramUsername.trim(),
           search_type: 'username',
           platform: 'instagram',
@@ -248,9 +259,17 @@ export const ViralReels = () => {
         userId: user?.id
       });
       
+      // SECURITY FIX: Only fetch searches belonging to the authenticated user
+      if (!user?.id) {
+        console.log('❌ No authenticated user, skipping search queue load');
+        setSearches([]);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('search_queue')
         .select('*')
+        .eq('user_id', user.id)  // CRITICAL: Filter by authenticated user
         .eq('search_type', 'username')
         .is('hashtag', null)
         .order('requested_at', { ascending: false })
