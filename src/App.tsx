@@ -16,6 +16,7 @@ import { ReelResults } from "./pages/ReelResults";
 import { Profile } from "./pages/Profile";
 import { ScriptGenerator } from "./pages/ScriptGenerator";
 import { MyScripts } from "./pages/MyScripts";
+import { Content } from "./pages/Content";
 import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 
@@ -61,6 +62,7 @@ function AppContent() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/script-generator" element={<ScriptGenerator />} />
               <Route path="/my-scripts" element={<MyScripts />} />
+              <Route path="/content" element={<Content />} />
               <Route path="/billing" element={<Billing />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

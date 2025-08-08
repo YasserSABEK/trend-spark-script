@@ -60,6 +60,11 @@ export const Navbar = () => {
                     My Scripts
                   </Button>
                 </Link>
+                <Link to="/content">
+                  <Button variant="ghost" size="sm">
+                    Content
+                  </Button>
+                </Link>
                 <Button variant="ghost" size="sm" onClick={handleSignOut}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out

@@ -7,7 +7,8 @@ import {
   Edit3, 
   FileText, 
   Zap,
-  CreditCard
+  CreditCard,
+  Bookmark
 } from "lucide-react";
 import {
   Sidebar,
@@ -30,6 +31,7 @@ const navigationItems = [
   { title: "Hashtag Search", url: "/hashtag-search", icon: Hash },
   { title: "Script Generator", url: "/script-generator", icon: Edit3 },
   { title: "My Scripts", url: "/my-scripts", icon: FileText },
+  { title: "Content", url: "/content", icon: Bookmark },
   { title: "Billing", url: "/billing", icon: CreditCard },
 ];
 
