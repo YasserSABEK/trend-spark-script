@@ -48,28 +48,22 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
   };
 
   const handleClick = () => {
-    if (!isLoaded) {
+    if (!isLoaded && !loading) {
       loadEmbed();
     } else {
       window.open(url, '_blank');
     }
   };
 
-  if (isLoaded && embedData?.html) {
-    return (
-      <div 
-        className={`tiktok-embed ${className}`}
-        dangerouslySetInnerHTML={{ __html: embedData.html }}
-      />
-    );
-  }
+  // Always show clickable thumbnail first, don't auto-load embed
+  const displayThumbnail = thumbnailUrl || embedData?.thumbnail_url;
 
   return (
     <div className={`relative group cursor-pointer ${className}`} onClick={handleClick}>
       <div className="aspect-[9/16] w-full overflow-hidden rounded-xl bg-muted">
-        {(thumbnailUrl || embedData?.thumbnail_url) ? (
+        {displayThumbnail ? (
           <img 
-            src={thumbnailUrl || embedData?.thumbnail_url} 
+            src={displayThumbnail} 
             alt="TikTok video thumbnail"
             className="h-full w-full object-cover"
             loading="lazy"

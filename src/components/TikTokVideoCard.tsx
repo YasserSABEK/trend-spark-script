@@ -161,34 +161,36 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group flex flex-col h-full">
       {/* TikTok Embed */}
-      <TikTokEmbed 
-        url={video.web_video_url || video.url}
-        thumbnailUrl={video.thumbnail_url}
-        className="relative"
-      />
-      
-      {/* Overlay badges */}
-      <div className="absolute top-3 right-3">
-        <Badge className={`${getViralScoreColor(video.viral_score)} text-white border-none`}>
-          <Sparkles className="w-3 h-3 mr-1" />
-          {video.viral_score || 0}
-        </Badge>
-      </div>
-      
-      <div className="absolute bottom-3 left-3">
-        <Badge variant="secondary" className="bg-black/60 text-white border-none">
-          <Clock className="w-3 h-3 mr-1" />
-          {getTimeAgo(video.timestamp)}
-        </Badge>
-      </div>
-      
-      {video.video_duration && (
-        <div className="absolute top-3 left-3">
-          <Badge variant="secondary" className="bg-black/60 text-white border-none">
-            {formatDuration(video.video_duration)}
+      <div className="relative">
+        <TikTokEmbed 
+          url={video.web_video_url || video.url}
+          thumbnailUrl={video.thumbnail_url}
+          className=""
+        />
+        
+        {/* Overlay badges */}
+        <div className="absolute top-3 right-3">
+          <Badge className={`${getViralScoreColor(video.viral_score)} text-white border-none`}>
+            <Sparkles className="w-3 h-3 mr-1" />
+            {video.viral_score || 0}
           </Badge>
         </div>
-      )}
+        
+        <div className="absolute bottom-3 left-3">
+          <Badge variant="secondary" className="bg-black/60 text-white border-none">
+            <Clock className="w-3 h-3 mr-1" />
+            {getTimeAgo(video.timestamp)}
+          </Badge>
+        </div>
+        
+        {video.video_duration && (
+          <div className="absolute top-3 left-3">
+            <Badge variant="secondary" className="bg-black/60 text-white border-none">
+              {formatDuration(video.video_duration)}
+            </Badge>
+          </div>
+        )}
+      </div>
 
       <CardContent className="p-4">
         {/* Creator Info */}
