@@ -13,7 +13,7 @@ import {
   Music,
   Sparkles
 } from "lucide-react";
-import { VideoPlayer } from "./VideoPlayer";
+import { TikTokEmbed } from "./media/TikTokEmbed";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -160,77 +160,35 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group flex flex-col h-full">
-      {/* Video Thumbnail */}
-      <div 
-        className="aspect-[9/16] bg-gradient-to-br from-purple-400/20 via-pink-400/20 to-red-400/20 flex items-center justify-center relative overflow-hidden"
-        onClick={handlePlayVideo}
-      >
-        {video.thumbnail_url ? (
-          <>
-            <img 
-              src={video.thumbnail_url}
-              alt="TikTok video thumbnail"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              loading="lazy"
-              onError={(e) => {
-                const target = e.currentTarget;
-                target.style.display = 'none';
-                const parent = target.parentElement;
-                const fallback = parent?.querySelector('.thumbnail-fallback') as HTMLElement;
-                if (fallback) {
-                  fallback.style.display = 'flex';
-                }
-              }}
-            />
-            {/* Fallback when thumbnail fails */}
-            <div 
-              className="thumbnail-fallback absolute inset-0 w-full h-full bg-gradient-to-br from-purple-400/30 to-pink-400/30 flex items-center justify-center"
-              style={{ display: 'none' }}
-            >
-              <Play className="w-16 h-16 text-white opacity-80" />
-            </div>
-          </>
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-purple-400/30 to-pink-400/30 flex items-center justify-center">
-            <Play className="w-16 h-16 text-white opacity-80" />
-          </div>
-        )}
-        
-        {/* Overlay Elements */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-        
-        {/* Viral Score Badge */}
-        <div className="absolute top-3 right-3">
-          <Badge className={`${getViralScoreColor(video.viral_score)} text-white border-none`}>
-            <Sparkles className="w-3 h-3 mr-1" />
-            {video.viral_score || 0}
-          </Badge>
-        </div>
-        
-        {/* Time Since Posted */}
-        <div className="absolute bottom-3 left-3">
-          <Badge variant="secondary" className="bg-black/60 text-white border-none">
-            <Clock className="w-3 h-3 mr-1" />
-            {getTimeAgo(video.timestamp)}
-          </Badge>
-        </div>
-        
-        {/* Duration Badge */}
-        {video.video_duration && (
-          <div className="absolute top-3 left-3">
-            <Badge variant="secondary" className="bg-black/60 text-white border-none">
-              {formatDuration(video.video_duration)}
-            </Badge>
-          </div>
-        )}
-        
-        {/* Play Button Overlay */}
-        <div className="absolute center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <Play className="w-8 h-8 text-white" />
-          </div>
-        </div>
+      {/* TikTok Embed */}
+      <TikTokEmbed 
+        url={video.web_video_url || video.url}
+        thumbnailUrl={video.thumbnail_url}
+        className="relative"
+      />
+      
+      {/* Overlay badges */}
+      <div className="absolute top-3 right-3">
+        <Badge className={`${getViralScoreColor(video.viral_score)} text-white border-none`}>
+          <Sparkles className="w-3 h-3 mr-1" />
+          {video.viral_score || 0}
+        </Badge>
       </div>
+      
+      <div className="absolute bottom-3 left-3">
+        <Badge variant="secondary" className="bg-black/60 text-white border-none">
+          <Clock className="w-3 h-3 mr-1" />
+          {getTimeAgo(video.timestamp)}
+        </Badge>
+      </div>
+      
+      {video.video_duration && (
+        <div className="absolute top-3 left-3">
+          <Badge variant="secondary" className="bg-black/60 text-white border-none">
+            {formatDuration(video.video_duration)}
+          </Badge>
+        </div>
+      )}
 
       <CardContent className="p-4">
         {/* Creator Info */}
@@ -348,14 +306,6 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
         </div>
       </CardContent>
 
-      <VideoPlayer
-        isOpen={showVideoPlayer}
-        onClose={() => setShowVideoPlayer(false)}
-        videoUrl=""
-        thumbnailUrl={video.thumbnail_url || ''}
-        title={video.caption || 'TikTok Video'}
-        instagramUrl={video.web_video_url || video.url}
-      />
     </Card>
   );
 };

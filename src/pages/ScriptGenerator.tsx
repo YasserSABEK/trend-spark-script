@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +32,18 @@ export const ScriptGenerator = () => {
     hookStyle: ''
   });
   const { toast } = useToast();
+
+  // Pre-fill form from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const prompt = urlParams.get('prompt');
+    const caption = urlParams.get('caption');
+    const platform = urlParams.get('platform');
+    
+    if (prompt) {
+      setFormData(prev => ({ ...prev, prompt }));
+    }
+  }, []);
 
   const { isOver, setNodeRef } = useDroppable({
     id: 'script-generator-drop',
