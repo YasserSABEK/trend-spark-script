@@ -5,18 +5,15 @@ import {
   Heart, 
   MessageSquare, 
   Play, 
-  Pause,
   Clock, 
   Bookmark,
   Eye,
-  ExternalLink,
-  Volume2,
-  VolumeX,
-  RotateCcw
+  ExternalLink
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { InstagramEmbed } from "@/components/media/InstagramEmbed";
 
 interface InstagramReel {
   id: string;
@@ -45,12 +42,9 @@ interface ReelCardProps {
 }
 
 export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
+const [isPlaying, setIsPlaying] = useState(false);
+const [imageError, setImageError] = useState(false);
+const [imageLoading, setImageLoading] = useState(true);
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -97,50 +91,9 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
   };
 
   const handlePlayVideo = () => {
-    if (reel.video_url) {
-      setIsPlaying(true);
-    } else {
-      openInstagramPost();
-    }
+  setIsPlaying(true);
   };
 
-  const handleVideoEnd = () => {
-    setIsPlaying(false);
-    setIsPaused(false);
-  };
-
-  const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (isPaused) {
-        videoRef.current.play();
-        setIsPaused(false);
-      } else {
-        videoRef.current.pause();
-        setIsPaused(true);
-      }
-    }
-  };
-
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-    }
-  };
-
-  const handleReplay = () => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play();
-      setIsPaused(false);
-    }
-  };
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = isMuted;
-    }
-  }, [isMuted]);
 
   const handleSaveVideo = async () => {
     try {
@@ -185,7 +138,7 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
                 )}
                 <img 
                   src={getThumbnailUrl(reel.thumbnail_url)}
-                  alt="Reel thumbnail"
+                  alt={`Instagram reel by @${reel.username}`}
                   className={`w-full h-full object-cover group-hover:scale-110 transition-all duration-300 ${
                     imageLoading ? 'opacity-0' : 'opacity-100'
                   }`}
@@ -226,46 +179,9 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         )}
 
         {/* Inline Video Player */}
-        {isPlaying && reel.video_url && (
-          <div className="absolute inset-0 w-full h-full">
-            <video
-              ref={videoRef}
-              src={reel.video_url}
-              className="w-full h-full object-cover"
-              autoPlay
-              muted={isMuted}
-              playsInline
-              onEnded={handleVideoEnd}
-              poster={getThumbnailUrl(reel.thumbnail_url) || undefined}
-            />
-            
-            {/* Video Controls */}
-            <div className="absolute bottom-4 right-4 flex gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                className="w-8 h-8 p-0 bg-black/60 hover:bg-black/80 text-white"
-                onClick={handleReplay}
-              >
-                <RotateCcw className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="w-8 h-8 p-0 bg-black/60 hover:bg-black/80 text-white"
-                onClick={togglePlayPause}
-              >
-                {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="w-8 h-8 p-0 bg-black/60 hover:bg-black/80 text-white"
-                onClick={toggleMute}
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </Button>
-            </div>
+        {isPlaying && (
+          <div className="absolute inset-0">
+            <InstagramEmbed url={reel.url} className="w-full h-full" />
           </div>
         )}
       </div>
