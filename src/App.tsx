@@ -30,8 +30,29 @@ function AppContent() {
   const location = useLocation();
   const isAuthRoute = location.pathname === "/auth" || location.pathname.startsWith("/auth/");
   const isLandingRoute = location.pathname === "/";
+  
+  // Check if we're on the main domain (viraltify.com) vs app subdomain (app.viraltify.com)
+  const isMainDomain = window.location.hostname === "viraltify.com" || 
+                       window.location.hostname === "www.viraltify.com" ||
+                       window.location.hostname === "localhost";
+  
+  // On main domain, only show landing page - redirect app routes to app subdomain
+  if (isMainDomain && !isLandingRoute) {
+    window.location.href = `https://app.viraltify.com${location.pathname}${location.search}`;
+    return <div>Redirecting...</div>;
+  }
+  
+  // On main domain, show only landing page without navbar
+  if (isMainDomain && isLandingRoute) {
+    return (
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    );
+  }
 
-  // Show navbar for landing and auth pages, sidebar for authenticated pages
+  // On app subdomain, show navbar for auth pages, sidebar for authenticated pages
   if (isLandingRoute || isAuthRoute) {
     return (
       <>

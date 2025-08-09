@@ -42,12 +42,14 @@ export const LandingPage = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link to="/auth">
-              <Button size="lg" className="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90 text-lg px-8 py-6">
-                <Zap className="w-5 h-5 mr-2" />
-                Start Free Trial
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90 text-lg px-8 py-6"
+              onClick={() => window.location.href = 'https://app.viraltify.com/auth'}
+            >
+              <Zap className="w-5 h-5 mr-2" />
+              Start Free Trial
+            </Button>
             <Button size="lg" variant="outline" className="text-lg px-8 py-6">
               <Play className="w-5 h-5 mr-2" />
               Watch Demo
@@ -211,11 +213,13 @@ export const LandingPage = () => {
                     <span className="text-sm">Basic analytics</span>
                   </div>
                 </div>
-                <Link to="/auth">
-                  <Button variant="outline" className="w-full">
-                    Get Started Free
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => window.location.href = 'https://app.viraltify.com/auth'}
+                >
+                  Get Started Free
+                </Button>
               </CardContent>
             </Card>
 
@@ -263,11 +267,12 @@ export const LandingPage = () => {
                     <span className="text-sm">Export features</span>
                   </div>
                 </div>
-                <Link to="/auth">
-                  <Button className="w-full bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90">
-                    Start 7-Day Free Trial
-                  </Button>
-                </Link>
+                <Button 
+                  className="w-full bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
+                  onClick={() => window.location.href = 'https://app.viraltify.com/auth'}
+                >
+                  Start 7-Day Free Trial
+                </Button>
                 <p className="text-xs text-muted-foreground mt-3 text-center">
                   No credit card required. Cancel anytime.
                 </p>
@@ -314,11 +319,13 @@ export const LandingPage = () => {
                     <span className="text-sm">Dedicated account manager</span>
                   </div>
                 </div>
-                <Link to="/auth">
-                  <Button variant="outline" className="w-full">
-                    Contact Sales
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => window.location.href = 'https://app.viraltify.com/auth'}
+                >
+                  Contact Sales
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -458,12 +465,14 @@ export const LandingPage = () => {
           <p className="text-xl text-white/90 mb-8">
             Join thousands of creators who are already using Viraltify to go viral
           </p>
-          <Link to="/auth">
-            <Button size="lg" className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-6">
-              <Zap className="w-5 h-5 mr-2" />
-              Start Your Free Trial Now
-            </Button>
-          </Link>
+          <Button 
+            size="lg" 
+            className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-6"
+            onClick={() => window.location.href = 'https://app.viraltify.com/auth'}
+          >
+            <Zap className="w-5 h-5 mr-2" />
+            Start Your Free Trial Now
+          </Button>
           <p className="text-white/80 mt-4">
             7-day free trial • No credit card required • Cancel anytime
           </p>
