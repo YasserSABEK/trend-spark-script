@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, AlertCircle, Loader2, Play, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { normalizeUsername } from "@/utils/username";
 
 interface SearchQueueItem {
   id: string;
@@ -217,7 +218,7 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
                 // For hashtag searches, navigate to hashtag videos page
                 window.location.href = `/hashtag-videos?hashtag=${search.hashtag}`;
               } else {
-                onViewResults(search.username!);
+                onViewResults(normalizeUsername(search.username!));
               }
             }}
           >

@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, Filter, Heart, MessageCircle, Eye, TrendingUp } from "lucide-react";
+import { ArrowLeft, Search, Filter, Heart, MessageCircle, Eye, TrendingUp, RefreshCw } from "lucide-react";
 import { ReelCard } from "@/components/ReelCard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/components/auth/AuthContext";
+import { normalizeUsername } from "@/utils/username";
 
 interface InstagramReel {
   id: string;
@@ -33,35 +35,55 @@ interface InstagramReel {
 export const ReelResults = () => {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
+  const { user, session, loading: authLoading } = useAuth();
   const [reels, setReels] = useState<InstagramReel[]>([]);
   const [loading, setLoading] = useState(true);
-  // Removed searchTerm since search bar is removed
+  const [hasRetried, setHasRetried] = useState(false);
 
   useEffect(() => {
-    if (username) {
+    if (username && !authLoading && session) {
       loadReels();
     }
-  }, [username]);
+  }, [username, authLoading, session]);
 
-  const loadReels = async () => {
+  const loadReels = async (isRetry = false) => {
+    if (!username) return;
+    
     try {
       setLoading(true);
+      const normalizedUsername = normalizeUsername(username);
+      
+      console.log('🔍 Loading reels for username:', {
+        original: username,
+        normalized: normalizedUsername,
+        userAuthenticated: !!user,
+        isRetry
+      });
+
+      // Robust query that handles various username formats
       const { data, error } = await supabase
         .from('instagram_reels')
         .select('*')
-        .eq('search_username', username)
+        .or(`search_username.eq.${normalizedUsername},search_username.eq.${username},username.eq.${normalizedUsername},username.eq.${username}`)
         .order('viral_score', { ascending: false });
 
       if (error) throw error;
 
+      console.log('📊 Reels query result:', {
+        count: data?.length || 0,
+        usernames: data?.slice(0, 3).map(r => ({ search_username: r.search_username, username: r.username }))
+      });
+
       if (data && data.length > 0) {
         setReels(data);
+      } else if (!isRetry && !hasRetried && user) {
+        // One-time retry after auth is ready
+        console.log('🔄 No reels found, retrying once...');
+        setHasRetried(true);
+        setTimeout(() => loadReels(true), 1000);
+        return;
       } else {
-        toast({
-          title: "No reels found",
-          description: `No reels found for @${username}`,
-          variant: "destructive",
-        });
+        setReels([]);
       }
     } catch (error) {
       console.error('Error loading reels:', error);
@@ -70,6 +92,7 @@ export const ReelResults = () => {
         description: "Failed to load reels from database",
         variant: "destructive",
       });
+      setReels([]);
     } finally {
       setLoading(false);
     }
@@ -159,9 +182,28 @@ export const ReelResults = () => {
             <CardContent className="p-12 text-center">
               <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">No reels found</h3>
-              <p className="text-muted-foreground">
-                No reels found for @{username}
+              <p className="text-muted-foreground mb-4">
+                No reels found for @{username}. This might be because:
               </p>
+              <ul className="text-sm text-muted-foreground mb-6 space-y-1">
+                <li>• The username hasn't been searched yet</li>
+                <li>• The search is still processing</li>
+                <li>• No public reels were found for this account</li>
+              </ul>
+              <Button 
+                onClick={() => loadReels()} 
+                variant="outline" 
+                className="mr-2"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry
+              </Button>
+              <Button 
+                onClick={() => navigate('/viral-reels')}
+                variant="default"
+              >
+                Search New Username
+              </Button>
             </CardContent>
           </Card>
         ) : (

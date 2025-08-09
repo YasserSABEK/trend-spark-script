@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthContext";
 import { CreditGuard } from "@/components/credits/CreditGuard";
+import { normalizeUsername } from "@/utils/username";
 
 interface SearchQueueItem {
   id: string;
@@ -107,11 +108,13 @@ export const ViralReels = () => {
       
       // Add to search queue and immediately show in UI
       const startTime = Date.now();
+      const normalizedUsername = normalizeUsername(instagramUsername);
+      
       const { data: queueData, error: queueError } = await supabase
         .from('search_queue')
         .insert({
           user_id: user?.id,  // SECURITY FIX: Always include authenticated user ID
-          username: instagramUsername.trim(),
+          username: normalizedUsername,
           search_type: 'username',
           platform: 'instagram',
           status: 'processing'
@@ -125,7 +128,7 @@ export const ViralReels = () => {
       loadSearchQueue();
       
       const { data, error } = await supabase.functions.invoke('scrape-instagram', {
-        body: { username: instagramUsername.trim() }
+        body: { username: normalizedUsername }
       });
 
       const processingTime = Math.round((Date.now() - startTime) / 1000);
@@ -170,7 +173,7 @@ export const ViralReels = () => {
           product_type: reel.product_type,
           shortcode: reel.shortcode,
           thumbnail_url: reel.thumbnail_url,
-          search_username: instagramUsername.trim(), // Add this field
+          search_username: normalizedUsername, // Use normalized username
           search_requested_at: new Date().toISOString(),
           processing_time_seconds: processingTime,
           search_status: 'completed'
@@ -202,7 +205,7 @@ export const ViralReels = () => {
         setQueueRefresh(prev => prev + 1);
         toast({
           title: "Success!",
-          description: `Found ${data.data.length} reels from @${instagramUsername} and saved to database`,
+          description: `Found ${data.data.length} reels from @${normalizedUsername} and saved to database`,
         });
         setInstagramUsername(''); // Clear input
       } else {
@@ -312,7 +315,8 @@ export const ViralReels = () => {
   });
 
   const handleViewResults = (username: string) => {
-    navigate(`/reels/${username}`);
+    const normalizedUsername = normalizeUsername(username);
+    navigate(`/reels/${normalizedUsername}`);
   };
 
   const handleSearchDeleted = () => {
