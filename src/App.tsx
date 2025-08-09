@@ -9,6 +9,8 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Navbar } from "@/components/layout/Navbar";
 import { LandingPage } from "./pages/LandingPage";
 import { AuthPage } from "./pages/AuthPage";
+import { AuthCallback } from "./pages/AuthCallback";
+import { ResetPassword } from "./pages/ResetPassword";
 import { Dashboard } from "./pages/Dashboard";
 import { ViralReels } from "./pages/ViralReels";
 import { HashtagSearch } from "./pages/HashtagSearch";
@@ -26,7 +28,7 @@ const queryClient = new QueryClient();
 
 function AppContent() {
   const location = useLocation();
-  const isAuthRoute = location.pathname === "/auth";
+  const isAuthRoute = location.pathname === "/auth" || location.pathname.startsWith("/auth/");
   const isLandingRoute = location.pathname === "/";
 
   // Show navbar for landing and auth pages, sidebar for authenticated pages
@@ -37,6 +39,8 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </>
