@@ -77,7 +77,7 @@ export const Navbar = () => {
                     Sign In
                   </Button>
                 </Link>
-                <Link to="/auth">
+                <Link to="/auth?mode=signup">
                   <Button size="sm" className="bg-gradient-to-r from-instagram-pink to-instagram-purple">
                     Start Free Trial
                   </Button>

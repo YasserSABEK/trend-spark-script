@@ -45,7 +45,7 @@ export const LandingPage = () => {
             <Button 
               size="lg" 
               className="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90 text-lg px-8 py-6"
-              onClick={() => window.location.href = 'https://app.viraltify.com/auth'}
+              onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
             >
               <Zap className="w-5 h-5 mr-2" />
               Start Free Trial
