@@ -58,12 +58,11 @@ export const HashtagVideos = () => {
   
   const [loadingMore, setLoadingMore] = useState(false);
   const [total, setTotal] = useState(0);
-  const pageSize = 24;
+  const pageSize = 8;
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sort, setSort] = useState<'views' | 'likes' | 'comments' | 'newest'>((searchParams.get('sort') as any) || 'views');
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Update URL when sort changes
   useEffect(() => {
@@ -87,23 +86,11 @@ export const HashtagVideos = () => {
     loadHashtagVideos(0, false);
   }, [hashtagId, sort]);
 
-  // Infinite scroll effect
-  useEffect(() => {
-    if (!sentinelRef.current || !hasMore || loadingMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore) {
-          loadHashtagVideos(page + 1, true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(sentinelRef.current);
-
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, page]);
+  const handleLoadMore = () => {
+    if (hasMore && !loadingMore) {
+      loadHashtagVideos(page + 1, true);
+    }
+  };
 
   const loadHashtagVideos = async (pageIndex = 0, append = false) => {
     try {
@@ -345,11 +332,25 @@ export const HashtagVideos = () => {
             ))}
           </div>
 
-          {/* Infinite scroll sentinel */}
-          <div ref={sentinelRef} className="h-8" />
-          {loadingMore && (
-            <div className="flex justify-center py-4">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="flex justify-center pt-6">
+              <Button 
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                variant="outline"
+                size="lg"
+                className="min-w-32"
+              >
+                {loadingMore ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Load More'
+                )}
+              </Button>
             </div>
           )}
         </>

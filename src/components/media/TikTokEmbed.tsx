@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, ExternalLink } from 'lucide-react';
+import { Play, ExternalLink, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface TikTokEmbedProps {
@@ -22,11 +22,17 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
   thumbnailUrl
 }) => {
   const [embedData, setEmbedData] = useState<OEmbedData | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const loadEmbed = async () => {
-    if (loading || isLoaded) return;
+  // Load thumbnail immediately on mount if not provided
+  useEffect(() => {
+    if (!thumbnailUrl && !embedData && !loading) {
+      loadThumbnail();
+    }
+  }, [thumbnailUrl, embedData, loading]);
+
+  const loadThumbnail = async () => {
+    if (loading) return;
     
     setLoading(true);
     try {
@@ -37,25 +43,19 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
       if (error) throw error;
       
       setEmbedData(data);
-      setIsLoaded(true);
     } catch (error) {
-      console.error('Error loading TikTok embed:', error);
-      // Fallback to opening in new tab
-      window.open(url, '_blank');
+      console.error('Error loading TikTok thumbnail:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleClick = () => {
-    if (!isLoaded && !loading) {
-      loadEmbed();
-    } else {
-      window.open(url, '_blank');
-    }
+    // Always open TikTok directly
+    window.open(url, '_blank');
   };
 
-  // Always show clickable thumbnail first, don't auto-load embed
+  // Show thumbnail immediately
   const displayThumbnail = thumbnailUrl || embedData?.thumbnail_url;
 
   return (
@@ -68,6 +68,13 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
             className="h-full w-full object-cover"
             loading="lazy"
           />
+        ) : loading ? (
+          <div className="w-full h-full bg-muted animate-pulse flex items-center justify-center">
+            <div className="text-muted-foreground text-center">
+              <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin" />
+              <p className="text-sm">Loading thumbnail...</p>
+            </div>
+          </div>
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-pink-400 to-purple-600 flex items-center justify-center">
             <div className="text-white text-center">
@@ -77,16 +84,14 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
           </div>
         )}
 
-        {/* Play/Load overlay */}
+        {/* Play overlay */}
         <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors">
           <Button
             variant="secondary"
             size="lg"
             className="bg-white/90 hover:bg-white text-black pointer-events-auto z-10"
-            disabled={loading}
           >
-            <Play className="w-6 h-6 mr-2" />
-            {loading ? 'Loading...' : <ExternalLink className="w-4 h-4" />}
+            <ExternalLink className="w-6 h-6" />
           </Button>
         </div>
       </div>

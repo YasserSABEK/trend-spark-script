@@ -67,7 +67,7 @@ export function HashtagSearch() {
   const [minViews, setMinViews] = useState([1000]);
   const [timeRange, setTimeRange] = useState("all");
   const [hashtagFilter, setHashtagFilter] = useState("all");
-  const [visibleVideos, setVisibleVideos] = useState(12);
+  const [visibleVideos, setVisibleVideos] = useState(8);
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
@@ -501,7 +501,7 @@ export function HashtagSearch() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredVideos.slice(0, visibleVideos).map((video) => (
                   <TikTokVideoCard
                     key={video.id}
@@ -517,7 +517,7 @@ export function HashtagSearch() {
               <div className="flex justify-center">
                 <Button
                   variant="outline"
-                  onClick={() => setVisibleVideos(prev => prev + 12)}
+                  onClick={() => setVisibleVideos(prev => prev + 8)}
                   className="flex items-center gap-2"
                 >
                   Load More Videos
