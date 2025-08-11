@@ -59,6 +59,36 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_plans: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          monthly_credits: number
+          name: string
+          price_usd: number
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          monthly_credits: number
+          name: string
+          price_usd: number
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          monthly_credits?: number
+          name?: string
+          price_usd?: number
+          slug?: string
+        }
+        Relationships: []
+      }
       content_items: {
         Row: {
           caption: string | null
@@ -112,6 +142,120 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      credit_balances: {
+        Row: {
+          balance: number
+          created_at: string | null
+          last_reset: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string | null
+          last_reset?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string | null
+          last_reset?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_balances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      credit_ledger: {
+        Row: {
+          created_at: string | null
+          delta: number
+          id: string
+          metadata: Json | null
+          reason: string | null
+          ref_id: string | null
+          ref_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delta: number
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          ref_id?: string | null
+          ref_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delta?: number
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          ref_id?: string | null
+          ref_type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      credit_topups: {
+        Row: {
+          created_at: string | null
+          credits: number
+          id: string
+          price_usd: number
+          provider: string | null
+          provider_ref: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          credits: number
+          id?: string
+          price_usd: number
+          provider?: string | null
+          provider_ref?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          credits?: number
+          id?: string
+          price_usd?: number
+          provider?: string | null
+          provider_ref?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_topups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       generated_scripts: {
         Row: {
@@ -372,6 +516,36 @@ export type Database = {
         }
         Relationships: []
       }
+      search_cache: {
+        Row: {
+          cache_key: string
+          chunk_size: number
+          created_at: string | null
+          fetched_at: string
+          items: Json
+          source_run_id: string | null
+          total_count: number | null
+        }
+        Insert: {
+          cache_key: string
+          chunk_size?: number
+          created_at?: string | null
+          fetched_at: string
+          items: Json
+          source_run_id?: string | null
+          total_count?: number | null
+        }
+        Update: {
+          cache_key?: string
+          chunk_size?: number
+          created_at?: string | null
+          fetched_at?: string
+          items?: Json
+          source_run_id?: string | null
+          total_count?: number | null
+        }
+        Relationships: []
+      }
       search_queue: {
         Row: {
           completed_at: string | null
@@ -609,6 +783,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_subscriptions: {
+        Row: {
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          plan_slug: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          plan_slug?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          plan_slug?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_slug_fkey"
+            columns: ["plan_slug"]
+            isOneToOne: false
+            referencedRelation: "billing_plans"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -632,8 +851,23 @@ export type Database = {
           billing_cycle_start: string
         }[]
       }
+      grant_monthly_credits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       safe_deduct_credits: {
         Args: { user_id_param: string; credits_to_deduct: number }
+        Returns: Json
+      }
+      spend_credits: {
+        Args: {
+          user_id_param: string
+          amount_param: number
+          reason_param: string
+          ref_type_param?: string
+          ref_id_param?: string
+          idempotency_key_param?: string
+        }
         Returns: Json
       }
       update_subscription_plan: {
