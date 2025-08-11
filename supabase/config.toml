@@ -11,3 +11,9 @@ verify_jwt = true
 
 [functions.tiktok-oembed]
 verify_jwt = false
+
+[functions.get-or-scrape-search]
+verify_jwt = true
+
+[functions.enhanced-script-generation]
+verify_jwt = true
