@@ -23,13 +23,13 @@ interface InstagramReel {
   hashtags: string[];
   username: string;
   display_name: string;
-  followers: number;
+  followers: number | null;
   verified: boolean;
-  likes: number;
-  comments: number;
-  video_view_count: number;
-  viral_score: number;
-  engagement_rate: number;
+  likes: number | null;
+  comments: number | null;
+  video_view_count: number | null;
+  viral_score: number | null;
+  engagement_rate: number | null;
   timestamp: string;
   scraped_at: string;
   thumbnail_url: string;
@@ -45,7 +45,8 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
 const [isPlaying, setIsPlaying] = useState(false);
 const [imageError, setImageError] = useState(false);
 const [imageLoading, setImageLoading] = useState(true);
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number | null | undefined) => {
+    if (num === null || num === undefined || isNaN(num)) return '0';
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
