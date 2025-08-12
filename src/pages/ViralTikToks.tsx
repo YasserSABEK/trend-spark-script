@@ -98,50 +98,11 @@ export const ViralTikToks = () => {
       }
 
       if (data?.success && Array.isArray(data.data)) {
-        const videosToInsert = data.data.map((video: any) => ({
-          user_id: user!.id,
-          post_id: video.webVideoUrl?.split('/').pop() || video.id || `tiktok_${Date.now()}_${Math.random()}`,
-          url: video.webVideoUrl || video.url,
-          web_video_url: video.webVideoUrl || video.url,
-          caption: video.text || video.caption || '',
-          hashtags: video.hashtags || [],
-          mentions: video.mentions || [],
-          username: video.authorMeta?.name || video.username || normalized,
-          display_name: video.authorMeta?.nickname || video.display_name || null,
-          author_avatar: video.authorMeta?.avatar || video.author_avatar || null,
-          followers: video.authorMeta?.fans || video.followers || null,
-          verified: video.authorMeta?.verified || video.verified || false,
-          digg_count: video.diggCount ?? video.digg_count ?? 0,
-          comment_count: video.commentCount ?? video.comment_count ?? 0,
-          play_count: video.playCount ?? video.play_count ?? 0,
-          share_count: video.shareCount ?? video.share_count ?? 0,
-          collect_count: video.collectCount ?? video.collect_count ?? 0,
-          video_duration: video.videoMeta?.duration ?? video.video_duration ?? null,
-          is_video: true,
-          thumbnail_url: video.covers?.default || video.videoMeta?.coverUrl || video.videoMeta?.originalCoverUrl || video.thumbnail_url || video.thumbnail || null,
-          video_url: video.videoUrl || video.downloadUrl || null,
-          music_name: video.musicMeta?.musicName || video.music_name || null,
-          music_author: video.musicMeta?.musicAuthor || video.music_author || null,
-          music_original: video.musicMeta?.musicOriginal || video.music_original || false,
-          viral_score: video.viral_score ?? 0,
-          engagement_rate: video.engagement_rate ?? 0,
-          timestamp: video.createTimeISO || video.timestamp || new Date().toISOString(),
-          platform: 'tiktok'
-        }));
-
-        const { error: insertError } = await supabase
-          .from('tiktok_videos')
-          .insert(videosToInsert);
-
-        if (insertError) {
-          console.error('Error inserting TikTok videos:', insertError);
-        }
-
         await supabase
           .from('search_queue')
           .update({ 
             status: 'completed',
-            total_results: videosToInsert.length,
+            total_results: data.data.length,
             processing_time_seconds: processingTime,
             completed_at: new Date().toISOString()
           })
@@ -149,8 +110,11 @@ export const ViralTikToks = () => {
 
         toast({
           title: "Success!",
-          description: `Found ${videosToInsert.length} TikToks from @${normalized} and saved to database`,
+          description: `Found ${data.data.length} TikToks from @${normalized}`,
         });
+        
+        // Navigate to results page with video data
+        navigate(`/tiktoks/${normalized}`, { state: { videos: data.data } });
         setTiktokUsername('');
       } else {
         await supabase

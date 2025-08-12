@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, TrendingUp, ArrowLeft, RefreshCw } from "lucide-react";
@@ -39,16 +39,21 @@ interface TikTokVideo {
 export const TikTokUserResults = () => {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, session, loading: authLoading } = useAuth();
   const [videos, setVideos] = useState<TikTokVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasRetried, setHasRetried] = useState(false);
 
   useEffect(() => {
-    if (username && !authLoading && session) {
+    // Check if videos were passed via navigation state (from search)
+    if (location.state?.videos && Array.isArray(location.state.videos)) {
+      setVideos(location.state.videos);
+      setLoading(false);
+    } else if (username && !authLoading && session) {
       loadVideos();
     }
-  }, [username, authLoading, session]);
+  }, [username, authLoading, session, location.state]);
 
   const loadVideos = async (isRetry = false) => {
     if (!username) return;
@@ -57,6 +62,7 @@ export const TikTokUserResults = () => {
       setLoading(true);
       const normalized = normalizeUsername(username);
 
+      // Try to fetch from database first (for previously searched usernames)
       const { data, error } = await supabase
         .from('tiktok_videos')
         .select('*')
@@ -67,11 +73,8 @@ export const TikTokUserResults = () => {
 
       if (data && data.length > 0) {
         setVideos(data as any);
-      } else if (!isRetry && !hasRetried && user) {
-        setHasRetried(true);
-        setTimeout(() => loadVideos(true), 1000);
-        return;
       } else {
+        // No data found in database - user needs to go back and search
         setVideos([]);
       }
     } catch (err) {

@@ -165,23 +165,9 @@ serve(async (req) => {
         };
       });
 
-    // Upsert into tiktok_videos with the unified constraint
-    if (processedVideos.length > 0) {
-      // For username searches, ensure search_hashtag is null or empty string
-      const videosForUpsert = processedVideos.map(video => ({
-        ...video,
-        search_hashtag: null // Ensure consistent constraint key for username searches
-      }));
-      
-      const { error: insertError } = await supabase
-        .from('tiktok_videos')
-        .upsert(videosForUpsert, {
-          onConflict: 'user_id,post_id,search_hashtag',
-          ignoreDuplicates: false,
-        });
-      if (insertError) throw new Error('Failed to save videos: ' + insertError.message);
-      console.log(`Saved ${processedVideos.length} videos (duplicates updated)`);
-    }
+    // Return processed videos directly instead of saving to database
+    console.log(`Processed ${processedVideos.length} videos for immediate display`);
+    // Note: Videos are not saved to database anymore, they're returned for frontend display
 
     return new Response(
       JSON.stringify({ success: true, data: processedVideos, username: cleanUsername, videosFound: processedVideos.length }),
