@@ -41,15 +41,18 @@ serve(async (req) => {
     // Try different actors with different input formats
     const actors = [
       {
-        id: 'clockworks/free-tiktok-scraper',
-        input: { startUrls: [{ url: tiktokUrl }] }
+        id: 'epctex/tiktok-video-downloader',
+        input: { 
+          proxy: { useApifyProxy: true },
+          startUrls: [tiktokUrl]
+        }
       },
       {
-        id: 'apify/tiktok-scraper', 
-        input: { postURLs: [tiktokUrl] }
+        id: 'bytepulselabs~tiktok-video-downloader',
+        input: { urls: [{ url: tiktokUrl }] }
       },
       {
-        id: 'dainty_screw/tiktok-scraper',
+        id: 'apilabs~tiktok-downloader',
         input: { urls: [tiktokUrl] }
       }
     ];
@@ -60,8 +63,8 @@ serve(async (req) => {
       try {
         console.log(`Trying actor: ${actor.id}`);
         
-        // Start the actor run with correct input format
-        const runResponse = await fetch(`https://api.apify.com/v2/acts/${actor.id}/run-sync?token=${apifyApiKey}`, {
+        // Start the actor run with run-sync-get-dataset-items
+        const runResponse = await fetch(`https://api.apify.com/v2/acts/${actor.id}/run-sync-get-dataset-items?token=${apifyApiKey}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -80,10 +83,12 @@ serve(async (req) => {
         console.log(`Response from ${actor.id}:`, JSON.stringify(runData, null, 2));
         
         // For synchronous runs, check for direct output
-        if (runData.output && runData.output.length > 0) {
-          const result = runData.output[0];
+        if (runData && Array.isArray(runData) && runData.length > 0) {
+          const result = runData[0];
           // Try different possible property names for video URL
-          const videoUrl = result.downloadURL || result.videoUrl || result.video_url || result.directVideoUrl;
+          const videoUrl = result.downloadUrl || result.play || result.hdplay || 
+                           result.download_url || result.videoUrl || result.video_url || 
+                           result.directVideoUrl || result.sourceUrl;
           if (videoUrl) {
             console.log(`Successfully extracted TikTok video URL from ${actor.id}:`, videoUrl);
             return new Response(JSON.stringify({
@@ -121,7 +126,9 @@ serve(async (req) => {
               
               if (results && results.length > 0) {
                 const result = results[0];
-                const videoUrl = result.downloadURL || result.videoUrl || result.video_url || result.directVideoUrl;
+                const videoUrl = result.downloadUrl || result.play || result.hdplay || 
+                               result.download_url || result.videoUrl || result.video_url || 
+                               result.directVideoUrl || result.sourceUrl;
                 if (videoUrl) {
                   console.log(`Successfully extracted TikTok video URL from async ${actor.id}:`, videoUrl);
                   return new Response(JSON.stringify({
@@ -154,8 +161,36 @@ serve(async (req) => {
       }
     }
 
-    // If all actors failed, return the last error
-    throw new Error(lastError || 'All TikTok extraction actors failed');
+    // If all Apify actors failed, try TikWM as fallback
+    console.log('All Apify actors failed, trying TikWM fallback...');
+    try {
+      const tikwmResponse = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(tiktokUrl)}`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+      
+      if (tikwmResponse.ok) {
+        const tikwmData = await tikwmResponse.json();
+        if (tikwmData.code === 0 && (tikwmData.data?.play || tikwmData.data?.hdplay)) {
+          const videoUrl = tikwmData.data.hdplay || tikwmData.data.play;
+          console.log('Successfully extracted TikTok video URL from TikWM:', videoUrl);
+          return new Response(JSON.stringify({
+            success: true,
+            videoUrl: videoUrl,
+            title: tikwmData.data.title || 'TikTok Video',
+            actor: 'TikWM'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+    } catch (tikwmError) {
+      console.error('TikWM fallback failed:', tikwmError);
+    }
+
+    // If all extraction methods failed, return the last error
+    throw new Error(lastError || 'All TikTok extraction methods failed');
 
   } catch (error) {
     console.error('Error in extract-tiktok-video:', error);

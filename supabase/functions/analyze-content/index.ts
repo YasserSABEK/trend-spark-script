@@ -68,7 +68,7 @@ serve(async (req) => {
       console.log('Extracted Instagram video URL:', finalVideoUrl);
     }
 
-    // Handle TikTok content - extract video URL using Apify
+    // Handle TikTok content - extract video URL using extraction service
     if (contentItem.platform === 'tiktok' && !videoUrl) {
       console.log('Extracting TikTok video URL...');
       const { data: extractionResult, error: extractionError } = await supabase.functions.invoke('extract-tiktok-video', {
@@ -76,7 +76,12 @@ serve(async (req) => {
       });
 
       if (extractionError || !extractionResult?.success) {
-        throw new Error(`Failed to extract TikTok video: ${extractionError?.message || extractionResult?.error}`);
+        return new Response(JSON.stringify({ 
+          error: `Failed to extract TikTok video. ${extractionResult?.actor ? `Last tried: ${extractionResult.actor}` : 'All extraction methods failed.'}` 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
       finalVideoUrl = extractionResult.videoUrl;
