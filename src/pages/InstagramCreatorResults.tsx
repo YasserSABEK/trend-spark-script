@@ -198,7 +198,13 @@ export default function InstagramCreatorResults() {
                     <div className="text-center space-y-2">
                       <div className="relative inline-block">
                         <Avatar className="w-16 h-16 mx-auto">
-                          <AvatarImage src={creator.avatar_url} alt={creator.username} />
+                          <AvatarImage 
+                            src={creator.avatar_url} 
+                            alt={creator.username}
+                            onError={(e) => {
+                              console.log('Avatar failed to load:', creator.avatar_url);
+                            }}
+                          />
                           <AvatarFallback>
                             {creator.username.slice(0, 2).toUpperCase()}
                           </AvatarFallback>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,7 @@ interface InstagramReel {
 
 export const ViralReels = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, session, loading: authLoading } = useAuth();
   const [reels, setReels] = useState<InstagramReel[]>([]);
   const [searches, setSearches] = useState<SearchQueueItem[]>([]);
@@ -66,6 +67,14 @@ export const ViralReels = () => {
     timeRange: '24h'
   });
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check for username parameter in URL
+    const usernameParam = searchParams.get('username');
+    if (usernameParam && !instagramUsername) {
+      setInstagramUsername(usernameParam);
+    }
+  }, [searchParams, instagramUsername]);
 
   useEffect(() => {
     // Debug authentication state
