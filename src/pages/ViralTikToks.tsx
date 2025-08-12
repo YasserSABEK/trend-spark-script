@@ -115,7 +115,8 @@ export const ViralTikToks = () => {
           description: `Found ${data.data.length} TikToks from @${normalized}`,
         });
         
-        // Navigate to results page with video data
+        // Store videos in localStorage and navigate to results page
+        localStorage.setItem(`tiktok_videos_${normalized}`, JSON.stringify(data.data));
         console.log('Navigating to results with videos:', data.data.length);
         navigate(`/tiktoks/${normalized}`, { state: { videos: data.data } });
         setTiktokUsername('');
@@ -169,7 +170,18 @@ export const ViralTikToks = () => {
 
   const handleViewResults = (username: string) => {
     const normalized = normalizeUsername(username);
-    // Navigate without video data - TikTokUserResults will try to load from database or show search prompt
+    // Check if we have cached videos for this username
+    const cachedVideos = localStorage.getItem(`tiktok_videos_${normalized}`);
+    if (cachedVideos) {
+      try {
+        const videos = JSON.parse(cachedVideos);
+        navigate(`/tiktoks/${normalized}`, { state: { videos } });
+        return;
+      } catch (error) {
+        console.error('Error parsing cached videos:', error);
+      }
+    }
+    // Navigate without video data if no cache available
     navigate(`/tiktoks/${normalized}`);
   };
 

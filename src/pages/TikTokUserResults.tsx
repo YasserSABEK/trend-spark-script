@@ -50,12 +50,16 @@ export const TikTokUserResults = () => {
 
   // Load videos from navigation state or localStorage
   useEffect(() => {
-    const storageKey = `tiktok-videos-${username}`;
+    const storageKey = `tiktok_videos_${username}`; // Match the key format used in ViralTikToks
     
     // Check if videos were passed via navigation state (from fresh search)
     if (location.state?.videos && Array.isArray(location.state.videos)) {
       console.log('Videos received from navigation state:', location.state.videos.length);
-      const videosWithPlatform = location.state.videos.map(v => ({ ...v, platform: 'tiktok' }));
+      const videosWithPlatform = location.state.videos.map(v => ({ 
+        ...v, 
+        platform: 'tiktok',
+        id: v.id || v.post_id || `${v.post_id}_${Date.now()}`
+      }));
       setVideos(videosWithPlatform);
       
       // Store in localStorage for persistence
@@ -73,16 +77,16 @@ export const TikTokUserResults = () => {
         } catch (e) {
           console.error('Error parsing cached videos:', e);
           localStorage.removeItem(storageKey);
-          if (username && !authLoading && session) {
-            loadVideos();
-          }
+          setVideos([]);
+          setLoading(false);
         }
-      } else if (username && !authLoading && session) {
-        console.log('No videos in navigation state or localStorage, trying database for:', username);
-        loadVideos();
+      } else {
+        console.log('No videos in navigation state or localStorage for:', username);
+        setVideos([]);
+        setLoading(false);
       }
     }
-  }, [username, authLoading, session, location.state]);
+  }, [username, location.state]);
 
   // Sort videos whenever videos array or sort option changes
   useEffect(() => {
