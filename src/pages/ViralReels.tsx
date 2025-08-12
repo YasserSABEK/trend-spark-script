@@ -57,7 +57,7 @@ export const ViralReels = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [instagramUsername, setInstagramUsername] = useState("");
   const [scrapingLoading, setScrapingLoading] = useState(false);
-  const [visibleReels, setVisibleReels] = useState(24);
+  const [visibleReels, setVisibleReels] = useState(12);
   const [queueRefresh, setQueueRefresh] = useState(0);
   const [processingSearch, setProcessingSearch] = useState<string | null>(null);
   const [filterOptions, setFilterOptions] = useState({
@@ -331,7 +331,13 @@ export const ViralReels = () => {
     return num.toString();
   };
 
-  
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64 max-w-7xl mx-auto">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -392,62 +398,6 @@ export const ViralReels = () => {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Results Section */}
-      <div className="mt-6 space-y-4">
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Card key={i} className="overflow-hidden">
-                <div className="w-full aspect-[9/16] bg-muted animate-pulse" />
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
-                    <div className="h-4 w-24 bg-muted animate-pulse" />
-                  </div>
-                  <div className="h-4 w-full bg-muted animate-pulse" />
-                  <div className="h-4 w-3/4 bg-muted animate-pulse" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : reels.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No reels found</h3>
-              <p className="text-muted-foreground">Try searching for a different username.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            {(() => {
-              const sorted = [...reels].sort((a, b) => {
-                const av = (a.video_view_count ?? a.likes ?? 0);
-                const bv = (b.video_view_count ?? b.likes ?? 0);
-                return bv - av;
-              });
-              const visible = sorted.slice(0, visibleReels);
-              return (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {visible.map((reel) => (
-                      <ReelCard key={reel.id} reel={reel} />
-                    ))}
-                  </div>
-                  {reels.length > visibleReels && (
-                    <div className="flex justify-center pt-6">
-                      <Button variant="outline" size="lg" onClick={() => setVisibleReels((v) => v + 24)}>
-                        Show more
-                      </Button>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-          </>
-        )}
       </div>
 
     </div>

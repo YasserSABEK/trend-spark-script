@@ -107,21 +107,16 @@ serve(async (req) => {
 
     // Configure Apify actor for hashtag scraping
     const actorConfig = {
-      addParentData: false,
-      directUrls: [`https://www.instagram.com/explore/tags/${cleanHashtag}`],
-      enhanceUserSearchWithFacebookPage: false,
-      isUserReelFeedURL: false,
-      isUserTaggedFeedURL: false,
-      onlyPostsNewerThan: "2024-08-01",
-      resultsLimit: 200,
-      resultsType: "stories",
+      hashtags: [cleanHashtag],
+      resultsType: "posts",
+      resultsLimit: 50,
       searchLimit: 1,
-      searchType: "hashtag"
+      addParentData: false,
     };
 
     // Start Apify actor run
     const actorResponse = await fetch(
-      'https://api.apify.com/v2/acts/apify~instagram-scraper/runs',
+      'https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs',
       {
         method: 'POST',
         headers: {
@@ -148,7 +143,7 @@ serve(async (req) => {
     const runId = runData.data.id;
     console.log(`Started Apify run: ${runId}`);
 
-    // Add to search queue with proper RLS context
+    // Add to search queue
     const { data: searchQueueData, error: queueError } = await supabaseClient
       .from('search_queue')
       .insert({
@@ -156,9 +151,7 @@ serve(async (req) => {
         username: cleanHashtag, // Using username field for hashtag name
         hashtag: cleanHashtag,
         search_type: 'hashtag',
-        platform: 'instagram',
         status: 'processing',
-        requested_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -176,7 +169,7 @@ serve(async (req) => {
       attempts++;
 
       const statusResponse = await fetch(
-        `https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${runId}`,
+        `https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs/${runId}`,
         {
           headers: { 'Authorization': `Bearer ${apifyApiKey}` },
         }
@@ -209,30 +202,30 @@ serve(async (req) => {
               .filter((post: any) => {
                 // Filter for video content and recent posts
                 const postDate = new Date(post.timestamp);
-                return (post.type === 'Video' && post.productType === 'clips') && postDate >= oneYearAgo;
+                return post.type === 'Video' || post.isVideo === true && postDate >= oneYearAgo;
               })
               .map((post: any) => ({
                 post_id: post.id || post.shortCode,
                 url: post.url,
                 shortcode: post.shortCode,
                 caption: post.caption || '',
-                hashtags: post.hashtags || extractHashtags(post.caption || ''),
+                hashtags: extractHashtags(post.caption || ''),
                 mentions: post.mentions || [],
                 username: post.ownerUsername,
                 display_name: post.ownerFullName,
                 followers: null,
-                verified: false, // Not available in new format
-                likes: 0, // Not available in new format
+                verified: post.isVerified || false,
+                likes: post.likesCount || 0,
                 comments: post.commentsCount || 0,
-                video_view_count: post.videoPlayCount || post.igPlayCount || 0,
-                video_play_count: post.videoPlayCount || post.igPlayCount || 0,
+                video_view_count: post.videoViewCount || 0,
+                video_play_count: post.videoPlayCount || 0,
                 viral_score: calculateViralScore(
-                  0, // likes not available
+                  post.likesCount || 0,
                   post.commentsCount || 0,
-                  post.videoPlayCount || post.igPlayCount || 0
+                  post.videoViewCount || 0
                 ),
                 engagement_rate: calculateEngagementRate(
-                  0, // likes not available
+                  post.likesCount || 0,
                   post.commentsCount || 0
                 ),
                 timestamp: post.timestamp,
@@ -242,46 +235,18 @@ serve(async (req) => {
                 is_video: true,
                 search_hashtag: cleanHashtag,
                 search_status: 'completed',
-                product_type: post.productType || 'clips',
+                product_type: 'clips',
                 user_id: user.id, // Add user association for RLS
               }));
 
-            // Insert posts into database with proper authentication context
+            // Insert posts into database
             if (processedPosts.length > 0) {
-              // Create a new client with the user's auth context for RLS
-              const authenticatedClient = createClient(
-                Deno.env.get('SUPABASE_URL') ?? '',
-                Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-                {
-                  global: {
-                    headers: {
-                      Authorization: authHeader,
-                    },
-                  },
-                }
-              );
-
-              const { error: insertError } = await authenticatedClient
+              const { error: insertError } = await supabaseClient
                 .from('instagram_reels')
                 .insert(processedPosts);
 
               if (insertError) {
                 console.error('Error inserting posts:', insertError);
-                // Try with service role as fallback for data insertion
-                const serviceClient = createClient(
-                  Deno.env.get('SUPABASE_URL') ?? '',
-                  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-                );
-                
-                const { error: serviceError } = await serviceClient
-                  .from('instagram_reels')
-                  .insert(processedPosts);
-                
-                if (serviceError) {
-                  console.error('Service role insert also failed:', serviceError);
-                } else {
-                  console.log(`Inserted ${processedPosts.length} posts via service role`);
-                }
               } else {
                 console.log(`Inserted ${processedPosts.length} posts`);
               }
