@@ -23,45 +23,50 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
 }) => {
   const [embedData, setEmbedData] = useState<OEmbedData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showEmbed, setShowEmbed] = useState(false);
 
-  // Load thumbnail immediately on mount if not provided
+  // Load oEmbed data (thumbnail + html) lazily
   useEffect(() => {
     if (!thumbnailUrl && !embedData && !loading) {
-      loadThumbnail();
+      loadOEmbed();
     }
   }, [thumbnailUrl, embedData, loading]);
 
-  const loadThumbnail = async () => {
+  const loadOEmbed = async () => {
     if (loading) return;
-    
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('tiktok-oembed', {
         body: { url }
       });
-
       if (error) throw error;
-      
       setEmbedData(data);
     } catch (error) {
-      console.error('Error loading TikTok thumbnail:', error);
+      console.error('Error loading TikTok oEmbed:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClick = () => {
-    // Always open TikTok directly
-    window.open(url, '_blank');
+  const handleClick = async () => {
+    // Inline play: render oEmbed HTML inside the card
+    if (!embedData) {
+      await loadOEmbed();
+    }
+    setShowEmbed(true);
   };
 
-  // Show thumbnail immediately
   const displayThumbnail = thumbnailUrl || embedData?.thumbnail_url;
 
   return (
     <div className={`relative group cursor-pointer ${className}`} onClick={handleClick}>
       <div className="aspect-[9/16] w-full overflow-hidden rounded-xl bg-muted">
-        {displayThumbnail ? (
+        {showEmbed && embedData?.html ? (
+          <div
+            className="w-full h-full [&>blockquote]:w-full [&>blockquote]:h-full"
+            dangerouslySetInnerHTML={{ __html: embedData.html }}
+          />
+        ) : displayThumbnail ? (
           <img 
             src={displayThumbnail} 
             alt="TikTok video thumbnail"
@@ -72,7 +77,7 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
           <div className="w-full h-full bg-muted animate-pulse flex items-center justify-center">
             <div className="text-muted-foreground text-center">
               <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin" />
-              <p className="text-sm">Loading thumbnail...</p>
+              <p className="text-sm">Loading...</p>
             </div>
           </div>
         ) : (
@@ -84,16 +89,18 @@ export const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
           </div>
         )}
 
-        {/* Play overlay */}
-        <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-          <Button
-            variant="secondary"
-            size="lg"
-            className="bg-white/90 hover:bg-white text-black pointer-events-auto z-10"
-          >
-            <ExternalLink className="w-6 h-6" />
-          </Button>
-        </div>
+        {/* Play overlay (only when not showing embed) */}
+        {!showEmbed && (
+          <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors">
+            <Button
+              variant="secondary"
+              size="lg"
+              className="bg-white/90 hover:bg-white text-black pointer-events-auto z-10"
+            >
+              <Play className="w-6 h-6" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

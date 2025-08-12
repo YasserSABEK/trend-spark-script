@@ -262,7 +262,7 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         </div>
 
         {/* Caption */}
-        <p className="text-sm mb-3 line-clamp-2 leading-relaxed flex-1">
+        <p className="text-sm mb-3 line-clamp-3 leading-relaxed flex-1">
           {reel.caption || 'No caption available'}
         </p>
 

@@ -15,6 +15,7 @@ interface HashtagSearch {
   total_results: number;
   processing_time_seconds?: number;
   error_message?: string;
+  platform?: string;
 }
 
 interface HashtagCardProps {
@@ -163,7 +164,11 @@ export const HashtagCard = ({ search, onViewResults, onDelete }: HashtagCardProp
             className="w-full bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/hashtags/${search.hashtag}/videos`);
+              if (search.platform === 'instagram') {
+                navigate(`/hashtag-search?platform=instagram&hashtag=${encodeURIComponent(search.hashtag)}`);
+              } else {
+                navigate(`/hashtags/${search.hashtag}/videos`);
+              }
             }}
           >
             <Play className="w-4 h-4 mr-2" />

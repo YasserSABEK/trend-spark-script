@@ -226,7 +226,7 @@ export const TikTokVideoCard = ({ video, onGenerateScript }: TikTokVideoCardProp
         </div>
 
         {/* Caption */}
-        <p className="text-sm mb-3 line-clamp-2 leading-relaxed">{video.caption}</p>
+        <p className="text-sm mb-3 line-clamp-3 leading-relaxed">{video.caption}</p>
 
         {/* Music Info */}
         {video.music_name && (

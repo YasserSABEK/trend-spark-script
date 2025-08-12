@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Search, Hash, TrendingUp, Filter, ChevronDown, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -108,9 +109,18 @@ export function HashtagSearch() {
     }
   }, [user, platform]);
 
+  // Read query params (?platform=instagram&hashtag=travel) to pre-populate and render grid only
+  const [urlParams] = useSearchParams();
   useEffect(() => {
-    applyFilters();
-  }, [platform, videos, reels, selectedHashtag, minViralScore, minViews, timeRange, sortBy]);
+    const qpPlatform = urlParams.get('platform') as 'tiktok' | 'instagram' | null;
+    const qpHashtag = urlParams.get('hashtag');
+    if (qpPlatform && (qpPlatform === 'tiktok' || qpPlatform === 'instagram')) {
+      setPlatform(qpPlatform);
+    }
+    if (qpHashtag) {
+      setSelectedHashtag(qpHashtag.replace('#',''));
+    }
+  }, []);
 
   const applyFilters = () => {
     const dataSource = platform === 'tiktok' ? videos : reels;
@@ -143,19 +153,24 @@ export function HashtagSearch() {
       return true;
     });
 
-    // Sort results
+    // Sort results (default: views desc with likes fallback)
     filtered.sort((a: any, b: any) => {
       switch (sortBy) {
         case "viral_score":
           return (b.viral_score || 0) - (a.viral_score || 0);
-        case "views":
-          const aViews = platform === 'tiktok' ? a.play_count : a.video_view_count;
-          const bViews = platform === 'tiktok' ? b.play_count : b.video_view_count;
-          return bViews - aViews;
-        case "likes":
-          const aLikes = platform === 'tiktok' ? a.digg_count : a.likes;
-          const bLikes = platform === 'tiktok' ? b.digg_count : b.likes;
+        case "views": {
+          const getViews = (it: any) => platform === 'tiktok' ? (it.play_count ?? -1) : (it.video_view_count ?? -1);
+          const getLikes = (it: any) => platform === 'tiktok' ? (it.digg_count ?? 0) : (it.likes ?? 0);
+          const av = getViews(a);
+          const bv = getViews(b);
+          if (av === bv) return getLikes(b) - getLikes(a);
+          return bv - av;
+        }
+        case "likes": {
+          const aLikes = platform === 'tiktok' ? (a.digg_count ?? 0) : (a.likes ?? 0);
+          const bLikes = platform === 'tiktok' ? (b.digg_count ?? 0) : (b.likes ?? 0);
           return bLikes - aLikes;
+        }
         case "date":
           return new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime();
         default:
