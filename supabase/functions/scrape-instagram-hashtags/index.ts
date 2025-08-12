@@ -151,6 +151,7 @@ serve(async (req) => {
         username: cleanHashtag, // Using username field for hashtag name
         hashtag: cleanHashtag,
         search_type: 'hashtag',
+        platform: 'instagram',
         status: 'processing',
       })
       .select()

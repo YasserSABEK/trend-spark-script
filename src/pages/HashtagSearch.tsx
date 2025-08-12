@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Hash, TrendingUp, Users, Filter, ChevronDown, Loader2 } from "lucide-react";
+import { Search, Hash, TrendingUp, Filter, ChevronDown, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { useCredits } from "@/hooks/useCredits";
 import { CreditGuard } from "@/components/credits/CreditGuard";
 import { TikTokVideoCard } from "@/components/TikTokVideoCard";
 import { HashtagCard } from "@/components/HashtagCard";
+import { ReelCard } from "@/components/ReelCard";
 
 interface HashtagSearch {
   id: string;
@@ -55,11 +56,14 @@ interface TikTokVideo {
 export function HashtagSearch() {
   const { user } = useAuth();
   const { credits, hasCredits } = useCredits();
+  const [platform, setPlatform] = useState<'tiktok' | 'instagram'>('tiktok');
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [videos, setVideos] = useState<TikTokVideo[]>([]);
+  const [reels, setReels] = useState<any[]>([]);
   const [searches, setSearches] = useState<HashtagSearch[]>([]);
   const [filteredVideos, setFilteredVideos] = useState<TikTokVideo[]>([]);
+  const [filteredReels, setFilteredReels] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("search");
   const [selectedHashtag, setSelectedHashtag] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("viral_score");
@@ -68,51 +72,38 @@ export function HashtagSearch() {
   const [timeRange, setTimeRange] = useState("all");
   const [hashtagFilter, setHashtagFilter] = useState("all");
   const [visibleVideos, setVisibleVideos] = useState(8);
+  const [visibleReels, setVisibleReels] = useState(8);
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    if (user) {
+useEffect(() => {
+  if (user) {
+    if (platform === 'tiktok') {
       loadHashtagVideos();
-      loadSearchHistory();
+    } else {
+      loadInstagramReels();
     }
-  }, [user]);
+    loadSearchHistory();
+  }
+}, [user, platform]);
 
-  useEffect(() => {
-    // Apply all filters
+useEffect(() => {
+  if (platform === 'tiktok') {
+    // Apply all filters for TikTok
     let filtered = videos;
-
-    // Filter by selected hashtag
     if (selectedHashtag) {
-      filtered = filtered.filter(video => 
-        video.search_hashtag === selectedHashtag
-      );
+      filtered = filtered.filter(video => video.search_hashtag === selectedHashtag);
     }
-
-    // Filter by hashtag dropdown
     if (hashtagFilter !== "all") {
-      filtered = filtered.filter(video => 
-        video.search_hashtag === hashtagFilter
-      );
+      filtered = filtered.filter(video => video.search_hashtag === hashtagFilter);
     }
-
-    // Filter by viral score
-    filtered = filtered.filter(video => 
-      (video.viral_score || 0) >= minViralScore[0]
-    );
-
-    // Filter by views
-    filtered = filtered.filter(video => 
-      video.play_count >= minViews[0]
-    );
-
-    // Filter by time range
+    filtered = filtered.filter(video => (video.viral_score || 0) >= minViralScore[0]);
+    filtered = filtered.filter(video => video.play_count >= minViews[0]);
     if (timeRange !== "all") {
       filtered = filtered.filter(video => {
         if (!video.timestamp) return true;
         const now = new Date();
         const videoTime = new Date(video.timestamp);
         const diffInHours = (now.getTime() - videoTime.getTime()) / (1000 * 60 * 60);
-        
         switch (timeRange) {
           case "24h":
             return diffInHours <= 24;
@@ -125,8 +116,6 @@ export function HashtagSearch() {
         }
       });
     }
-
-    // Sort videos
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "viral_score":
@@ -141,135 +130,183 @@ export function HashtagSearch() {
           return 0;
       }
     });
-
     setFilteredVideos(filtered);
-  }, [videos, selectedHashtag, hashtagFilter, minViralScore, minViews, timeRange, sortBy]);
-
-  const scrapeHashtagPosts = async (hashtag: string) => {
-    if (!user) {
-      toast.error("Please sign in to search hashtags");
-      return;
+  } else {
+    // Apply filters for Instagram reels
+    let filtered = reels as any[];
+    if (selectedHashtag) {
+      filtered = filtered.filter(r => r.search_hashtag === selectedHashtag);
     }
-
-    if (!hasCredits(2)) {
-      toast.error("Insufficient credits. You need 2 credits for hashtag search.");
-      return;
+    if (hashtagFilter !== "all") {
+      filtered = filtered.filter(r => r.search_hashtag === hashtagFilter);
     }
+    filtered = filtered.filter(r => (r.viral_score || 0) >= minViralScore[0]);
+    filtered = filtered.filter(r => (r.video_view_count || 0) >= minViews[0]);
+    if (timeRange !== "all") {
+      filtered = filtered.filter(r => {
+        if (!r.timestamp) return true;
+        const now = new Date();
+        const t = new Date(r.timestamp);
+        const diffInHours = (now.getTime() - t.getTime()) / (1000 * 60 * 60);
+        switch (timeRange) {
+          case "24h":
+            return diffInHours <= 24;
+          case "week":
+            return diffInHours <= 168;
+          case "month":
+            return diffInHours <= 720;
+          default:
+            return true;
+        }
+      });
+    }
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "viral_score":
+          return (b.viral_score || 0) - (a.viral_score || 0);
+        case "views":
+          return (b.video_view_count || 0) - (a.video_view_count || 0);
+        case "likes":
+          return (b.likes || 0) - (a.likes || 0);
+        case "date":
+          return new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime();
+        default:
+          return 0;
+      }
+    });
+    setFilteredReels(filtered);
+  }
+}, [platform, videos, reels, selectedHashtag, hashtagFilter, minViralScore, minViews, timeRange, sortBy]);
 
-    setLoading(true);
-    
-    // Create a pending search entry immediately for better UX
-    const cleanHashtag = hashtag.replace('#', '');
-    const tempSearchEntry: HashtagSearch = {
-      id: `temp-${Date.now()}`,
-      hashtag: cleanHashtag,
-      status: 'pending',
-      total_results: 0,
-      requested_at: new Date().toISOString()
-    };
-    
-    // Add temporary entry to show pending state
-    setSearches(prev => [tempSearchEntry, ...prev]);
-    
-    try {
+const scrapeHashtagPosts = async (hashtag: string) => {
+  if (!user) {
+    toast.error("Please sign in to search hashtags");
+    return;
+  }
+
+  if (!hasCredits(2)) {
+    toast.error("Insufficient credits. You need 2 credits for hashtag search.");
+    return;
+  }
+
+  setLoading(true);
+  const cleanHashtag = hashtag.replace('#', '');
+  setSelectedHashtag(cleanHashtag);
+
+  const tempSearchEntry: HashtagSearch = {
+    id: `temp-${Date.now()}`,
+    hashtag: cleanHashtag,
+    status: 'pending',
+    total_results: 0,
+    requested_at: new Date().toISOString()
+  };
+  setSearches(prev => [tempSearchEntry, ...prev]);
+
+  try {
+    if (platform === 'tiktok') {
       const { data, error } = await supabase.functions.invoke('scrape-tiktok-hashtags', {
         body: { hashtag: cleanHashtag }
       });
-
-      if (error) {
-        console.error('Function invoke error:', error);
-        toast.error(`Network error: ${error.message}`);
-        // Remove temporary entry on error
-        setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
-        return;
-      }
-
-      // Check if the response indicates success or failure
-      if (data?.success === false) {
-        console.error('Function returned error:', data);
-        toast.error(data.error || "Failed to search hashtag - please try again");
-        // Remove temporary entry on error
-        setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
-        return;
-      }
-
+      if (error) throw new Error(error.message);
       if (data?.success) {
         toast.success(`Found ${data.videosFound} TikTok videos for #${cleanHashtag}`);
-        // Remove temporary entry and reload actual data
         setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
         await loadHashtagVideos();
         await loadSearchHistory();
       } else {
-        console.error('Unexpected response format:', data);
-        toast.error("Unexpected response from server - please try again");
-        // Remove temporary entry on error
+        throw new Error(data?.error || 'Failed to search hashtag');
+      }
+    } else {
+      const { data, error } = await supabase.functions.invoke('scrape-instagram-hashtags', {
+        body: { hashtag: cleanHashtag }
+      });
+      if (error) throw new Error(error.message);
+      if (data?.success) {
+        toast.success(`Found ${data.totalPosts} Instagram reels for #${cleanHashtag}`);
         setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
+        await loadInstagramReels();
+        await loadSearchHistory();
+      } else {
+        throw new Error(data?.error || 'Failed to search hashtag');
       }
-    } catch (error) {
-      console.error('Error during hashtag search:', error);
-      toast.error("Network error occurred while searching hashtag");
-      // Remove temporary entry on error
-      setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err: any) {
+    console.error('Error during hashtag search:', err);
+    toast.error(err.message || "Network error occurred while searching hashtag");
+    setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const loadHashtagVideos = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('tiktok_videos')
-        .select('*')
-        .not('search_hashtag', 'is', null)
-        .order('viral_score', { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error('Error loading TikTok videos:', error);
-        return;
-      }
-
-      setVideos(data || []);
-    } catch (error) {
+const loadHashtagVideos = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('tiktok_videos')
+      .select('*')
+      .not('search_hashtag', 'is', null)
+      .order('viral_score', { ascending: false })
+      .limit(50);
+    if (error) {
       console.error('Error loading TikTok videos:', error);
+      return;
     }
-  };
+    setVideos(data || []);
+  } catch (error) {
+    console.error('Error loading TikTok videos:', error);
+  }
+};
 
-  const loadSearchHistory = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('search_queue')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('search_type', 'hashtag')
-        .eq('platform', 'tiktok')
-        .order('requested_at', { ascending: false })
-        .limit(10);
+const loadInstagramReels = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('instagram_reels')
+      .select('*')
+      .not('search_hashtag', 'is', null)
+      .order('video_view_count', { ascending: false })
+      .limit(50);
+    if (error) {
+      console.error('Error loading Instagram reels:', error);
+      return;
+    }
+    setReels(data || []);
+  } catch (error) {
+    console.error('Error loading Instagram reels:', error);
+  }
+};
 
-      if (error) {
-        console.error('Error loading search history:', error);
-        return;
-      }
-
-      setSearches(data || []);
-    } catch (error) {
+const loadSearchHistory = async () => {
+  if (!user) return;
+  try {
+    const { data, error } = await supabase
+      .from('search_queue')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('search_type', 'hashtag')
+      .eq('platform', platform)
+      .order('requested_at', { ascending: false })
+      .limit(10);
+    if (error) {
       console.error('Error loading search history:', error);
+      return;
     }
-  };
+    setSearches(data || []);
+  } catch (error) {
+    console.error('Error loading search history:', error);
+  }
+};
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      scrapeHashtagPosts(searchTerm.trim());
-    }
-  };
+const handleSearch = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (searchTerm.trim()) {
+    scrapeHashtagPosts(searchTerm.trim());
+  }
+};
 
-  const repeatSearch = (hashtag: string) => {
-    setSearchTerm(hashtag);
-    scrapeHashtagPosts(hashtag);
-  };
+const repeatSearch = (hashtag: string) => {
+  setSearchTerm(hashtag);
+  scrapeHashtagPosts(hashtag);
+};
 
   const handleGenerateScript = async (result: any) => {
     toast.success("Script generated successfully!");
@@ -289,10 +326,11 @@ export function HashtagSearch() {
     setSortBy("viral_score");
   };
 
-  const getUniqueHashtags = () => {
-    const hashtags = videos.map(v => v.search_hashtag).filter(Boolean);
-    return [...new Set(hashtags)];
-  };
+const getUniqueHashtags = () => {
+  const list = platform === 'tiktok' ? videos : reels;
+  const hashtags = list.map((v: any) => v.search_hashtag).filter(Boolean);
+  return [...new Set(hashtags)];
+};
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -313,54 +351,67 @@ export function HashtagSearch() {
     return `${diffInWeeks} weeks ago`;
   };
 
-  return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col space-y-6">
-        {/* Search Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Hash className="w-5 h-5" />
-              Search TikTok Hashtags
-            </CardTitle>
-            <CardDescription>
-              Search for viral TikTok videos by hashtag (2 credits per search)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <div className="relative flex-1">
-                <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Enter hashtag (e.g., makemoneyonline, fitness, travel)"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <CreditGuard requiredCredits={2} action="hashtag search">
-                <Button 
-                  type="submit" 
-                  disabled={loading || !searchTerm.trim()}
-                  className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
-                >
-                  {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Search className="w-4 h-4" />
-                  )}
-                  {loading ? "Searching..." : "Search TikToks"}
-                </Button>
-              </CreditGuard>
-            </form>
-            {credits && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Available credits: {credits.current_credits}
-              </p>
-            )}
-          </CardContent>
-        </Card>
+return (
+  <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="flex flex-col space-y-6">
+      {/* Search Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Hash className="w-5 h-5" />
+            {platform === 'tiktok' ? 'Search TikTok Hashtags' : 'Search Instagram Hashtags'}
+          </CardTitle>
+          <CardDescription>
+            {platform === 'tiktok'
+              ? 'Search for viral TikTok videos by hashtag (2 credits per search)'
+              : 'Search for viral Instagram reels by hashtag (2 credits per search)'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-2">
+            {/* Platform selector */}
+            <Select value={platform} onValueChange={(val) => setPlatform(val as 'tiktok' | 'instagram')}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder="Platform" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tiktok">TikTok</SelectItem>
+                <SelectItem value="instagram">Instagram</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="relative flex-1">
+              <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                type="text"
+                placeholder={platform === 'tiktok' ? "Enter hashtag (e.g., makemoneyonline, fitness, travel)" : "Enter hashtag (e.g., travel, beauty, fitness)"}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <CreditGuard requiredCredits={2} action="hashtag search">
+              <Button 
+                type="submit" 
+                disabled={loading || !searchTerm.trim()}
+                className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+                {loading ? "Searching..." : platform === 'tiktok' ? 'Search TikToks' : 'Search Reels'}
+              </Button>
+            </CreditGuard>
+          </form>
+          {credits && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Available credits: {credits.current_credits}
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
         {/* My Hashtags Section */}
         {searches.length > 0 ? (
@@ -391,17 +442,17 @@ export function HashtagSearch() {
           </div>
         )}
 
-        {/* Results Section */}
-        {selectedHashtag && (
-          <div id="results-section" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold">
-                  #{selectedHashtag} Videos
-                </h3>
-                <Badge variant="outline">{filteredVideos.length} videos</Badge>
-              </div>
-              <div className="flex items-center gap-2">
+{/* Results Section */}
+{selectedHashtag && (
+  <div id="results-section" className="space-y-4">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">
+          #{selectedHashtag} {platform === 'tiktok' ? 'Videos' : 'Reels'}
+        </h3>
+        <Badge variant="outline">{platform === 'tiktok' ? filteredVideos.length : filteredReels.length} {platform === 'tiktok' ? 'videos' : 'reels'}</Badge>
+      </div>
+      <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -490,41 +541,62 @@ export function HashtagSearch() {
             )}
 
             {/* Videos Grid */}
-            {filteredVideos.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <TrendingUp className="w-12 h-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No videos found</h3>
-                  <p className="text-muted-foreground text-center">
-                    Try adjusting your filters or search for a different hashtag
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredVideos.slice(0, visibleVideos).map((video) => (
-                  <TikTokVideoCard
-                    key={video.id}
-                    video={video}
-                    onGenerateScript={handleGenerateScript}
-                  />
-                ))}
-              </div>
-            )}
+{/* Media Grid */}
+{platform === 'tiktok' ? (
+  filteredVideos.length === 0 ? (
+    <Card>
+      <CardContent className="flex flex-col items-center justify-center py-12">
+        <TrendingUp className="w-12 h-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">No videos found</h3>
+        <p className="text-muted-foreground text-center">
+          Try adjusting your filters or search for a different hashtag
+        </p>
+      </CardContent>
+    </Card>
+  ) : (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {filteredVideos.slice(0, visibleVideos).map((video) => (
+        <TikTokVideoCard
+          key={video.id}
+          video={video}
+          onGenerateScript={handleGenerateScript}
+        />
+      ))}
+    </div>
+  )
+) : (
+  filteredReels.length === 0 ? (
+    <Card>
+      <CardContent className="flex flex-col items-center justify-center py-12">
+        <TrendingUp className="w-12 h-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">No reels found</h3>
+        <p className="text-muted-foreground text-center">
+          Try adjusting your filters or search for a different hashtag
+        </p>
+      </CardContent>
+    </Card>
+  ) : (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {filteredReels.slice(0, visibleReels).map((reel: any) => (
+        <ReelCard key={reel.id} reel={reel} onGenerateScript={handleGenerateScript} />
+      ))}
+    </div>
+  )
+)}
 
-            {/* Load More Button */}
-            {filteredVideos.length > visibleVideos && (
-              <div className="flex justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => setVisibleVideos(prev => prev + 8)}
-                  className="flex items-center gap-2"
-                >
-                  Load More Videos
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
+{/* Load More Button */}
+{(platform === 'tiktok' ? filteredVideos.length > visibleVideos : filteredReels.length > visibleReels) && (
+  <div className="flex justify-center">
+    <Button
+      variant="outline"
+      onClick={() => platform === 'tiktok' ? setVisibleVideos(prev => prev + 8) : setVisibleReels(prev => prev + 8)}
+      className="flex items-center gap-2"
+    >
+      Load More {platform === 'tiktok' ? 'Videos' : 'Reels'}
+      <ChevronDown className="w-4 h-4" />
+    </Button>
+  </div>
+)}
           </div>
         )}
       </div>
