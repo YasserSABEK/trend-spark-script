@@ -193,7 +193,7 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
         <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
           <span>{formatTimeAgo(search.requested_at)}</span>
           {search.status === 'completed' && (
-            <span>{search.total_results} {isHashtagSearch ? 'videos' : 'reels'}</span>
+            <span>{search.total_results} videos</span>
           )}
           {search.processing_time_seconds > 0 && (
             <span>{search.processing_time_seconds}s</span>
@@ -224,8 +224,8 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
           >
             <Play className="w-4 h-4 mr-2" />
             {search.total_results === 0 ? 
-              `No ${isHashtagSearch ? 'videos' : 'reels'} found` : 
-              `View ${search.total_results} ${isHashtagSearch ? 'videos' : 'reels'}`
+              `No videos found` : 
+              `View ${search.total_results} videos`
             }
           </Button>
         ) : search.status === 'processing' ? (

@@ -48,9 +48,11 @@ export const TikTokUserResults = () => {
   useEffect(() => {
     // Check if videos were passed via navigation state (from search)
     if (location.state?.videos && Array.isArray(location.state.videos)) {
+      console.log('Videos received from navigation state:', location.state.videos.length);
       setVideos(location.state.videos);
       setLoading(false);
     } else if (username && !authLoading && session) {
+      console.log('No videos in navigation state, trying to load from database for:', username);
       loadVideos();
     }
   }, [username, authLoading, session, location.state]);
@@ -168,9 +170,9 @@ export const TikTokUserResults = () => {
                 No videos found for @{username}. This might be because:
               </p>
               <ul className="text-sm text-muted-foreground mb-6 space-y-1">
-                <li>• The username hasn't been searched yet</li>
-                <li>• The search is still processing</li>
-                <li>• No public videos were found for this account</li>
+                <li>• You need to search for this username first</li>
+                <li>• The search didn't find any recent videos</li>
+                <li>• The username might be private or restricted</li>
               </ul>
               <Button 
                 onClick={() => loadVideos()} 

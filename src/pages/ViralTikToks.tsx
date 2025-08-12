@@ -98,6 +98,8 @@ export const ViralTikToks = () => {
       }
 
       if (data?.success && Array.isArray(data.data)) {
+        console.log(`Received ${data.data.length} videos from scrape-tiktok-user:`, data.data);
+        
         await supabase
           .from('search_queue')
           .update({ 
@@ -114,6 +116,7 @@ export const ViralTikToks = () => {
         });
         
         // Navigate to results page with video data
+        console.log('Navigating to results with videos:', data.data.length);
         navigate(`/tiktoks/${normalized}`, { state: { videos: data.data } });
         setTiktokUsername('');
       } else {
@@ -166,6 +169,7 @@ export const ViralTikToks = () => {
 
   const handleViewResults = (username: string) => {
     const normalized = normalizeUsername(username);
+    // Navigate without video data - TikTokUserResults will try to load from database or show search prompt
     navigate(`/tiktoks/${normalized}`);
   };
 
