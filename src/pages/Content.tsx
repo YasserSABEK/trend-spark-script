@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Trash2, Copy, Sparkles } from "lucide-react";
+import { ExternalLink, Trash2, Copy, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { InstagramEmbed } from "@/components/media/InstagramEmbed";
 import { TikTokEmbed } from "@/components/media/TikTokEmbed";
+import { AnalysisModal } from "@/components/analysis/AnalysisModal";
 
 interface ContentItem {
   id: string;
@@ -29,6 +30,8 @@ interface ContentItem {
 export function Content() {
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
+  const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,11 +71,16 @@ export function Content() {
     toast.success("URL copied to clipboard");
   };
 
-  const generateScript = (item: ContentItem) => {
+  const openAnalysisModal = (item: ContentItem) => {
+    setSelectedItem(item);
+    setAnalysisModalOpen(true);
+  };
+
+  const handleSendToGenerator = (hook: string, insights: any) => {
     const params = new URLSearchParams({
-      prompt: `Create a script inspired by this ${item.platform} post: "${item.caption || 'viral video'}"`,
-      caption: item.caption || '',
-      platform: item.platform
+      prompt: `Create a script based on this analyzed hook: "${hook}"`,
+      hook: hook,
+      insights: JSON.stringify(insights)
     });
     navigate(`/script-generator?${params.toString()}`);
   };
@@ -168,11 +176,11 @@ export function Content() {
                   <div className="flex gap-2">
                     <Button 
                       size="sm" 
-                      onClick={() => generateScript(item)}
+                      onClick={() => openAnalysisModal(item)}
                       className="flex-1"
                     >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate Script
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      Analyze Content
                     </Button>
                     
                     <Button 
@@ -197,6 +205,13 @@ export function Content() {
           ))}
         </div>
       )}
+
+      <AnalysisModal
+        open={analysisModalOpen}
+        onOpenChange={setAnalysisModalOpen}
+        contentItem={selectedItem}
+        onSendToGenerator={handleSendToGenerator}
+      />
     </div>
   );
 }
