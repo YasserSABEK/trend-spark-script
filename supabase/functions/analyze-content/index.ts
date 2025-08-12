@@ -68,21 +68,19 @@ serve(async (req) => {
       console.log('Extracted Instagram video URL:', finalVideoUrl);
     }
 
-    // Handle TikTok content - get video URL from database
+    // Handle TikTok content - extract video URL using Apify
     if (contentItem.platform === 'tiktok' && !videoUrl) {
-      console.log('Looking up TikTok video URL...');
-      const { data: tiktokVideo, error: tiktokError } = await supabase
-        .from('tiktok_videos')
-        .select('video_url')
-        .eq('url', contentItem.source_url)
-        .single();
+      console.log('Extracting TikTok video URL...');
+      const { data: extractionResult, error: extractionError } = await supabase.functions.invoke('extract-tiktok-video', {
+        body: { tiktokUrl: contentItem.source_url }
+      });
 
-      if (tiktokError || !tiktokVideo?.video_url) {
-        throw new Error('TikTok video URL not found in database');
+      if (extractionError || !extractionResult?.success) {
+        throw new Error(`Failed to extract TikTok video: ${extractionError?.message || extractionResult?.error}`);
       }
 
-      finalVideoUrl = tiktokVideo.video_url;
-      console.log('Found TikTok video URL:', finalVideoUrl);
+      finalVideoUrl = extractionResult.videoUrl;
+      console.log('Extracted TikTok video URL:', finalVideoUrl);
     }
 
     if (!finalVideoUrl) {
