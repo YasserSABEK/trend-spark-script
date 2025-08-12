@@ -45,7 +45,7 @@ serve(async (req) => {
     };
 
     // Start the actor run
-    const runResponse = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs?token=${apifyApiKey}`, {
+    const runResponse = await fetch(`https://api.apify.com/v2/acts/${actorId}/run-sync?token=${apifyApiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -54,12 +54,27 @@ serve(async (req) => {
     });
 
     if (!runResponse.ok) {
-      throw new Error(`Failed to start Apify actor: ${await runResponse.text()}`);
+      const errorText = await runResponse.text();
+      console.error('Apify API error:', errorText);
+      throw new Error(`Failed to start Apify actor: ${errorText}`);
     }
 
     const runData = await runResponse.json();
-    const runId = runData.data.id;
+    
+    // For synchronous runs, the result is directly available
+    if (runData.output && runData.output.length > 0 && runData.output[0].downloadURL) {
+      console.log('Successfully extracted TikTok video URL:', runData.output[0].downloadURL);
+      return new Response(JSON.stringify({
+        success: true,
+        videoUrl: runData.output[0].downloadURL,
+        title: runData.output[0].title || 'TikTok Video'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
+    // If no output in sync response, fall back to async method
+    const runId = runData.id;
     console.log('Started Apify run:', runId);
 
     // Poll for completion (max 60 seconds)
@@ -69,14 +84,14 @@ serve(async (req) => {
     while (attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
       
-      const statusResponse = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs/${runId}?token=${apifyApiKey}`);
+      const statusResponse = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${apifyApiKey}`);
       const statusData = await statusResponse.json();
       
       console.log(`Run status (attempt ${attempts + 1}):`, statusData.data.status);
       
       if (statusData.data.status === 'SUCCEEDED') {
         // Get the results
-        const resultsResponse = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs/${runId}/dataset/items?token=${apifyApiKey}`);
+        const resultsResponse = await fetch(`https://api.apify.com/v2/actor-runs/${runId}/dataset/items?token=${apifyApiKey}`);
         const results = await resultsResponse.json();
         
         if (results && results.length > 0 && results[0].downloadURL) {
