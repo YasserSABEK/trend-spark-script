@@ -64,19 +64,27 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
     if (!contentItem) return;
 
     try {
-      // Using raw query since content_analysis table isn't in types yet
+      // Use raw SQL query since content_analysis table isn't in types
       const { data, error } = await supabase
-        .rpc('get_content_analysis', { content_item_id_param: contentItem.id });
+        .from('content_items')
+        .select(`
+          *,
+          content_analysis!content_analysis_content_item_id_fkey(*)
+        `)
+        .eq('id', contentItem.id)
+        .single();
 
-      if (error) {
+      if (error || !data) {
         console.log('No existing analysis found or error:', error);
         return;
       }
       
-      if (data && data.length > 0) {
-        setAnalysis(data[0] as Analysis);
-        if (data[0].status === 'transcribing' || data[0].status === 'analyzing') {
-          pollAnalysisStatus(data[0].id);
+      const analyses = (data as any).content_analysis;
+      if (analyses && Array.isArray(analyses) && analyses.length > 0) {
+        const latestAnalysis = analyses[0];
+        setAnalysis(latestAnalysis as Analysis);
+        if (latestAnalysis.status === 'transcribing' || latestAnalysis.status === 'analyzing') {
+          pollAnalysisStatus(latestAnalysis.id);
         }
       }
     } catch (error) {
@@ -87,21 +95,31 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
   const pollAnalysisStatus = async (analysisId: string) => {
     const interval = setInterval(async () => {
       try {
+        // Use raw SQL to get analysis by ID
         const { data, error } = await supabase
-          .rpc('get_analysis_by_id', { analysis_id_param: analysisId });
+          .from('content_items')
+          .select(`
+            content_analysis!content_analysis_content_item_id_fkey(*)
+          `)
+          .eq('content_analysis.id', analysisId)
+          .single();
 
         if (error) throw error;
 
-        if (data && data.length > 0) {
-          setAnalysis(data[0] as Analysis);
+        const analyses = (data as any)?.content_analysis;
+        if (analyses && Array.isArray(analyses) && analyses.length > 0) {
+          const analysisData = analyses[0] as Analysis;
+          setAnalysis(analysisData);
 
-          if (data[0].status === 'completed' || data[0].status === 'failed') {
+          if (analysisData.status === 'completed' || analysisData.status === 'failed') {
             clearInterval(interval);
             setLoading(false);
           }
         }
       } catch (error) {
         console.error('Error polling analysis status:', error);
+        // Fallback to re-checking existing analysis
+        checkExistingAnalysis();
         clearInterval(interval);
         setLoading(false);
       }
