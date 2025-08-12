@@ -255,7 +255,7 @@ serve(async (req) => {
       const { error: insertError } = await supabase
         .from('tiktok_videos')
         .upsert(processedVideos, { 
-          onConflict: 'post_id,search_hashtag',
+          onConflict: 'user_id,post_id,search_hashtag',
           ignoreDuplicates: true 
         });
 

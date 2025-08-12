@@ -170,7 +170,7 @@ serve(async (req) => {
       const { error: insertError } = await supabase
         .from('tiktok_videos')
         .upsert(processedVideos, {
-          onConflict: 'post_id,user_id',
+          onConflict: 'user_id,post_id',
           ignoreDuplicates: true,
         });
       if (insertError) throw new Error('Failed to save videos: ' + insertError.message);
