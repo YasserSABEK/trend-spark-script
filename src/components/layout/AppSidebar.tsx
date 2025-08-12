@@ -9,7 +9,8 @@ import {
   Zap,
   CreditCard,
   Bookmark,
-  CalendarDays
+  CalendarDays,
+  Users
 } from "lucide-react";
 import {
   Sidebar,
@@ -28,6 +29,7 @@ import { SidebarProfileSection } from "@/components/profile/SidebarProfileSectio
 
 const navigationItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "TikTok Creators", url: "/tiktok-creators", icon: Users },
   { title: "Viral Reels", url: "/viral-reels", icon: Video },
   { title: "Instagram Hashtags", url: "/instagram-hashtags", icon: Hash },
   { title: "Viral TikToks", url: "/viral-tiktoks", icon: Video },

@@ -20,6 +20,8 @@ import { InstagramHashtagReels } from "./pages/InstagramHashtagReels";
 import { ReelResults } from "./pages/ReelResults";
 import { ViralTikToks } from "./pages/ViralTikToks";
 import { TikTokUserResults } from "./pages/TikTokUserResults";
+import TikTokCreators from "./pages/TikTokCreators";
+import TikTokCreatorResults from "./pages/TikTokCreatorResults";
 import { Profile } from "./pages/Profile";
 import { ScriptGenerator } from "./pages/ScriptGenerator";
 import { MyScripts } from "./pages/MyScripts";
@@ -87,6 +89,8 @@ function AppContent() {
           <main className="flex-1 p-6">
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/tiktok-creators" element={<TikTokCreators />} />
+              <Route path="/tiktok-creators/:searchId" element={<TikTokCreatorResults />} />
               <Route path="/viral-reels" element={<ViralReels />} />
               <Route path="/viral-tiktoks" element={<ViralTikToks />} />
               <Route path="/tiktoks/:username" element={<TikTokUserResults />} />
