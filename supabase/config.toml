@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.scrape-tiktok-user]
 verify_jwt = true
+
+[functions.search-instagram-creators]
+verify_jwt = true

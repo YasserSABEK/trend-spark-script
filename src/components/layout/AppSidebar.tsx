@@ -30,6 +30,7 @@ import { SidebarProfileSection } from "@/components/profile/SidebarProfileSectio
 const navigationItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "TikTok Creators", url: "/tiktok-creators", icon: Users },
+  { title: "Instagram Creators", url: "/instagram-creators", icon: Users },
   { title: "Viral Reels", url: "/viral-reels", icon: Video },
   { title: "Instagram Hashtags", url: "/instagram-hashtags", icon: Hash },
   { title: "Viral TikToks", url: "/viral-tiktoks", icon: Video },

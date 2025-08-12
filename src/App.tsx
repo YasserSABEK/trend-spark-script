@@ -22,6 +22,8 @@ import { ViralTikToks } from "./pages/ViralTikToks";
 import { TikTokUserResults } from "./pages/TikTokUserResults";
 import TikTokCreators from "./pages/TikTokCreators";
 import TikTokCreatorResults from "./pages/TikTokCreatorResults";
+import InstagramCreators from "./pages/InstagramCreators";
+import InstagramCreatorResults from "./pages/InstagramCreatorResults";
 import { Profile } from "./pages/Profile";
 import { ScriptGenerator } from "./pages/ScriptGenerator";
 import { MyScripts } from "./pages/MyScripts";
@@ -91,6 +93,8 @@ function AppContent() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/tiktok-creators" element={<TikTokCreators />} />
               <Route path="/tiktok-creators/:searchId" element={<TikTokCreatorResults />} />
+              <Route path="/instagram-creators" element={<InstagramCreators />} />
+              <Route path="/instagram-creators/:searchId" element={<InstagramCreatorResults />} />
               <Route path="/viral-reels" element={<ViralReels />} />
               <Route path="/viral-tiktoks" element={<ViralTikToks />} />
               <Route path="/tiktoks/:username" element={<TikTokUserResults />} />
