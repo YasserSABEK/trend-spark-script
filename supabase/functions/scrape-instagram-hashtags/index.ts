@@ -107,16 +107,21 @@ serve(async (req) => {
 
     // Configure Apify actor for hashtag scraping
     const actorConfig = {
-      hashtags: [cleanHashtag],
-      resultsType: "posts",
-      resultsLimit: 50,
-      searchLimit: 1,
       addParentData: false,
+      directUrls: [`https://www.instagram.com/explore/tags/${cleanHashtag}`],
+      enhanceUserSearchWithFacebookPage: false,
+      isUserReelFeedURL: false,
+      isUserTaggedFeedURL: false,
+      onlyPostsNewerThan: "2024-08-01",
+      resultsLimit: 200,
+      resultsType: "stories",
+      searchLimit: 1,
+      searchType: "hashtag"
     };
 
     // Start Apify actor run
     const actorResponse = await fetch(
-      'https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs',
+      'https://api.apify.com/v2/acts/apify~instagram-scraper/runs',
       {
         method: 'POST',
         headers: {
@@ -170,7 +175,7 @@ serve(async (req) => {
       attempts++;
 
       const statusResponse = await fetch(
-        `https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs/${runId}`,
+        `https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${runId}`,
         {
           headers: { 'Authorization': `Bearer ${apifyApiKey}` },
         }
@@ -203,30 +208,30 @@ serve(async (req) => {
               .filter((post: any) => {
                 // Filter for video content and recent posts
                 const postDate = new Date(post.timestamp);
-                return post.type === 'Video' || post.isVideo === true && postDate >= oneYearAgo;
+                return (post.type === 'Video' && post.productType === 'clips') && postDate >= oneYearAgo;
               })
               .map((post: any) => ({
                 post_id: post.id || post.shortCode,
                 url: post.url,
                 shortcode: post.shortCode,
                 caption: post.caption || '',
-                hashtags: extractHashtags(post.caption || ''),
+                hashtags: post.hashtags || extractHashtags(post.caption || ''),
                 mentions: post.mentions || [],
                 username: post.ownerUsername,
                 display_name: post.ownerFullName,
                 followers: null,
-                verified: post.isVerified || false,
-                likes: post.likesCount || 0,
+                verified: false, // Not available in new format
+                likes: 0, // Not available in new format
                 comments: post.commentsCount || 0,
-                video_view_count: post.videoViewCount || 0,
-                video_play_count: post.videoPlayCount || 0,
+                video_view_count: post.videoPlayCount || post.igPlayCount || 0,
+                video_play_count: post.videoPlayCount || post.igPlayCount || 0,
                 viral_score: calculateViralScore(
-                  post.likesCount || 0,
+                  0, // likes not available
                   post.commentsCount || 0,
-                  post.videoViewCount || 0
+                  post.videoPlayCount || post.igPlayCount || 0
                 ),
                 engagement_rate: calculateEngagementRate(
-                  post.likesCount || 0,
+                  0, // likes not available
                   post.commentsCount || 0
                 ),
                 timestamp: post.timestamp,
@@ -236,7 +241,7 @@ serve(async (req) => {
                 is_video: true,
                 search_hashtag: cleanHashtag,
                 search_status: 'completed',
-                product_type: 'clips',
+                product_type: post.productType || 'clips',
                 user_id: user.id, // Add user association for RLS
               }));
 
