@@ -53,16 +53,25 @@ export default function TikTokCreatorResults() {
 
   const loadSearchResults = async () => {
     try {
+      console.log('Loading search results for searchId:', searchId);
+      
       // Get cached results from the search-tiktok-creators function
       const { data, error } = await supabase.functions.invoke('search-tiktok-creators', {
         body: { searchId, getUserResults: true }
       });
 
-      if (error) throw error;
+      console.log('Search results response:', { data, error });
 
-      if (data) {
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (data && !data.error) {
+        console.log('Setting search result:', data);
         setSearchResult(data);
       } else {
+        console.log('No data or error in response:', data);
         toast.error('No results found for this search');
       }
     } catch (error) {

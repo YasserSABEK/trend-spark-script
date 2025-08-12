@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ interface CreatorSearch {
 
 export default function TikTokCreators() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [searches, setSearches] = useState<CreatorSearch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -160,7 +162,7 @@ export default function TikTokCreators() {
   };
 
   const handleViewResults = (searchId: string, query: string) => {
-    window.location.href = `/tiktok-creators/${searchId}`;
+    navigate(`/tiktok-creators/${searchId}`);
   };
 
   const handleDeleteSearch = async (searchId: string) => {

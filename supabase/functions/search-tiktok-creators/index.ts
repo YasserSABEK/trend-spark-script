@@ -212,9 +212,9 @@ serve(async (req) => {
     const posts = await datasetResponse.json();
     console.log(`Retrieved ${posts.length} posts for query: ${normalizedQuery}`);
 
-    // Filter posts by date (last 90 days) and views (min 250k)
+    // Filter posts by date (last 90 days) and views (min 100k for broader results)
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-    const minViews = 250000;
+    const minViews = 100000;
 
     const filteredPosts = posts.filter((post: any) => {
       const postDate = new Date(post.createTimeISO || post.createTime * 1000);
@@ -263,7 +263,7 @@ serve(async (req) => {
     // Calculate final metrics for each creator
     const creators: Creator[] = Array.from(creatorMap.values()).map(creator => {
       const views = creator.posts.map((p: any) => p.views).sort((a: number, b: number) => a - b);
-      const viralPosts = creator.posts.filter((p: any) => p.views >= minViews);
+      const viralPosts = creator.posts; // Count all posts as viral posts since they already passed the view filter
       
       return {
         username: creator.username,
