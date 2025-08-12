@@ -275,6 +275,7 @@ export const ViralReels = () => {
         .select('*')
         .eq('user_id', user.id)  // CRITICAL: Filter by authenticated user
         .eq('search_type', 'username')
+        .eq('platform', 'instagram')  // Only show Instagram searches
         .is('hashtag', null)
         .order('requested_at', { ascending: false })
         .limit(10);
