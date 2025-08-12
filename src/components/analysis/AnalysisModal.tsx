@@ -62,9 +62,38 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
     if (!contentItem) return;
 
     try {
-      // Temporarily disabled until database types are updated
-      console.log('Checking for existing analysis...');
-      // Database queries will be enabled once types are regenerated
+      // Direct query to content_analysis table (bypassing type issues)
+      const { data, error } = await supabase
+        .from('content_analysis' as any)
+        .select('*')
+        .eq('content_item_id', contentItem.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.log('No existing analysis found:', error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        const analysisData = data[0] as any;
+        setAnalysis({
+          id: analysisData.id,
+          status: analysisData.status,
+          hook_text: analysisData.hook_text,
+          sections: analysisData.sections,
+          insights: analysisData.insights,
+          transcript: analysisData.transcript,
+          credits_used: analysisData.credits_used,
+          error_message: analysisData.error_message,
+          created_at: analysisData.created_at,
+          completed_at: analysisData.completed_at
+        });
+        
+        if (analysisData.status === 'transcribing' || analysisData.status === 'analyzing') {
+          pollAnalysisStatus(analysisData.id);
+        }
+      }
     } catch (error) {
       console.error('Error checking existing analysis:', error);
     }
@@ -73,11 +102,40 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
   const pollAnalysisStatus = async (analysisId: string) => {
     const interval = setInterval(async () => {
       try {
-        // Temporarily disabled until database types are updated
-        console.log('Polling analysis status...');
-        // Database queries will be enabled once types are regenerated
-        clearInterval(interval);
-        setLoading(false);
+        // Direct query to content_analysis table (bypassing type issues)
+        const { data, error } = await supabase
+          .from('content_analysis' as any)
+          .select('*')
+          .eq('id', analysisId)
+          .single();
+
+        if (error) {
+          console.error('Polling error:', error);
+          return;
+        }
+
+        if (data) {
+          const analysisData = data as any;
+          const updatedAnalysis = {
+            id: analysisData.id,
+            status: analysisData.status,
+            hook_text: analysisData.hook_text,
+            sections: analysisData.sections,
+            insights: analysisData.insights,
+            transcript: analysisData.transcript,
+            credits_used: analysisData.credits_used,
+            error_message: analysisData.error_message,
+            created_at: analysisData.created_at,
+            completed_at: analysisData.completed_at
+          };
+          
+          setAnalysis(updatedAnalysis);
+
+          if (analysisData.status === 'completed' || analysisData.status === 'failed') {
+            clearInterval(interval);
+            setLoading(false);
+          }
+        }
       } catch (error) {
         console.error('Error polling analysis status:', error);
         clearInterval(interval);
