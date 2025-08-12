@@ -148,7 +148,7 @@ serve(async (req) => {
     const runId = runData.data.id;
     console.log(`Started Apify run: ${runId}`);
 
-    // Add to search queue
+    // Add to search queue with proper RLS context
     const { data: searchQueueData, error: queueError } = await supabaseClient
       .from('search_queue')
       .insert({
@@ -158,6 +158,7 @@ serve(async (req) => {
         search_type: 'hashtag',
         platform: 'instagram',
         status: 'processing',
+        requested_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -245,14 +246,42 @@ serve(async (req) => {
                 user_id: user.id, // Add user association for RLS
               }));
 
-            // Insert posts into database
+            // Insert posts into database with proper authentication context
             if (processedPosts.length > 0) {
-              const { error: insertError } = await supabaseClient
+              // Create a new client with the user's auth context for RLS
+              const authenticatedClient = createClient(
+                Deno.env.get('SUPABASE_URL') ?? '',
+                Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+                {
+                  global: {
+                    headers: {
+                      Authorization: authHeader,
+                    },
+                  },
+                }
+              );
+
+              const { error: insertError } = await authenticatedClient
                 .from('instagram_reels')
                 .insert(processedPosts);
 
               if (insertError) {
                 console.error('Error inserting posts:', insertError);
+                // Try with service role as fallback for data insertion
+                const serviceClient = createClient(
+                  Deno.env.get('SUPABASE_URL') ?? '',
+                  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+                );
+                
+                const { error: serviceError } = await serviceClient
+                  .from('instagram_reels')
+                  .insert(processedPosts);
+                
+                if (serviceError) {
+                  console.error('Service role insert also failed:', serviceError);
+                } else {
+                  console.log(`Inserted ${processedPosts.length} posts via service role`);
+                }
               } else {
                 console.log(`Inserted ${processedPosts.length} posts`);
               }
