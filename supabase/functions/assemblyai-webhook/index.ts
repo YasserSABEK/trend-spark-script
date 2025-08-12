@@ -29,7 +29,7 @@ serve(async (req) => {
     const { data: analysis, error: analysisError } = await supabase
       .from('content_analysis')
       .select('*')
-      .eq('analysis_result->transcript_id', transcriptId)
+      .eq('analysis_result->>transcript_id', transcriptId)
       .single();
 
     if (analysisError || !analysis) {

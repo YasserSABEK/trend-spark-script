@@ -20,30 +20,73 @@ serve(async (req) => {
 
   try {
     const { contentItemId, videoUrl, deeperAnalysis = false } = await req.json();
-    
-    // Get user from auth header
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
+
+    if (!contentItemId) {
+      return new Response('Content item ID is required', { status: 400 });
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    
-    if (userError || !user) {
-      throw new Error('Invalid authentication');
+    // Get user from JWT
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response('Authorization header is required', { status: 401 });
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (authError || !user) {
+      return new Response('Invalid authentication', { status: 401 });
     }
 
     // Verify content item belongs to user
     const { data: contentItem, error: contentError } = await supabase
       .from('content_items')
-      .select('*')
+      .select('*, source_url')
       .eq('id', contentItemId)
       .eq('user_id', user.id)
       .single();
 
     if (contentError || !contentItem) {
-      throw new Error('Content item not found');
+      return new Response('Content item not found', { status: 404 });
+    }
+
+    let finalVideoUrl = videoUrl;
+
+    // Handle Instagram content - extract video URL using Apify
+    if (contentItem.platform === 'instagram' && !videoUrl) {
+      console.log('Extracting Instagram video URL...');
+      const { data: extractionResult, error: extractionError } = await supabase.functions.invoke('extract-instagram-video', {
+        body: { instagramUrl: contentItem.source_url }
+      });
+
+      if (extractionError || !extractionResult?.success) {
+        throw new Error(`Failed to extract Instagram video: ${extractionError?.message || extractionResult?.error}`);
+      }
+
+      finalVideoUrl = extractionResult.videoUrl;
+      console.log('Extracted Instagram video URL:', finalVideoUrl);
+    }
+
+    // Handle TikTok content - get video URL from database
+    if (contentItem.platform === 'tiktok' && !videoUrl) {
+      console.log('Looking up TikTok video URL...');
+      const { data: tiktokVideo, error: tiktokError } = await supabase
+        .from('tiktok_videos')
+        .select('video_url')
+        .eq('url', contentItem.source_url)
+        .single();
+
+      if (tiktokError || !tiktokVideo?.video_url) {
+        throw new Error('TikTok video URL not found in database');
+      }
+
+      finalVideoUrl = tiktokVideo.video_url;
+      console.log('Found TikTok video URL:', finalVideoUrl);
+    }
+
+    if (!finalVideoUrl) {
+      throw new Error('No video URL available for analysis');
     }
 
     // Calculate credits needed based on video duration (we'll estimate for now)
@@ -66,7 +109,7 @@ serve(async (req) => {
       .insert({
         content_item_id: contentItemId,
         user_id: user.id,
-        video_url: videoUrl,
+        video_url: finalVideoUrl,
         status: 'queued',
         deeper_analysis: deeperAnalysis,
         credits_used: creditsNeeded
@@ -85,7 +128,7 @@ serve(async (req) => {
     }
 
     const transcriptRequest = {
-      audio_url: videoUrl,
+      audio_url: finalVideoUrl,
       auto_chapters: true,
       auto_highlights: true,
       sentiment_analysis: true,
@@ -114,6 +157,7 @@ serve(async (req) => {
       .from('content_analysis')
       .update({
         status: 'transcribing',
+        video_url: finalVideoUrl,
         analysis_result: { transcript_id: transcriptData.id }
       })
       .eq('id', analysis.id);

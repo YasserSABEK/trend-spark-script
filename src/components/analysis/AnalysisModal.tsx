@@ -146,7 +146,7 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
     return () => clearInterval(interval);
   };
 
-  const startAnalysis = async (videoUrl: string) => {
+  const startAnalysis = async (videoUrl?: string) => {
     if (!contentItem) return;
 
     const creditsNeeded = deeperAnalysis ? 2 : 1;
@@ -183,24 +183,16 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
   };
 
   const handleTikTokAnalysis = async () => {
-    if (!contentItem) return;
-
+    if (!contentItem || contentItem.platform !== 'tiktok') return;
+    
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('tiktok_videos')
-        .select('video_url')
-        .eq('url', contentItem.source_url)
-        .single();
-
-      if (error || !data?.video_url) {
-        setAnalysis(null);
-        return;
-      }
-
-      await startAnalysis(data.video_url);
+      // For TikTok, let the backend handle video URL lookup
+      await startAnalysis();
     } catch (error) {
-      console.error('Error getting TikTok video URL:', error);
-      setAnalysis(null);
+      console.error('TikTok analysis error:', error);
+      toast.error("Failed to analyze TikTok content");
+      setLoading(false);
     }
   };
 
@@ -278,47 +270,17 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
               </ul>
             </div>
 
-            {contentItem.platform === 'tiktok' ? (
-              <div className="space-y-4">
-                <p>Analyze this TikTok video with AI-powered insights:</p>
-                <Button 
-                  onClick={handleTikTokAnalysis}
-                  disabled={loading || !hasCredits(deeperAnalysis ? 2 : 1)}
-                  className="w-full"
-                >
-                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Analyze Content ({deeperAnalysis ? 2 : 1} credit{deeperAnalysis ? 's' : ''})
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p>For Instagram content, please provide a direct video file URL:</p>
-                
-                <div className="space-y-4">
-                  <div className="flex gap-2">
-                    <Input
-                      type="url"
-                      placeholder="Paste direct MP4/MOV/WEBM URL here..."
-                      value={uploadUrl}
-                      onChange={(e) => setUploadUrl(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button 
-                      onClick={handleUploadAnalysis}
-                      disabled={loading || !uploadUrl.trim() || !hasCredits(deeperAnalysis ? 2 : 1)}
-                    >
-                      <LinkIcon className="w-4 h-4 mr-2" />
-                      Analyze
-                    </Button>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    <p>• Right-click video → "Copy video address" for direct URL</p>
-                    <p>• URL must end with .mp4, .mov, or .webm</p>
-                  </div>
-                </div>
-              </div>
-            )}
+            <div className="space-y-4">
+              <p>Analyze this {contentItem.platform} content with AI-powered insights:</p>
+              <Button 
+                onClick={contentItem.platform === 'tiktok' ? handleTikTokAnalysis : () => startAnalysis()}
+                disabled={loading || !hasCredits(deeperAnalysis ? 2 : 1)}
+                className="w-full"
+              >
+                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {contentItem.platform === 'instagram' ? 'Analyze Instagram Video' : 'Analyze TikTok Video'} ({deeperAnalysis ? 2 : 1} credit{deeperAnalysis ? 's' : ''})
+              </Button>
+            </div>
 
             <div className="flex items-center space-x-2">
               <Checkbox

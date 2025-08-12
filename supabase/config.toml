@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.assemblyai-webhook]
 verify_jwt = false
+
+[functions.extract-instagram-video]
+verify_jwt = true
