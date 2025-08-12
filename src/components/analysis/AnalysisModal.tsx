@@ -313,26 +313,6 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 {contentItem.platform === 'instagram' ? 'Analyze Instagram Video' : 'Analyze TikTok Video'} ({deeperAnalysis ? 2 : 1} credit{deeperAnalysis ? 's' : ''})
               </Button>
-              
-              <div className="border-t pt-4">
-                <p className="text-sm text-muted-foreground mb-2">Or paste a direct video URL:</p>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="https://example.com/video.mp4"
-                    value={uploadUrl}
-                    onChange={(e) => setUploadUrl(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button 
-                    onClick={handleUploadAnalysis}
-                    disabled={loading || !hasCredits(deeperAnalysis ? 2 : 1)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Analyze URL
-                  </Button>
-                </div>
-              </div>
             </div>
 
             <div className="flex items-center space-x-2">
