@@ -55,6 +55,7 @@ serve(async (req) => {
       .from('search_cache')
       .select('*')
       .eq('cache_key', cacheKey)
+      .eq('user_id', user.id)
       .gte('fetched_at', tenMinutesAgo)
       .single();
 
@@ -80,6 +81,7 @@ serve(async (req) => {
       .from('search_cache')
       .select('*')
       .eq('cache_key', cacheKey)
+      .eq('user_id', user.id)
       .single();
 
     // Spend credits for fresh data
@@ -116,7 +118,7 @@ serve(async (req) => {
       logStep("Returning stale data with background refresh");
       
       // Start background refresh (don't await)
-      refreshCacheInBackground(supabaseClient, type, normalizedQuery, page, platform, cacheKey);
+      refreshCacheInBackground(supabaseClient, type, normalizedQuery, page, platform, cacheKey, user.id);
       
       return new Response(JSON.stringify({
         source: 'stale',
@@ -141,6 +143,7 @@ serve(async (req) => {
       .from('search_cache')
       .upsert({
         cache_key: cacheKey,
+        user_id: user.id,
         chunk_size: 50,
         items: scrapedData.items,
         total_count: scrapedData.total_count,
@@ -179,7 +182,8 @@ async function refreshCacheInBackground(
   query: string,
   page: number,
   platform: string,
-  cacheKey: string
+  cacheKey: string,
+  userId: string
 ) {
   try {
     logStep("Starting background refresh");
@@ -189,6 +193,7 @@ async function refreshCacheInBackground(
       .from('search_cache')
       .upsert({
         cache_key: cacheKey,
+        user_id: userId,
         chunk_size: 50,
         items: scrapedData.items,
         total_count: scrapedData.total_count,

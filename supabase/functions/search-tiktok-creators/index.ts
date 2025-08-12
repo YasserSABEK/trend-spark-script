@@ -48,6 +48,26 @@ serve(async (req) => {
     
     const { query, searchId, getUserResults } = await req.json();
 
+    // Authenticate user first
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'No authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // If getUserResults is true, return cached data for a specific search
     if (getUserResults && searchId) {
       const cacheKey = `tiktok_creators_${searchId}`;
@@ -55,6 +75,7 @@ serve(async (req) => {
         .from('search_cache')
         .select('*')
         .eq('cache_key', cacheKey)
+        .eq('user_id', user.id)
         .single();
 
       if (cacheData?.items) {
@@ -86,6 +107,7 @@ serve(async (req) => {
       .from('search_cache')
       .select('*')
       .eq('cache_key', cacheKey)
+      .eq('user_id', user.id)
       .gte('fetched_at', tenMinutesAgo)
       .single();
 
@@ -99,25 +121,7 @@ serve(async (req) => {
       });
     }
 
-    // Authenticate user and deduct credits
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'No authorization header' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
+    // User is already authenticated above, proceed with credit deduction
 
     // Check and deduct credits (only if no fresh cache)
     const { data: creditResult, error: creditError } = await supabase.rpc('safe_deduct_credits', {
@@ -309,6 +313,7 @@ serve(async (req) => {
       .from('search_cache')
       .upsert({
         cache_key: cacheKey,
+        user_id: user.id,
         items: result,
         total_count: creators.length,
         fetched_at: new Date().toISOString(),

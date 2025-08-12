@@ -42,6 +42,26 @@ serve(async (req) => {
   try {
     const { query, searchId, getUserResults } = await req.json();
 
+    // Get auth header for user context first
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Authorization required' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Get user from auth header
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // If requesting cached results for a specific search
     if (getUserResults && searchId) {
       const cacheKey = `instagram:creators:${searchId}:results`;
@@ -49,6 +69,7 @@ serve(async (req) => {
         .from('search_cache')
         .select('items')
         .eq('cache_key', cacheKey)
+        .eq('user_id', user.id)
         .single();
 
       if (cacheData?.items) {
@@ -78,6 +99,7 @@ serve(async (req) => {
       .from('search_cache')
       .select('*')
       .eq('cache_key', cacheKey)
+      .eq('user_id', user.id)
       .gte('created_at', tenMinutesAgo)
       .single();
 
@@ -91,25 +113,7 @@ serve(async (req) => {
       });
     }
 
-    // Get auth header for credit deduction
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Authorization required' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Get user from auth header
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    // User is already authenticated above, proceed with credit deduction
 
     // Deduct credits using safe_deduct_credits function
     const { data: creditResult, error: creditError } = await supabase
@@ -223,6 +227,7 @@ serve(async (req) => {
       .from('search_cache')
       .upsert({
         cache_key: cacheKey,
+        user_id: user.id,
         items: result,
         fetched_at: new Date().toISOString(),
         total_count: creators.length
@@ -235,6 +240,7 @@ serve(async (req) => {
         .from('search_cache')
         .upsert({
           cache_key: searchCacheKey,
+          user_id: user.id,
           items: result,
           fetched_at: new Date().toISOString(),
           total_count: creators.length
