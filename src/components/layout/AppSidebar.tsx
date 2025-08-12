@@ -5,12 +5,11 @@ import {
   Video, 
   Hash,
   Edit3, 
-  FileText, 
-  Zap,
-  CreditCard,
   Bookmark,
-  CalendarDays,
-  Users
+  CreditCard,
+  Zap,
+  Instagram,
+  Music2
 } from "lucide-react";
 import {
   Sidebar,
@@ -29,14 +28,13 @@ import { SidebarProfileSection } from "@/components/profile/SidebarProfileSectio
 
 const navigationItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "TikTok Creators", url: "/tiktok-creators", icon: Users },
-  { title: "Instagram Creators", url: "/instagram-creators", icon: Users },
+  { title: "Instagram Creators", url: "/instagram-creators", icon: Instagram },
   { title: "Viral Reels", url: "/viral-reels", icon: Video },
   { title: "Instagram Hashtags", url: "/instagram-hashtags", icon: Hash },
+  { title: "TikTok Creators", url: "/tiktok-creators", icon: Music2 },
   { title: "Viral TikToks", url: "/viral-tiktoks", icon: Video },
   { title: "TikTok Hashtags", url: "/hashtag-search", icon: Hash },
   { title: "Script Generator", url: "/script-generator", icon: Edit3 },
-  { title: "My Scripts", url: "/my-scripts", icon: FileText },
   { title: "My Content", url: "/content", icon: Bookmark },
   { title: "Billing", url: "/billing", icon: CreditCard },
 ];
