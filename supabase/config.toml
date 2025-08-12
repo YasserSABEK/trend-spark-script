@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.enhanced-script-generation]
 verify_jwt = true
+
+[functions.scrape-tiktok-user]
+verify_jwt = true

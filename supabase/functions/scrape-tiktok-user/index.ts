@@ -159,6 +159,7 @@ serve(async (req) => {
           timestamp: video.createTimeISO || null,
           platform: 'tiktok',
           user_id: user.id,
+          search_username: cleanUsername,
           apify_run_id: runId,
           dataset_id: datasetId,
         };
