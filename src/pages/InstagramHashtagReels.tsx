@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Filter, TrendingUp, Search, ChevronDown, Loader2, ArrowLeft, Hash } from "lucide-react";
-import { TikTokVideoCard } from "@/components/TikTokVideoCard";
+import { TrendingUp, Search, ArrowLeft, Hash, Loader2 } from "lucide-react";
+import { ReelCard } from "@/components/ReelCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,41 +19,33 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-interface TikTokVideo {
+interface InstagramReel {
   id: string;
   post_id: string;
   url: string;
-  web_video_url?: string;
-  caption?: string;
-  hashtags?: string[];
-  username?: string;
-  display_name?: string;
-  author_avatar?: string;
-  followers?: number;
-  verified?: boolean;
-  digg_count: number;
-  comment_count: number;
-  share_count: number;
-  play_count: number;
-  collect_count: number;
-  viral_score?: number;
-  engagement_rate?: number;
-  timestamp?: string;
-  scraped_at?: string;
-  thumbnail_url?: string;
-  video_duration?: number;
-  music_name?: string;
-  music_author?: string;
-  music_original?: boolean;
-  platform?: string;
+  caption: string;
+  hashtags: string[];
+  username: string;
+  display_name: string;
+  followers: number;
+  verified: boolean;
+  likes: number;
+  comments: number;
+  video_view_count: number;
+  viral_score: number;
+  engagement_rate: number;
+  timestamp: string;
+  scraped_at: string;
+  thumbnail_url: string;
+  video_url?: string;
 }
 
-export const HashtagVideos = () => {
+export const InstagramHashtagReels = () => {
   const { hashtagId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [videos, setVideos] = useState<TikTokVideo[]>([]);
+  const [reels, setReels] = useState<InstagramReel[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [loadingMore, setLoadingMore] = useState(false);
@@ -80,35 +72,35 @@ export const HashtagVideos = () => {
   useEffect(() => {
     if (!hashtagId) return;
     // Reset pagination
-    setVideos([]);
+    setReels([]);
     setPage(0);
     setHasMore(true);
-    loadHashtagVideos(0, false);
+    loadHashtagReels(0, false);
   }, [hashtagId, sort]);
 
   const handleLoadMore = () => {
     if (hasMore && !loadingMore) {
-      loadHashtagVideos(page + 1, true);
+      loadHashtagReels(page + 1, true);
     }
   };
 
-  const loadHashtagVideos = async (pageIndex = 0, append = false) => {
+  const loadHashtagReels = async (pageIndex = 0, append = false) => {
     try {
       if (append) setLoadingMore(true); else setLoading(true);
       const from = pageIndex * pageSize;
       const to = from + pageSize - 1;
 
       const sortMap: Record<string, { column: string; ascending: boolean }> = {
-        views: { column: 'play_count', ascending: false },
-        likes: { column: 'digg_count', ascending: false },
-        comments: { column: 'comment_count', ascending: false },
+        views: { column: 'video_view_count', ascending: false },
+        likes: { column: 'likes', ascending: false },
+        comments: { column: 'comments', ascending: false },
         newest: { column: 'timestamp', ascending: false },
       };
 
       const order = sortMap[sort] || sortMap.views;
 
       const { data, error, count } = await supabase
-        .from('tiktok_videos')
+        .from('instagram_reels')
         .select('*', { count: 'exact' })
         .eq('search_hashtag', hashtagId)
         .order(order.column, { ascending: order.ascending })
@@ -117,33 +109,32 @@ export const HashtagVideos = () => {
       if (error) throw error;
 
       setTotal(count || 0);
-      setVideos(prev => append ? [...prev, ...(data || [])] : (data || []));
+      setReels(prev => append ? [...prev, ...(data || [])] : (data || []));
       setHasMore(((from + (data?.length || 0)) < (count || 0)));
       setPage(pageIndex);
     } catch (error) {
-      console.error('Error loading hashtag videos:', error);
+      console.error('Error loading hashtag reels:', error);
       toast({
-        title: 'Error loading videos',
-        description: 'Failed to load videos from database',
+        title: 'Error loading reels',
+        description: 'Failed to load reels from database',
         variant: 'destructive',
       });
-      if (!append) setVideos([]);
+      if (!append) setReels([]);
     } finally {
       if (append) setLoadingMore(false); else setLoading(false);
     }
   };
 
-
-  const filteredVideos = searchTerm
-    ? videos.filter((video) => {
+  const filteredReels = searchTerm
+    ? reels.filter((reel) => {
         const term = searchTerm.toLowerCase();
         return (
-          (video.caption || '').toLowerCase().includes(term) ||
-          (video.username || '').toLowerCase().includes(term) ||
-          (video.hashtags || []).some((t) => (t || '').toLowerCase().includes(term))
+          (reel.caption || '').toLowerCase().includes(term) ||
+          (reel.username || '').toLowerCase().includes(term) ||
+          (reel.hashtags || []).some((t) => (t || '').toLowerCase().includes(term))
         );
       })
-    : videos;
+    : reels;
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -151,12 +142,9 @@ export const HashtagVideos = () => {
     return num.toString();
   };
 
-  // Keep stats based on currently loaded videos
-  const totalLikes = videos.reduce((sum, video) => sum + video.digg_count, 0);
-  const totalViews = videos.reduce((sum, video) => sum + video.play_count, 0);
-  const avgViralScore = videos.length > 0 
-    ? Math.round(videos.reduce((sum, video) => sum + (video.viral_score || 0), 0) / videos.length)
-    : 0;
+  // Keep stats based on currently loaded reels
+  const totalLikes = reels.reduce((sum, reel) => sum + reel.likes, 0);
+  const totalViews = reels.reduce((sum, reel) => sum + reel.video_view_count, 0);
 
   if (loading) {
     return (
@@ -181,7 +169,7 @@ export const HashtagVideos = () => {
           </CardContent>
         </Card>
 
-        {/* Video grid skeleton */}
+        {/* Reel grid skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
@@ -207,8 +195,8 @@ export const HashtagVideos = () => {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate('/hashtag-search')} className="cursor-pointer">
-              TikTok Hashtags
+            <BreadcrumbLink onClick={() => navigate('/instagram-hashtags')} className="cursor-pointer">
+              Instagram Hashtags
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -225,7 +213,7 @@ export const HashtagVideos = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/hashtag-search')}
+              onClick={() => navigate('/instagram-hashtags')}
               className="shrink-0"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -240,7 +228,7 @@ export const HashtagVideos = () => {
           </div>
           
           <p className="text-muted-foreground mb-6">
-            Explore viral TikTok videos for this hashtag and analyze their performance to inspire your content strategy.
+            Explore viral Instagram Reels for this hashtag and analyze their performance to inspire your content strategy.
           </p>
 
           {/* Stats */}
@@ -249,7 +237,7 @@ export const HashtagVideos = () => {
               <CardContent className="p-4 text-center">
                 <TrendingUp className="w-6 h-6 text-primary mx-auto mb-2" />
                 <p className="text-2xl font-bold">{total}</p>
-                <p className="text-sm text-muted-foreground">Total Videos</p>
+                <p className="text-sm text-muted-foreground">Total Reels</p>
               </CardContent>
             </Card>
             
@@ -277,7 +265,7 @@ export const HashtagVideos = () => {
           {/* Search and Sort */}
           <div className="flex gap-2 flex-wrap items-center">
             <Input
-              placeholder="Search videos by caption, username, or hashtags..."
+              placeholder="Search reels by caption, username, or hashtags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 min-w-[250px]"
@@ -306,14 +294,14 @@ export const HashtagVideos = () => {
         </div>
       )}
 
-      {/* Videos Grid */}
+      {/* Reels Grid */}
       {total === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <Hash className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No videos found</h3>
+            <h3 className="text-lg font-semibold mb-2">No reels found</h3>
             <p className="text-muted-foreground mb-4">
-              {searchTerm ? `No videos match your search for "${searchTerm}"` : `No videos found for hashtag #${hashtagId}`}
+              {searchTerm ? `No reels match your search for "${searchTerm}"` : `No reels found for hashtag #${hashtagId}`}
             </p>
             {searchTerm && (
               <Button variant="outline" onClick={() => setSearchTerm("")}>Clear search</Button>
@@ -323,10 +311,10 @@ export const HashtagVideos = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredVideos.map((video) => (
-              <TikTokVideoCard
-                key={video.id}
-                video={video}
+            {filteredReels.map((reel) => (
+              <ReelCard
+                key={reel.id}
+                reel={reel}
                 onGenerateScript={undefined}
               />
             ))}

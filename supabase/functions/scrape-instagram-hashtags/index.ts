@@ -148,6 +148,7 @@ serve(async (req) => {
       .from('search_queue')
       .insert({
         user_id: user.id,
+        platform: 'instagram',
         username: cleanHashtag, // Using username field for hashtag name
         hashtag: cleanHashtag,
         search_type: 'hashtag',

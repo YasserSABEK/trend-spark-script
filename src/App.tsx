@@ -15,6 +15,8 @@ import { Dashboard } from "./pages/Dashboard";
 import { ViralReels } from "./pages/ViralReels";
 import { HashtagSearch } from "./pages/HashtagSearch";
 import { HashtagVideos } from "./pages/HashtagVideos";
+import { InstagramHashtags } from "./pages/InstagramHashtags";
+import { InstagramHashtagReels } from "./pages/InstagramHashtagReels";
 import { ReelResults } from "./pages/ReelResults";
 import { Profile } from "./pages/Profile";
 import { ScriptGenerator } from "./pages/ScriptGenerator";
@@ -86,6 +88,8 @@ function AppContent() {
               <Route path="/viral-reels" element={<ViralReels />} />
               <Route path="/hashtag-search" element={<HashtagSearch />} />
               <Route path="/hashtags/:hashtagId/videos" element={<HashtagVideos />} />
+              <Route path="/instagram-hashtags" element={<InstagramHashtags />} />
+              <Route path="/instagram/hashtags/:hashtagId/reels" element={<InstagramHashtagReels />} />
               <Route path="/reels/:username" element={<ReelResults />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/script-generator" element={<ScriptGenerator />} />
