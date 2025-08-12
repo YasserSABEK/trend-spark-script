@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, TrendingUp, ArrowLeft, RefreshCw } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, TrendingUp, ArrowLeft, RefreshCw, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthContext";
 import { TikTokVideoCard } from "@/components/TikTokVideoCard";
@@ -42,20 +43,69 @@ export const TikTokUserResults = () => {
   const location = useLocation();
   const { user, session, loading: authLoading } = useAuth();
   const [videos, setVideos] = useState<TikTokVideo[]>([]);
+  const [sortedVideos, setSortedVideos] = useState<TikTokVideo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<'play_count' | 'digg_count' | 'viral_score' | 'timestamp'>('play_count');
   const [hasRetried, setHasRetried] = useState(false);
 
+  // Load videos from navigation state or localStorage
   useEffect(() => {
-    // Check if videos were passed via navigation state (from search)
+    const storageKey = `tiktok-videos-${username}`;
+    
+    // Check if videos were passed via navigation state (from fresh search)
     if (location.state?.videos && Array.isArray(location.state.videos)) {
       console.log('Videos received from navigation state:', location.state.videos.length);
-      setVideos(location.state.videos);
+      const videosWithPlatform = location.state.videos.map(v => ({ ...v, platform: 'tiktok' }));
+      setVideos(videosWithPlatform);
+      
+      // Store in localStorage for persistence
+      localStorage.setItem(storageKey, JSON.stringify(videosWithPlatform));
       setLoading(false);
-    } else if (username && !authLoading && session) {
-      console.log('No videos in navigation state, trying to load from database for:', username);
-      loadVideos();
+    } else {
+      // Try to load from localStorage first
+      const cachedVideos = localStorage.getItem(storageKey);
+      if (cachedVideos) {
+        try {
+          const parsedVideos = JSON.parse(cachedVideos);
+          console.log('Videos loaded from localStorage:', parsedVideos.length);
+          setVideos(parsedVideos);
+          setLoading(false);
+        } catch (e) {
+          console.error('Error parsing cached videos:', e);
+          localStorage.removeItem(storageKey);
+          if (username && !authLoading && session) {
+            loadVideos();
+          }
+        }
+      } else if (username && !authLoading && session) {
+        console.log('No videos in navigation state or localStorage, trying database for:', username);
+        loadVideos();
+      }
     }
   }, [username, authLoading, session, location.state]);
+
+  // Sort videos whenever videos array or sort option changes
+  useEffect(() => {
+    if (videos.length > 0) {
+      const sorted = [...videos].sort((a, b) => {
+        switch (sortBy) {
+          case 'play_count':
+            return (b.play_count || 0) - (a.play_count || 0);
+          case 'digg_count':
+            return (b.digg_count || 0) - (a.digg_count || 0);
+          case 'viral_score':
+            return (b.viral_score || 0) - (a.viral_score || 0);
+          case 'timestamp':
+            return new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime();
+          default:
+            return (b.play_count || 0) - (a.play_count || 0);
+        }
+      });
+      setSortedVideos(sorted);
+    } else {
+      setSortedVideos([]);
+    }
+  }, [videos, sortBy]);
 
   const loadVideos = async (isRetry = false) => {
     if (!username) return;
@@ -69,7 +119,7 @@ export const TikTokUserResults = () => {
         .from('tiktok_videos')
         .select('*')
         .or(`username.eq.${normalized},username.eq.${username}`)
-        .order('viral_score', { ascending: false });
+        .order('play_count', { ascending: false });
 
       if (error) throw error;
 
@@ -110,13 +160,31 @@ export const TikTokUserResults = () => {
           <div className="flex-1">
             <h1 className="text-2xl font-bold">Results for @{username}</h1>
             <p className="text-muted-foreground">
-              {loading ? 'Loading...' : `${videos.length} videos found`}
+              {loading ? 'Loading...' : `${sortedVideos.length} videos found`}
             </p>
           </div>
+          
+          {/* Sort Controls */}
+          {!loading && sortedVideos.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="play_count">Most Views</SelectItem>
+                  <SelectItem value="digg_count">Most Likes</SelectItem>
+                  <SelectItem value="viral_score">Viral Score</SelectItem>
+                  <SelectItem value="timestamp">Most Recent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {/* Stats */}
-        {!loading && videos.length > 0 && (
+        {!loading && sortedVideos.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -128,25 +196,25 @@ export const TikTokUserResults = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-primary">
-                    {formatNumber(videos.reduce((sum, v) => sum + (v.digg_count || 0), 0))}
+                    {formatNumber(sortedVideos.reduce((sum, v) => sum + (v.digg_count || 0), 0))}
                   </p>
                   <p className="text-sm text-muted-foreground">Total Likes</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-primary">
-                    {formatNumber(videos.reduce((sum, v) => sum + (v.comment_count || 0), 0))}
+                    {formatNumber(sortedVideos.reduce((sum, v) => sum + (v.comment_count || 0), 0))}
                   </p>
                   <p className="text-sm text-muted-foreground">Total Comments</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-primary">
-                    {formatNumber(videos.reduce((sum, v) => sum + (v.play_count || 0), 0))}
+                    {formatNumber(sortedVideos.reduce((sum, v) => sum + (v.play_count || 0), 0))}
                   </p>
                   <p className="text-sm text-muted-foreground">Total Views</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-primary">
-                    {Math.round(videos.reduce((sum, v) => sum + (v.viral_score || 0), 0) / videos.length)}
+                    {Math.round(sortedVideos.reduce((sum, v) => sum + (v.viral_score || 0), 0) / sortedVideos.length)}
                   </p>
                   <p className="text-sm text-muted-foreground">Avg Viral Score</p>
                 </div>
@@ -161,7 +229,7 @@ export const TikTokUserResults = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
             <p className="mt-4 text-muted-foreground">Loading videos...</p>
           </div>
-        ) : videos.length === 0 ? (
+        ) : sortedVideos.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
@@ -192,8 +260,8 @@ export const TikTokUserResults = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {videos.map((video) => (
-              <TikTokVideoCard key={video.id} video={video as any} />
+            {sortedVideos.map((video) => (
+              <TikTokVideoCard key={video.id || video.post_id} video={video as any} />
             ))}
           </div>
         )}
