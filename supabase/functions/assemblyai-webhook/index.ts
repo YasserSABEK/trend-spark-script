@@ -51,16 +51,32 @@ serve(async (req) => {
 
       const transcriptData = await transcriptResponse.json();
 
-      // Use LeMUR to analyze the content
-      const lemurResponse = await fetch('https://api.assemblyai.com/lemur/v3/generate/task', {
-        method: 'POST',
-        headers: {
-          'Authorization': assemblyAIKey!,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          transcript_ids: [transcriptId],
-          prompt: `Analyze this video transcript for content creation insights. Extract:
+      // Try LeMUR analysis, but continue without it if it fails
+      let analysisResults = {
+        hook: '',
+        sections: [],
+        ctas: [],
+        claims: [],
+        emotions: [],
+        curiosity: [],
+        specificity: [],
+        pacing: '',
+        viral_factors: []
+      };
+
+      let lemurAvailable = false;
+      
+      try {
+        console.log('Attempting LeMUR analysis...');
+        const lemurResponse = await fetch('https://api.assemblyai.com/lemur/v3/generate/task', {
+          method: 'POST',
+          headers: {
+            'Authorization': assemblyAIKey!,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            transcript_ids: [transcriptId],
+            prompt: `Analyze this video transcript for content creation insights. Extract:
 
 1. HOOK (first 3-5 seconds): Identify the opening hook that grabs attention
 2. SECTIONS: Break down the content into Hook → Build-up → Payoff → CTA with timestamps
@@ -73,31 +89,36 @@ serve(async (req) => {
 9. VIRAL PATTERNS: What elements likely contributed to virality
 
 Return as structured JSON with these exact keys: hook, sections, ctas, claims, emotions, curiosity, specificity, pacing, viral_factors`,
-        }),
-      });
+          }),
+        });
 
-      if (!lemurResponse.ok) {
-        throw new Error(`LeMUR analysis failed: ${await lemurResponse.text()}`);
-      }
-
-      const lemurData = await lemurResponse.json();
-      let analysisResults;
-      
-      try {
-        analysisResults = JSON.parse(lemurData.response);
-      } catch {
-        // If not valid JSON, create structured response
-        analysisResults = {
-          hook: lemurData.response.split('HOOK:')[1]?.split('SECTIONS:')[0]?.trim() || '',
-          sections: [],
-          ctas: [],
-          claims: [],
-          emotions: [],
-          curiosity: [],
-          specificity: [],
-          pacing: '',
-          viral_factors: []
-        };
+        if (lemurResponse.ok) {
+          const lemurData = await lemurResponse.json();
+          console.log('LeMUR analysis successful');
+          lemurAvailable = true;
+          
+          try {
+            analysisResults = JSON.parse(lemurData.response);
+          } catch {
+            // If not valid JSON, parse manually
+            analysisResults = {
+              hook: lemurData.response.split('HOOK:')[1]?.split('SECTIONS:')[0]?.trim() || '',
+              sections: [],
+              ctas: [],
+              claims: [],
+              emotions: [],
+              curiosity: [],
+              specificity: [],
+              pacing: '',
+              viral_factors: []
+            };
+          }
+        } else {
+          const errorText = await lemurResponse.text();
+          console.log('LeMUR unavailable, continuing with basic analysis:', errorText);
+        }
+      } catch (lemurError) {
+        console.log('LeMUR analysis failed, continuing with basic analysis:', lemurError);
       }
 
       // Extract hook text (first few words from transcript)
@@ -126,7 +147,8 @@ Return as structured JSON with these exact keys: hook, sections, ctas, claims, e
           viral_analysis: analysisResults.viral_factors || [],
           emotions: analysisResults.emotions || [],
           pacing: analysisResults.pacing || '',
-          specificity: analysisResults.specificity || []
+          specificity: analysisResults.specificity || [],
+          lemur_available: lemurAvailable
         },
         analysis_result: {
           ...transcriptData,

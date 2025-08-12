@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.extract-instagram-video]
 verify_jwt = true
+
+[functions.recover-stuck-analyses]
+verify_jwt = true

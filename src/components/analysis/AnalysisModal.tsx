@@ -333,6 +333,15 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
+                  {analysis.insights?.lemur_available === false && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-sm text-amber-800">
+                        <strong>Basic Analysis:</strong> Advanced AI insights unavailable, showing transcript and basic features.
+                        {analysis.insights?.recovered && " This analysis was automatically recovered."}
+                      </p>
+                    </div>
+                  )}
+                  
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <h3 className="font-medium mb-2">Hook (First 3-5 seconds)</h3>
                     <p className="text-sm mb-3">{analysis.hook_text}</p>
