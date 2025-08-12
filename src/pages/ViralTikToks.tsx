@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ interface SearchQueueItem {
 
 export const ViralTikToks = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, session, loading: authLoading } = useAuth();
   const [searches, setSearches] = useState<SearchQueueItem[]>([]);
   const [tiktokUsername, setTiktokUsername] = useState("");
@@ -36,7 +37,13 @@ export const ViralTikToks = () => {
 
   useEffect(() => {
     loadSearchQueue();
-  }, [queueRefresh, user, session]);
+    
+    // Check for pre-filled username from URL params
+    const prefilledUsername = searchParams.get('username');
+    if (prefilledUsername) {
+      setTiktokUsername(prefilledUsername);
+    }
+  }, [queueRefresh, user, session, searchParams]);
 
   const scrapeTikTokUser = async () => {
     if (!tiktokUsername.trim()) {

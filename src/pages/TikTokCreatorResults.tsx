@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Heart, Play, Users, Eye, Calendar } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Heart, Play, Users, TrendingUp, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -94,7 +94,7 @@ export default function TikTokCreatorResults() {
   };
 
   const handleScrapeCreator = (username: string) => {
-    navigate(`/tiktoks/${username}`);
+    navigate(`/viral-tiktoks?username=${username}`);
   };
 
   const formatNumber = (num: number) => {
@@ -276,8 +276,8 @@ export default function TikTokCreatorResults() {
                       onClick={() => handleScrapeCreator(creator.username)}
                       className="w-full"
                     >
-                      <Eye className="w-3 h-3 mr-2" />
-                      Scrape Videos
+                      <TrendingUp className="w-3 h-3 mr-2" />
+                      Viral Videos
                     </Button>
                   </div>
                 </CardContent>
