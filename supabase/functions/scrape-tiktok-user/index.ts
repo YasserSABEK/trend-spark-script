@@ -165,16 +165,24 @@ serve(async (req) => {
         };
       });
 
-    // Upsert into tiktok_videos
+    // Upsert into tiktok_videos with proper conflict resolution
     if (processedVideos.length > 0) {
-      const { error: insertError } = await supabase
-        .from('tiktok_videos')
-        .upsert(processedVideos, {
-          onConflict: 'user_id,post_id',
-          ignoreDuplicates: true,
-        });
-      if (insertError) throw new Error('Failed to save videos: ' + insertError.message);
-      console.log(`Saved ${processedVideos.length} videos (duplicates ignored)`);
+      // Since we have partial unique indexes, we need to handle conflicts manually
+      // For username searches, we want to avoid duplicates on (user_id, post_id)
+      for (const video of processedVideos) {
+        const { error: upsertError } = await supabase
+          .from('tiktok_videos')
+          .upsert(video, { 
+            onConflict: 'user_id,post_id',
+            ignoreDuplicates: false 
+          });
+        
+        if (upsertError && !upsertError.message.includes('duplicate')) {
+          console.error('Error upserting video:', upsertError);
+          throw new Error('Failed to save videos: ' + upsertError.message);
+        }
+      }
+      console.log(`Saved ${processedVideos.length} videos (duplicates handled)`);
     }
 
     return new Response(
