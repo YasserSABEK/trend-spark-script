@@ -48,19 +48,34 @@ interface Analysis {
 export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerator }: AnalysisModalProps) {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
+  const [checkingExisting, setCheckingExisting] = useState(false);
   const [uploadUrl, setUploadUrl] = useState('');
   const [deeperAnalysis, setDeeperAnalysis] = useState(false);
+  const [currentContentItemId, setCurrentContentItemId] = useState<string | null>(null);
   const { credits, hasCredits } = useCredits();
 
   useEffect(() => {
     if (open && contentItem) {
+      // Clear previous analysis data immediately when opening with new content
+      if (currentContentItemId !== contentItem.id) {
+        setAnalysis(null);
+        setCurrentContentItemId(contentItem.id);
+      }
       checkExistingAnalysis();
+    } else if (!open) {
+      // Reset state when modal closes
+      setAnalysis(null);
+      setCurrentContentItemId(null);
+      setLoading(false);
+      setCheckingExisting(false);
     }
-  }, [open, contentItem]);
+  }, [open, contentItem, currentContentItemId]);
 
   const checkExistingAnalysis = async () => {
     if (!contentItem) return;
 
+    setCheckingExisting(true);
+    
     try {
       // Direct query to content_analysis table (bypassing type issues)
       const { data, error } = await supabase
@@ -72,30 +87,37 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
 
       if (error) {
         console.log('No existing analysis found:', error);
+        setCheckingExisting(false);
         return;
       }
       
       if (data && data.length > 0) {
         const analysisData = data[0] as any;
-        setAnalysis({
-          id: analysisData.id,
-          status: analysisData.status,
-          hook_text: analysisData.hook_text,
-          sections: analysisData.sections,
-          insights: analysisData.insights,
-          transcript: analysisData.transcript,
-          credits_used: analysisData.credits_used,
-          error_message: analysisData.error_message,
-          created_at: analysisData.created_at,
-          completed_at: analysisData.completed_at
-        });
         
-        if (analysisData.status === 'transcribing' || analysisData.status === 'analyzing') {
-          pollAnalysisStatus(analysisData.id);
+        // Only update analysis if it's for the current content item
+        if (contentItem.id === currentContentItemId) {
+          setAnalysis({
+            id: analysisData.id,
+            status: analysisData.status,
+            hook_text: analysisData.hook_text,
+            sections: analysisData.sections,
+            insights: analysisData.insights,
+            transcript: analysisData.transcript,
+            credits_used: analysisData.credits_used,
+            error_message: analysisData.error_message,
+            created_at: analysisData.created_at,
+            completed_at: analysisData.completed_at
+          });
+          
+          if (analysisData.status === 'transcribing' || analysisData.status === 'analyzing') {
+            pollAnalysisStatus(analysisData.id);
+          }
         }
       }
     } catch (error) {
       console.error('Error checking existing analysis:', error);
+    } finally {
+      setCheckingExisting(false);
     }
   };
 
@@ -116,24 +138,28 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
 
         if (data) {
           const analysisData = data as any;
-          const updatedAnalysis = {
-            id: analysisData.id,
-            status: analysisData.status,
-            hook_text: analysisData.hook_text,
-            sections: analysisData.sections,
-            insights: analysisData.insights,
-            transcript: analysisData.transcript,
-            credits_used: analysisData.credits_used,
-            error_message: analysisData.error_message,
-            created_at: analysisData.created_at,
-            completed_at: analysisData.completed_at
-          };
           
-          setAnalysis(updatedAnalysis);
+          // Only update if this analysis is for the current content item
+          if (analysisData.content_item_id === currentContentItemId) {
+            const updatedAnalysis = {
+              id: analysisData.id,
+              status: analysisData.status,
+              hook_text: analysisData.hook_text,
+              sections: analysisData.sections,
+              insights: analysisData.insights,
+              transcript: analysisData.transcript,
+              credits_used: analysisData.credits_used,
+              error_message: analysisData.error_message,
+              created_at: analysisData.created_at,
+              completed_at: analysisData.completed_at
+            };
+            
+            setAnalysis(updatedAnalysis);
 
-          if (analysisData.status === 'completed' || analysisData.status === 'failed') {
-            clearInterval(interval);
-            setLoading(false);
+            if (analysisData.status === 'completed' || analysisData.status === 'failed') {
+              clearInterval(interval);
+              setLoading(false);
+            }
           }
         }
       } catch (error) {
@@ -259,7 +285,14 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
           <DialogTitle>Content Analysis</DialogTitle>
         </DialogHeader>
 
-        {!analysis && (
+        {checkingExisting && (
+          <div className="text-center py-8">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+            <p className="text-sm text-muted-foreground">Checking for existing analysis...</p>
+          </div>
+        )}
+
+        {!analysis && !checkingExisting && (
           <div className="space-y-6">
             <div className="text-sm text-muted-foreground">
               <p className="font-medium mb-2">Credit Cost:</p>
