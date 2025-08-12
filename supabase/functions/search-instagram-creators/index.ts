@@ -6,15 +6,12 @@ interface Creator {
   profile_url: string;
   avatar_url: string;
   follower_count: number;
-  viral_post_count: number;
-  median_views: number;
-  max_views: number;
-  total_views: number;
-  last_posted_at: string;
-  sample_posts: Array<{
-    url: string;
-    view_count: number;
-  }>;
+  posts_count: number;
+  verified: boolean;
+  is_business: boolean;
+  full_name: string;
+  biography: string;
+  external_url: string;
 }
 
 interface CacheData {
@@ -132,25 +129,16 @@ serve(async (req) => {
 
     console.log('Starting Instagram creator search for:', query);
 
-    // Prepare Instagram hashtag URL
-    const hashtag = query.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
-    const instagramUrl = `https://www.instagram.com/explore/tags/${hashtag}/`;
-
-    // Configure Apify actor input for Instagram scraper
+    // Configure Apify actor input for Instagram Search Scraper
     const actorInput = {
-      directUrls: [instagramUrl],
-      resultsType: "stories",
-      resultsLimit: 200,
-      searchLimit: 1,
-      addParentData: false,
       enhanceUserSearchWithFacebookPage: false,
-      isUserReelFeedURL: false,
-      isUserTaggedFeedURL: false,
-      onlyPostsNewerThan: "2024-08-01"
+      search: query,
+      searchLimit: 100,
+      searchType: "user"
     };
 
     // Start Apify run
-    const runResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-scraper/runs?token=${apifyApiKey}`, {
+    const runResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-search-scraper/runs?token=${apifyApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(actorInput),
@@ -172,7 +160,7 @@ serve(async (req) => {
     while (!completed && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
       
-      const statusResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${runId}?token=${apifyApiKey}`);
+      const statusResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-search-scraper/runs/${runId}?token=${apifyApiKey}`);
       const statusData = await statusResponse.json();
       
       console.log(`Apify run status: ${statusData.data.status}`);
@@ -192,96 +180,35 @@ serve(async (req) => {
 
     // Get dataset items
     const datasetResponse = await fetch(`https://api.apify.com/v2/datasets/${runData.data.defaultDatasetId}/items?token=${apifyApiKey}`);
-    const posts = await datasetResponse.json();
+    const profiles = await datasetResponse.json();
 
-    console.log(`Processing ${posts.length} Instagram posts`);
+    console.log(`Processing ${profiles.length} Instagram profiles`);
 
-    // Filter and process posts
-    const validPosts = posts.filter((post: any) => 
-      post.isVideo === true || 
-      post.productType === 'clips' || 
-      post.videoUrl
-    );
-
-    // Group by creator and calculate metrics
-    const creatorStats = new Map<string, any>();
-    const minViews = 1000000; // 1M views minimum
-    const lookbackDays = 90;
-    const cutoffDate = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000);
-
-    for (const post of validPosts) {
-      if (!post.ownerUsername) continue;
-      
-      const postDate = new Date(post.timestamp * 1000);
-      if (postDate < cutoffDate) continue;
-      
-      const viewCount = post.videoViewCount || post.videoPlayCount || 0;
-      if (viewCount < minViews) continue;
-
-      const username = post.ownerUsername;
-      
-      if (!creatorStats.has(username)) {
-        creatorStats.set(username, {
-          username,
-          profile_url: `https://www.instagram.com/${username}/`,
-          avatar_url: post.ownerProfilePicUrl || '',
-          follower_count: 0, // Will be enriched later if needed
-          posts: [],
-          total_views: 0,
-          last_posted_at: postDate.toISOString()
-        });
-      }
-
-      const creator = creatorStats.get(username);
-      creator.posts.push({
-        url: post.url,
-        view_count: viewCount,
-        timestamp: postDate.toISOString()
+    // Process Instagram creator profiles directly
+    const creators: Creator[] = profiles
+      .filter((profile: any) => profile.username && !profile.private) // Filter out private accounts
+      .map((profile: any) => ({
+        username: profile.username,
+        profile_url: profile.url || `https://www.instagram.com/${profile.username}/`,
+        avatar_url: profile.profilePicUrlHD || profile.profilePicUrl || '',
+        follower_count: profile.followersCount || 0,
+        posts_count: profile.postsCount || 0,
+        verified: profile.verified || false,
+        is_business: profile.isBusinessAccount || false,
+        full_name: profile.fullName || '',
+        biography: profile.biography || '',
+        external_url: profile.externalUrl || ''
+      }))
+      .sort((a: Creator, b: Creator) => {
+        // Sort by follower count (descending), then by verified status, then by posts count
+        if (b.follower_count !== a.follower_count) {
+          return b.follower_count - a.follower_count;
+        }
+        if (b.verified !== a.verified) {
+          return b.verified ? 1 : -1;
+        }
+        return b.posts_count - a.posts_count;
       });
-      creator.total_views += viewCount;
-      
-      if (postDate > new Date(creator.last_posted_at)) {
-        creator.last_posted_at = postDate.toISOString();
-      }
-    }
-
-    // Calculate final metrics for each creator
-    const creators: Creator[] = [];
-    
-    for (const [username, stats] of creatorStats) {
-      if (stats.posts.length === 0) continue;
-      
-      const views = stats.posts.map((p: any) => p.view_count).sort((a: number, b: number) => a - b);
-      const medianViews = views.length > 0 ? views[Math.floor(views.length / 2)] : 0;
-      const maxViews = Math.max(...views);
-      
-      creators.push({
-        username: stats.username,
-        profile_url: stats.profile_url,
-        avatar_url: stats.avatar_url,
-        follower_count: stats.follower_count,
-        viral_post_count: stats.posts.length,
-        median_views: medianViews,
-        max_views: maxViews,
-        total_views: stats.total_views,
-        last_posted_at: stats.last_posted_at,
-        sample_posts: stats.posts.slice(0, 3).map((p: any) => ({
-          url: p.url,
-          view_count: p.view_count
-        }))
-      });
-    }
-
-    // Sort creators by viral post count, then median views, then max views
-    creators.sort((a, b) => {
-      if (b.viral_post_count !== a.viral_post_count) {
-        return b.viral_post_count - a.viral_post_count;
-      }
-      if (b.median_views !== a.median_views) {
-        return b.median_views - a.median_views;
-      }
-      return b.max_views - a.max_views;
-    });
 
     const result: CacheData = {
       query,

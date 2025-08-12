@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Heart, Play, Users, TrendingUp, Calendar } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Heart, Users, TrendingUp, CheckCircle, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,18 +12,15 @@ import { toast } from 'sonner';
 
 interface Creator {
   username: string;
-  follower_count: number;
-  viral_post_count: number;
-  median_views: number;
-  max_views: number;
-  total_views: number;
-  last_posted_at: string;
   profile_url: string;
   avatar_url: string;
-  sample_posts: Array<{
-    url: string;
-    view_count: number;
-  }>;
+  follower_count: number;
+  posts_count: number;
+  verified: boolean;
+  is_business: boolean;
+  full_name: string;
+  biography: string;
+  external_url: string;
 }
 
 interface SearchResult {
@@ -199,59 +196,78 @@ export default function InstagramCreatorResults() {
                   <div className="space-y-4">
                     {/* Avatar and Basic Info */}
                     <div className="text-center space-y-2">
-                      <Avatar className="w-16 h-16 mx-auto">
-                        <AvatarImage src={creator.avatar_url} alt={creator.username} />
-                        <AvatarFallback>
-                          {creator.username.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative inline-block">
+                        <Avatar className="w-16 h-16 mx-auto">
+                          <AvatarImage src={creator.avatar_url} alt={creator.username} />
+                          <AvatarFallback>
+                            {creator.username.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {creator.verified && (
+                          <CheckCircle className="w-4 h-4 text-blue-500 absolute -top-1 -right-1 bg-white rounded-full" />
+                        )}
+                      </div>
                       <div>
-                        <h3 className="font-semibold text-lg">@{creator.username}</h3>
+                        <div className="flex items-center justify-center gap-2">
+                          <h3 className="font-semibold text-lg">@{creator.username}</h3>
+                          {creator.is_business && (
+                            <Building className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        {creator.full_name && (
+                          <p className="text-sm font-medium text-foreground">{creator.full_name}</p>
+                        )}
                         <p className="text-sm text-muted-foreground">
                           {formatNumber(creator.follower_count)} followers
                         </p>
                       </div>
                     </div>
 
+                    {/* Biography */}
+                    {creator.biography && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {creator.biography}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Metrics */}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <TrendingUp className="w-3 h-3" />
-                          Viral Posts
+                          Posts
                         </div>
                         <div className="font-medium">
-                          {creator.viral_post_count}
+                          {formatNumber(creator.posts_count)}
                         </div>
                       </div>
                       
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Play className="w-3 h-3" />
-                          Median Views
+                          <Users className="w-3 h-3" />
+                          Followers
                         </div>
                         <div className="font-medium">
-                          {formatNumber(creator.median_views)}
+                          {formatNumber(creator.follower_count)}
                         </div>
                       </div>
                       
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Heart className="w-3 h-3" />
-                          Max Views
-                        </div>
-                        <div className="font-medium">
-                          {formatNumber(creator.max_views)}
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          Last Post
-                        </div>
-                        <div className="font-medium">
-                          {formatTimeAgo(creator.last_posted_at)}
+                      <div className="space-y-1 col-span-2">
+                        <div className="flex flex-wrap gap-1">
+                          {creator.verified && (
+                            <Badge variant="default" className="text-xs">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Verified
+                            </Badge>
+                          )}
+                          {creator.is_business && (
+                            <Badge variant="secondary" className="text-xs">
+                              <Building className="w-3 h-3 mr-1" />
+                              Business
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -283,7 +299,7 @@ export default function InstagramCreatorResults() {
                         className="w-full"
                       >
                         <TrendingUp className="w-3 h-3 mr-2" />
-                        Viral Reels
+                        View Reels
                       </Button>
                     </div>
                   </div>
