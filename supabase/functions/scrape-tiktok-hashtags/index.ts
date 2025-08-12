@@ -250,23 +250,21 @@ serve(async (req) => {
       };
     });
 
-    // Insert videos into database with proper conflict handling
+    // Insert videos into database with the unified constraint
     if (processedVideos.length > 0) {
-      // For hashtag searches, handle conflicts on (user_id, post_id, search_hashtag)
-      for (const video of processedVideos) {
-        const { error: upsertError } = await supabase
-          .from('tiktok_videos')
-          .upsert(video, { 
-            onConflict: 'user_id,post_id,search_hashtag',
-            ignoreDuplicates: false 
-          });
-        
-        if (upsertError && !upsertError.message.includes('duplicate')) {
-          console.error('Error upserting video:', upsertError);
-          throw new Error('Failed to save videos: ' + upsertError.message);
-        }
+      const { error: insertError } = await supabase
+        .from('tiktok_videos')
+        .upsert(processedVideos, { 
+          onConflict: 'user_id,post_id,search_hashtag',
+          ignoreDuplicates: false 
+        });
+
+      if (insertError) {
+        console.error('Error inserting videos:', insertError);
+        throw new Error('Failed to save videos to database: ' + insertError.message);
       }
-      console.log(`✅ Successfully processed ${processedVideos.length} videos (duplicates handled)`);
+      
+      console.log(`✅ Successfully processed ${processedVideos.length} videos (duplicates updated)`);
     }
 
     // Update search queue status - Always complete, even with 0 results
