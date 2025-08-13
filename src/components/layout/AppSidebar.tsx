@@ -51,9 +51,11 @@ export function AppSidebar() {
     <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center space-x-2 p-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
+          <img 
+            src="/lovable-uploads/a6a45a07-ab6a-4a98-9503-3624cff4fda0.png" 
+            alt="Viraltify logo" 
+            className="w-8 h-8"
+          />
           {!collapsed && (
             <span className="text-xl font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
               Viraltify
