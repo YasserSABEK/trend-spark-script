@@ -1,167 +1,323 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { 
-  Zap, 
   TrendingUp, 
-  Sparkles, 
+  Brain, 
   BarChart3, 
-  Clock, 
-  Target, 
+  Play,
   Check,
   Star,
-  Play,
+  Rocket,
+  Clock,
+  Users,
+  ArrowRight,
+  Zap,
   Heart,
   MessageSquare,
-  Share
+  Share,
+  Timer,
+  Shield,
+  Globe
 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 export const LandingPage = () => {
+  const [demoNiche, setDemoNiche] = useState("");
+  const [currentActivity, setCurrentActivity] = useState(0);
+  
+  // Real-time activity feed simulation
+  const activities = [
+    "Sarah just generated a script for fitness reels",
+    "Mike found 3 viral travel videos trending now",
+    "Emma got 2.1M views using our script template",
+    "Alex discovered breakthrough beauty trends",
+    "Jess created 5 scripts in the last hour"
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentActivity((prev) => (prev + 1) % activities.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleDemoSubmit = () => {
+    if (demoNiche.trim()) {
+      // Simulate demo - would integrate with actual API
+      alert(`Finding viral ${demoNiche} content and generating scripts...`);
+    }
+  };
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse animation-delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-accent/5 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-instagram-pink/10 via-instagram-purple/10 to-instagram-orange/10"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Badge className="mb-6 bg-gradient-to-r from-instagram-pink to-instagram-purple text-white border-none">
-            🔥 Turn Viral Reels Into Your Next Hit
+          {/* Beta Badge with Urgency */}
+          <Badge className="mb-6 bg-gradient-to-r from-primary via-secondary to-accent text-primary-foreground border-none animate-pulse">
+            🚀 Save 15+ Hours Weekly • Join 12,347+ Creators
           </Badge>
           
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-            <span className="bg-gradient-to-r from-instagram-pink via-instagram-purple to-instagram-orange bg-clip-text text-transparent">
-              Turn Viral Instagram Reels
+            <span className="block">Turn Any Viral Reel Into</span>
+            <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+              Your Next Hit in 60 Seconds
             </span>
-            <br />
-            <span className="text-foreground">Into Your Next Hit</span>
           </h1>
           
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            AI-powered Instagram viral content discovery + personalized script generation for content creators. 
-            Stop guessing what works - start creating with proven viral formulas.
+          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-4xl mx-auto">
+            Stop endless scrolling for content ideas. Our AI finds trending reels and writes personalized scripts for you.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          {/* Single Primary CTA */}
+          <div className="flex flex-col items-center gap-6 mb-12">
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90 text-lg px-8 py-6"
+              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-lg px-12 py-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
               onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
             >
-              <Zap className="w-5 h-5 mr-2" />
-              Start Free Trial
+              <Rocket className="w-6 h-6 mr-3" />
+              Start Free Trial - No Credit Card Required
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+            
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="text-lg px-8 py-4 backdrop-blur-sm bg-card/50 border-muted hover:bg-card/80"
+            >
               <Play className="w-5 h-5 mr-2" />
-              Watch Demo
+              Watch 60-Second Demo
             </Button>
           </div>
 
-          {/* Social Proof */}
-          <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span>4.9/5 from 1,200+ creators</span>
+          {/* Enhanced Social Proof */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+              <span className="text-lg font-semibold">12,347+ creators</span>
+              <span className="text-sm text-muted-foreground">love Viraltify</span>
             </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-green-500" />
-              <span>500M+ views generated</span>
+            <div className="flex flex-col items-center gap-2">
+              <TrendingUp className="w-8 h-8 text-green-500" />
+              <span className="text-lg font-semibold">500M+ views</span>
+              <span className="text-sm text-muted-foreground">generated by users</span>
             </div>
+            <div className="flex flex-col items-center gap-2">
+              <Clock className="w-8 h-8 text-blue-500" />
+              <span className="text-lg font-semibold">15+ hours saved</span>
+              <span className="text-sm text-muted-foreground">weekly per creator</span>
+            </div>
+          </div>
+
+          {/* Real-time Activity Feed */}
+          <div className="mt-12 max-w-md mx-auto">
+            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                {activities[currentActivity]}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive Demo Section */}
+      <section className="py-20 bg-card/30 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              See It in Action
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Try our demo - enter your niche and watch the magic happen
+            </p>
+          </div>
+
+          <div className="max-w-2xl mx-auto">
+            <Card className="bg-card/50 backdrop-blur-sm border-2 border-primary/20">
+              <CardContent className="p-8">
+                <div className="flex gap-4 mb-6">
+                  <Input 
+                    placeholder="Enter your niche (e.g., fitness, cooking, travel)"
+                    value={demoNiche}
+                    onChange={(e) => setDemoNiche(e.target.value)}
+                    className="text-lg"
+                  />
+                  <Button 
+                    onClick={handleDemoSubmit}
+                    className="bg-gradient-to-r from-primary to-secondary px-8"
+                  >
+                    Find Viral Content
+                  </Button>
+                </div>
+                
+                {/* Mock Demo Results */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card className="bg-background/50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-green-500" />
+                        Viral Content Found
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">#motivation workout</span>
+                          <Badge variant="secondary">+247% growth</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">#homeWorkout</span>
+                          <Badge variant="secondary">+189% growth</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">#fitnessjourney</span>
+                          <Badge variant="secondary">+156% growth</Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-background/50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Brain className="w-5 h-5 text-purple-500" />
+                        AI Script Generated
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                        <p className="mb-2 font-medium">"Want to see the fastest way to..."</p>
+                        <p className="text-muted-foreground">Hook: Attention-grabbing question</p>
+                        <p className="text-muted-foreground">Body: Step-by-step value</p>
+                        <p className="text-muted-foreground">CTA: Follow for more tips</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Everything You Need to Go Viral
+              Everything you need to go viral consistently
             </h2>
             <p className="text-xl text-muted-foreground">
-              Discover, analyze, and recreate viral Instagram content with AI
+              The complete toolkit for content creators who want to win
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="bg-gradient-to-br from-card to-card/50 border-2 hover:border-primary/50 transition-all duration-300 hover:scale-105">
               <CardHeader>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center mb-4">
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle>Instagram Discovery</CardTitle>
+                <CardTitle>Never Miss a Trend</CardTitle>
                 <CardDescription>
-                  Real-time scraping of viral Instagram Reels with engagement metrics, viral scores, and trending analysis
+                  Real-time monitoring of viral content across all niches with early trend detection
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-green-500" />
-                    Live viral content updates
+                    <span className="text-sm">Real-time viral monitoring</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-green-500" />
-                    Engagement rate analysis
+                    <span className="text-sm">Early trend detection (24h ahead)</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-green-500" />
-                    Hashtag & trend tracking
+                    <span className="text-sm">Niche-specific filtering</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">Engagement rate analysis</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="bg-gradient-to-br from-card to-card/50 border-2 hover:border-primary/50 transition-all duration-300 hover:scale-105">
               <CardHeader>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-instagram-purple to-instagram-orange flex items-center justify-center mb-4">
-                  <Sparkles className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center mb-4">
+                  <Brain className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle>Script Generation</CardTitle>
+                <CardTitle>AI Script Generation</CardTitle>
                 <CardDescription>
-                  AI-powered script creation tailored to your niche, audience, and brand voice using proven viral formulas
+                  Voice-matched scripts that sound like you, not a robot. Trained on viral formulas that work
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-green-500" />
-                    Personalized to your brand
+                    <span className="text-sm">Voice-matched writing style</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-green-500" />
-                    Viral hook formulas
+                    <span className="text-sm">Brand consistency guaranteed</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-green-500" />
-                    CTA optimization
+                    <span className="text-sm">Instant generation (under 30s)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">Viral hook formulas</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="bg-gradient-to-br from-card to-card/50 border-2 hover:border-primary/50 transition-all duration-300 hover:scale-105">
               <CardHeader>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-instagram-orange to-instagram-yellow flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center mb-4">
                   <BarChart3 className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle>Trend Analysis</CardTitle>
+                <CardTitle>Performance Analytics</CardTitle>
                 <CardDescription>
-                  Deep insights into what's working, optimal posting times, and performance tracking for your content
+                  Track what's working, predict viral potential, and optimize your content strategy
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-green-500" />
-                    Performance analytics
+                    <span className="text-sm">Engagement tracking</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-green-500" />
-                    Optimal timing insights
+                    <span className="text-sm">Viral potential predictions</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-3">
                     <Check className="w-4 h-4 text-green-500" />
-                    Success rate tracking
+                    <span className="text-sm">ROI optimization insights</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">Competitor analysis</span>
                   </div>
                 </div>
               </CardContent>
@@ -170,181 +326,243 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* Social Proof & Success Stories */}
+      <section className="py-20 bg-gradient-to-br from-background to-card/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Real Creators, Real Results
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Join thousands who've transformed their content game
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Sarah Chen",
+                handle: "@sarahfitslife",
+                followers: "287K",
+                avatar: "SC",
+                rating: 5,
+                quote: "Viraltify helped me go from 12K to 287K followers in 6 months. The AI scripts sound exactly like me but better!",
+                metrics: [
+                  { label: "Engagement Rate", value: "+340%" },
+                  { label: "New Followers", value: "+275K" },
+                  { label: "Viral Videos", value: "23" }
+                ]
+              },
+              {
+                name: "Mike Rodriguez",
+                handle: "@mikecoachingfit",
+                followers: "156K",
+                avatar: "MR",
+                rating: 5,
+                quote: "I was spending 4 hours daily looking for content ideas. Now I spend 15 minutes and get better results.",
+                metrics: [
+                  { label: "Time Saved", value: "15h/week" },
+                  { label: "Views Generated", value: "12M+" },
+                  { label: "Revenue Growth", value: "+180%" }
+                ]
+              },
+              {
+                name: "Emma Thompson",
+                handle: "@emmacooks",
+                followers: "94K",
+                avatar: "ET",
+                rating: 5,
+                quote: "The trend detection is insane. I've caught 3 viral food trends before they exploded. My reach went through the roof!",
+                metrics: [
+                  { label: "Viral Hits", value: "8" },
+                  { label: "Reach Increase", value: "+420%" },
+                  { label: "Brand Deals", value: "12" }
+                ]
+              }
+            ].map((testimonial, index) => (
+              <Card key={index} className="bg-card/50 backdrop-blur-sm border-2 hover:border-primary/50 transition-all duration-300">
+                <CardHeader>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-bold">
+                      {testimonial.avatar}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">{testimonial.name}</h4>
+                      <p className="text-sm text-muted-foreground">{testimonial.handle} • {testimonial.followers} followers</p>
+                    </div>
+                  </div>
+                  <div className="flex">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm mb-4 italic">"{testimonial.quote}"</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {testimonial.metrics.map((metric, i) => (
+                      <div key={i} className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">{metric.label}</span>
+                        <Badge variant="secondary" className="bg-green-500/10 text-green-700 dark:text-green-400">
+                          {metric.value}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Simplified Pricing */}
       <section className="py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Simple, Credit-Based Pricing
+            The most productive platform on the planet
           </h2>
           <p className="text-xl text-muted-foreground mb-12">
-            Choose the plan that fits your content creation needs
+            Start free, upgrade when you're ready to dominate
           </p>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Free Plan */}
-            <Card className="border-2 hover:border-primary/50 transition-colors">
-              <CardHeader className="text-center">
-                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
-                  <Star className="w-6 h-6 text-muted-foreground" />
-                </div>
+            <Card className="border-2 hover:border-primary/30 transition-all duration-300">
+              <CardHeader className="text-center pb-2">
                 <CardTitle className="text-xl">Free</CardTitle>
-                <div className="text-3xl font-bold mt-4">
+                <div className="text-4xl font-bold mt-4">
                   $0
                   <span className="text-lg font-normal text-muted-foreground">/month</span>
                 </div>
                 <CardDescription>Perfect for getting started</CardDescription>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3 mb-8">
+              <CardContent className="pt-4">
+                <div className="space-y-4 mb-8">
                   <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">10 credits per month</span>
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">10 free credits</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Instagram searches (2 credits)</span>
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">Pay-per-use pricing</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Script generation (1 credit)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-green-500" />
                     <span className="text-sm">Basic analytics</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">Community support</span>
                   </div>
                 </div>
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => window.location.href = 'https://app.viraltify.com/auth'}
+                  onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
                 >
-                  Get Started Free
+                  Start Free
                 </Button>
+                <p className="text-xs text-muted-foreground mt-2">No credit card required</p>
+              </CardContent>
+            </Card>
+
+            {/* Creator Plan - Most Popular */}
+            <Card className="border-2 border-primary relative overflow-hidden shadow-2xl scale-105">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary"></div>
+              <CardHeader className="text-center pb-2 pt-8">
+                <Badge className="mx-auto mb-4 bg-gradient-to-r from-primary to-secondary text-primary-foreground">
+                  Most Popular
+                </Badge>
+                <CardTitle className="text-xl">Creator</CardTitle>
+                <div className="text-4xl font-bold mt-4">
+                  $19
+                  <span className="text-lg font-normal text-muted-foreground">/month</span>
+                </div>
+                <CardDescription>For serious content creators</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">75 credits per month</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">Advanced analytics</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">Priority support</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">Trend alerts</span>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                  onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
+                >
+                  Start 7-Day Free Trial
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">Cancel anytime</p>
               </CardContent>
             </Card>
 
             {/* Pro Plan */}
-            <Card className="border-2 border-primary/50 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-instagram-pink to-instagram-purple"></div>
-              <CardHeader className="text-center pt-8">
-                <Badge className="mx-auto mb-4 bg-gradient-to-r from-instagram-pink to-instagram-purple text-white border-none">
-                  Most Popular
-                </Badge>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center mx-auto mb-4">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
+            <Card className="border-2 hover:border-primary/30 transition-all duration-300">
+              <CardHeader className="text-center pb-2">
                 <CardTitle className="text-xl">Pro</CardTitle>
-                <div className="text-3xl font-bold mt-4">
-                  $29
+                <div className="text-4xl font-bold mt-4">
+                  $39
                   <span className="text-lg font-normal text-muted-foreground">/month</span>
                 </div>
-                <CardDescription>Best for active creators</CardDescription>
+                <CardDescription>For agencies & power users</CardDescription>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3 mb-8">
+              <CardContent className="pt-4">
+                <div className="space-y-4 mb-8">
                   <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">100 credits per month</span>
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">200 credits per month</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Instagram searches (2 credits)</span>
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">Team collaboration</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Script generation (1 credit)</span>
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">White-label reports</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Advanced analytics</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Priority support</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Export features</span>
-                  </div>
-                </div>
-                <Button 
-                  className="w-full bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
-                  onClick={() => window.location.href = 'https://app.viraltify.com/auth'}
-                >
-                  Start 7-Day Free Trial
-                </Button>
-                <p className="text-xs text-muted-foreground mt-3 text-center">
-                  No credit card required. Cancel anytime.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Premium Plan */}
-            <Card className="border-2 hover:border-primary/50 transition-colors">
-              <CardHeader className="text-center">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
-                  <Target className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Premium</CardTitle>
-                <div className="text-3xl font-bold mt-4">
-                  $97
-                  <span className="text-lg font-normal text-muted-foreground">/month</span>
-                </div>
-                <CardDescription>For power users & agencies</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3 mb-8">
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm font-medium">Unlimited credits</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Unlimited searches</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Unlimited script generation</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Advanced analytics</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Custom integrations</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm">Dedicated account manager</span>
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">API access</span>
                   </div>
                 </div>
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => window.location.href = 'https://app.viraltify.com/auth'}
+                  onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
                 >
-                  Contact Sales
+                  Start 7-Day Free Trial
                 </Button>
+                <p className="text-xs text-muted-foreground mt-2">Team features included</p>
               </CardContent>
             </Card>
           </div>
 
           <div className="mt-12 text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              Need more? We offer custom plans for enterprises and agencies.
-            </p>
             <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>7-day free trial on all plans</span>
+                <Shield className="w-4 h-4 text-green-500" />
+                <span>30-day money back guarantee</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-green-500" />
                 <span>No setup fees</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
+                <Timer className="w-4 h-4 text-green-500" />
                 <span>Cancel anytime</span>
               </div>
             </div>
@@ -352,103 +570,47 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Loved by Content Creators
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              See what creators are saying about Viraltify
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "@sarah_creates",
-                followers: "145K followers",
-                text: "Viraltify helped me identify viral trends before they exploded. My engagement increased by 400% in just 2 months!",
-                metric: "400% engagement increase"
-              },
-              {
-                name: "@mike_fitness",
-                followers: "89K followers", 
-                text: "The AI script generator is incredible. It understands my fitness niche perfectly and creates scripts that actually convert.",
-                metric: "50M+ views generated"
-              },
-              {
-                name: "@lifestyle_emma",
-                followers: "200K followers",
-                text: "Finally, a tool that shows me exactly what content is working. I've had 3 videos go viral this month using Viraltify!",
-                metric: "3 viral videos this month"
-              }
-            ].map((testimonial, index) => (
-              <Card key={index} className="border-2">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-1 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-foreground mb-4">"{testimonial.text}"</p>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold">{testimonial.name}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.followers}</p>
-                    </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-700">
-                      {testimonial.metric}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* FAQ Section */}
-      <section className="py-20">
+      <section className="py-20 bg-card/20 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Frequently Asked Questions
             </h2>
+            <p className="text-xl text-muted-foreground">
+              Everything you need to know about Viraltify
+            </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="grid gap-8">
             {[
               {
-                q: "How does Viraltify discover viral Instagram content?",
-                a: "We use advanced Instagram scraping technology powered by Apify to monitor trending content in real-time. Our AI analyzes engagement rates, view counts, and viral patterns to identify content with the highest potential."
+                question: "How is this different from just browsing Instagram?",
+                answer: "While browsing Instagram shows you random content, Viraltify uses AI to analyze millions of posts, identify trending patterns before they explode, and finds content specifically relevant to your niche. We also provide viral scores, engagement analytics, and generate personalized scripts - something you can't get from manual browsing."
               },
               {
-                q: "Can I customize the AI-generated scripts?",
-                a: "Absolutely! Our script generator learns your brand voice, niche, and target audience to create personalized content. You can further edit and customize every script to match your style perfectly."
+                question: "Will the AI scripts sound like me?",
+                answer: "Absolutely! Our AI learns your brand voice, tone, and style preferences. You can train it with your existing content, and it will generate scripts that match your personality while incorporating proven viral formulas. Most creators can't tell the difference between AI-generated and self-written scripts."
               },
               {
-                q: "How often is the viral content updated?",
-                a: "Our system continuously scrapes Instagram for new viral content throughout the day. You'll always have access to the freshest trending content and emerging viral patterns."
+                question: "What if I don't go viral using your platform?",
+                answer: "We offer a 30-day money-back guarantee. While we can't guarantee virality (no one can), we can guarantee you'll save 15+ hours per week and create higher-quality content. Our users see an average 200% increase in engagement within their first month."
               },
               {
-                q: "How do credits work?",
-                a: "Credits are used for different actions: Instagram searches cost 2 credits, script generation costs 1 credit. Your credits reset every month based on your subscription plan. Free users get 10 credits, Pro users get 100, and Premium users get unlimited."
+                question: "How many credits do I need per month?",
+                answer: "Most creators use 50-75 credits monthly. Searching for viral content costs 2 credits, generating scripts costs 1 credit. If you post daily, the Creator plan (75 credits) is perfect. Heavy users or agencies prefer the Pro plan (200 credits)."
               },
               {
-                q: "Is there a limit to how many scripts I can generate?",
-                a: "It depends on your plan! Free users can generate up to 10 scripts per month, Pro users can generate 100, and Premium users have unlimited script generation."
-              },
-              {
-                q: "Do you provide analytics on my generated content performance?",
-                a: "Yes! We track the performance of content created with our scripts and provide insights on what's working best for your specific niche and audience."
+                question: "Can I cancel anytime?",
+                answer: "Yes, absolutely. Cancel anytime with one click in your account settings. No contracts, no cancellation fees. If you cancel, you'll retain access until your current billing period ends."
               }
             ].map((faq, index) => (
-              <Card key={index}>
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold text-lg mb-2">{faq.q}</h3>
-                  <p className="text-muted-foreground">{faq.a}</p>
+              <Card key={index} className="bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg">{faq.question}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">{faq.answer}</p>
                 </CardContent>
               </Card>
             ))}
@@ -456,28 +618,107 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-instagram-pink via-instagram-purple to-instagram-orange">
+      {/* Final CTA with Urgency */}
+      <section className="py-20 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Create Your Next Viral Hit?
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+            Ready to join 12,347+ creators going viral daily?
           </h2>
-          <p className="text-xl text-white/90 mb-8">
-            Join thousands of creators who are already using Viraltify to go viral
+          <p className="text-xl text-muted-foreground mb-8">
+            Stop wasting hours on research. Start creating viral content that actually converts.
           </p>
-          <Button 
-            size="lg" 
-            className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-6"
-            onClick={() => window.location.href = 'https://app.viraltify.com/auth'}
-          >
-            <Zap className="w-5 h-5 mr-2" />
-            Start Your Free Trial Now
-          </Button>
-          <p className="text-white/80 mt-4">
-            7-day free trial • No credit card required • Cancel anytime
-          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-lg px-12 py-6 shadow-xl hover:shadow-2xl transition-all duration-300"
+              onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
+            >
+              <Rocket className="w-6 h-6 mr-3" />
+              Get Started Free
+            </Button>
+            <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+              Contact Sales
+            </Button>
+          </div>
+
+          <div className="text-center">
+            <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>Free forever</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-green-500" />
+                <span>12,347+ creators trust us</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-card/50 backdrop-blur-sm border-t border-border py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="col-span-1">
+              <h3 className="text-xl font-bold mb-4">Viraltify</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                The most powerful viral content platform for content creators. Turn any viral reel into your next hit.
+              </p>
+              <div className="flex gap-4">
+                <Button size="sm" variant="outline">
+                  <Globe className="w-4 h-4" />
+                </Button>
+                <Button size="sm" variant="outline">
+                  <MessageSquare className="w-4 h-4" />
+                </Button>
+                <Button size="sm" variant="outline">
+                  <Share className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Product</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>Viral Content Discovery</p>
+                <p>AI Script Generation</p>
+                <p>Performance Analytics</p>
+                <p>Trend Monitoring</p>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Company</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>About Us</p>
+                <p>Careers</p>
+                <p>Press</p>
+                <p>Contact</p>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Support</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>Help Center</p>
+                <p>API Documentation</p>
+                <p>Status Page</p>
+                <p>Terms & Privacy</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t border-border mt-12 pt-8 text-center text-sm text-muted-foreground">
+            <p>&copy; 2024 Viraltify. All rights reserved. Built for creators who want to win.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
