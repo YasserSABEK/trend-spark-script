@@ -7,9 +7,10 @@ import { Link } from 'react-router-dom';
 
 interface CreditMeterProps {
   showDetailed?: boolean;
+  compact?: boolean;
 }
 
-export const CreditMeter = ({ showDetailed = false }: CreditMeterProps) => {
+export const CreditMeter = ({ showDetailed = false, compact = false }: CreditMeterProps) => {
   const { balance, loading, plan, nextReset } = useCreditBalance();
 
   if (loading) {
@@ -70,6 +71,33 @@ export const CreditMeter = ({ showDetailed = false }: CreditMeterProps) => {
           </Link>
         </div>
       </div>
+    );
+  }
+
+  if (compact) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link to="/billing">
+              <Button variant="outline" size="sm" className="gap-1 h-8 px-2 text-xs">
+                <Coins className="w-3 h-3" />
+                <span>{balance}</span>
+              </Button>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="space-y-1">
+              <div className="font-medium">{balance} credits remaining</div>
+              {plan && <div className="text-sm">Plan: {plan.name}</div>}
+              <div className="text-sm text-muted-foreground">
+                {formatNextReset(nextReset)}
+              </div>
+              <div className="text-sm">Click to manage billing</div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 

@@ -100,7 +100,7 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
   };
 
   return (
-    <Card className="group relative overflow-hidden bg-card hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-border">
+    <Card className="group relative overflow-hidden bg-card hover:shadow-lg transition-all duration-300 border border-border/50 hover:border-border">
       {/* Thumbnail Container */}
       <div 
         className="relative aspect-[9/16] overflow-hidden bg-gradient-to-br from-primary/5 via-background to-secondary/5 cursor-pointer"
@@ -118,8 +118,8 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
             
             {/* Play Button Overlay */}
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <div className="w-14 h-14 rounded-full bg-primary/90 backdrop-blur-sm flex items-center justify-center shadow-2xl transform scale-75 group-hover:scale-100 transition-transform duration-300">
-                <Play className="w-6 h-6 text-primary-foreground ml-0.5" fill="currentColor" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/90 backdrop-blur-sm flex items-center justify-center shadow-2xl transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground ml-0.5" fill="currentColor" />
               </div>
             </div>
           </>
@@ -131,20 +131,20 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
         )}
         
         {/* Platform Badge */}
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-2 left-2">
           <Badge 
             variant="secondary" 
-            className="bg-background/90 backdrop-blur-sm border-0 capitalize text-xs font-medium px-2 py-1 shadow-sm"
+            className="bg-background/90 backdrop-blur-sm border-0 capitalize text-xs font-medium px-1.5 py-0.5 shadow-sm"
           >
             {item.platform}
           </Badge>
         </div>
 
         {/* Time Badge */}
-        <div className="absolute bottom-3 left-3">
+        <div className="absolute bottom-2 left-2">
           <Badge 
             variant="outline" 
-            className="bg-black/70 backdrop-blur-sm text-white border-white/20 text-xs px-2 py-1"
+            className="bg-black/70 backdrop-blur-sm text-white border-white/20 text-xs px-1.5 py-0.5"
           >
             {formatTimeAgo(item.created_at)}
           </Badge>
@@ -152,7 +152,7 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
 
         {/* Delete Button */}
         <div 
-          className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           onClick={(e) => e.stopPropagation()} // Prevent click from bubbling to parent
         >
           <AlertDialog>
@@ -160,11 +160,11 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
               <Button
                 size="sm"
                 variant="destructive"
-                className="w-8 h-8 p-0 rounded-full bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 hover:border-destructive/40 backdrop-blur-sm"
+                className="w-7 h-7 p-0 rounded-full bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 hover:border-destructive/40 backdrop-blur-sm"
                 disabled={isDeleting}
                 onClick={(e) => e.stopPropagation()} // Extra protection against bubbling
               >
-                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                <Trash2 className="w-3 h-3 text-destructive" />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -193,33 +193,33 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
       </div>
 
       {/* Content Section */}
-      <CardContent className="p-4">
-        <div className="space-y-3">
+      <CardContent className="p-2 sm:p-3">
+        <div className="space-y-2">
           {/* Caption */}
           <div>
-            <p className="text-sm leading-relaxed line-clamp-2 text-foreground/90">
+            <p className="text-xs sm:text-sm leading-relaxed line-clamp-2 text-foreground/90">
               {item.caption || `Saved ${item.platform} content`}
             </p>
           </div>
 
           {/* Tags */}
           {item.tags && item.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {item.tags.slice(0, 3).map((tag, i) => (
+            <div className="flex flex-wrap gap-1">
+              {item.tags.slice(0, 2).map((tag, i) => (
                 <Badge 
                   key={i} 
                   variant="outline" 
-                  className="text-xs px-2 py-0.5 bg-primary/5 border-primary/20 text-primary hover:bg-primary/10"
+                  className="text-xs px-1.5 py-0.5 bg-primary/5 border-primary/20 text-primary hover:bg-primary/10"
                 >
                   #{tag}
                 </Badge>
               ))}
-              {item.tags.length > 3 && (
+              {item.tags.length > 2 && (
                 <Badge 
                   variant="outline" 
-                  className="text-xs px-2 py-0.5 bg-muted/50 border-muted-foreground/20 text-muted-foreground"
+                  className="text-xs px-1.5 py-0.5 bg-muted/50 border-muted-foreground/20 text-muted-foreground"
                 >
-                  +{item.tags.length - 3}
+                  +{item.tags.length - 2}
                 </Badge>
               )}
             </div>
@@ -228,24 +228,25 @@ function ContentCard({ item, onDelete }: { item: ContentItem; onDelete: (id: str
       </CardContent>
 
       {/* Action Bar */}
-      <div className="border-t border-border/50 bg-muted/20 p-3">
+      <div className="border-t border-border/50 bg-muted/20 p-2 sm:p-3">
         <div className="flex gap-2">
           <Button 
             size="sm" 
             variant="outline"
-            className="w-12 h-10 p-0 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+            className="w-8 h-8 p-0 border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
             onClick={handleCopyLink}
           >
-            <Copy className="w-4 h-4" />
+            <Copy className="w-3 h-3" />
           </Button>
 
           <Button 
             size="sm" 
-            className="flex-1 h-10 text-xs font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-sm"
+            className="flex-1 h-8 text-xs font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-sm"
             onClick={handleGenerateScript}
           >
-            <Edit3 className="w-4 h-4 mr-2" />
-            Generate Script
+            <Edit3 className="w-3 h-3 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Generate Script</span>
+            <span className="sm:hidden">Script</span>
           </Button>
         </div>
       </div>
@@ -333,28 +334,30 @@ export default function ContentCalendar() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
         <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">My Content</h1>
-          <p className="text-muted-foreground">Your saved videos and content</p>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">My Content</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Your saved videos and content</p>
         </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
             <Card key={i} className="overflow-hidden">
               <div className="aspect-[9/16]">
                 <Skeleton className="w-full h-full" />
               </div>
-              <CardContent className="p-4 space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+              <CardContent className="p-2 sm:p-3 space-y-2">
+                <Skeleton className="h-3 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
                 <div className="space-y-2">
-                  <div className="grid grid-cols-3 gap-2">
-                    <Skeleton className="h-9" />
-                    <Skeleton className="h-9" />
-                    <Skeleton className="h-9" />
+                  <div className="flex gap-1">
+                    <Skeleton className="h-6 w-12" />
+                    <Skeleton className="h-6 w-10" />
                   </div>
-                  <Skeleton className="h-8 w-20 mx-auto" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-8" />
+                    <Skeleton className="h-8 flex-1" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -365,28 +368,28 @@ export default function ContentCalendar() {
   }
 
   return (
-    <div className="space-y-6 pt-20">
-      <header className="space-y-4">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+      <header className="space-y-3 sm:space-y-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-            <Bookmark className="w-6 h-6 text-primary" />
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <Bookmark className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             My Content
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage your saved videos and content in one place
           </p>
         </div>
 
         {/* Search */}
         {items.length > 0 && (
-          <div className="max-w-md">
+          <div className="w-full sm:max-w-md">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 placeholder="Search content..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-9 sm:h-10"
               />
             </div>
           </div>
@@ -422,7 +425,7 @@ export default function ContentCalendar() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
           {filteredItems.map((item) => (
             <ContentCard 
               key={item.id} 

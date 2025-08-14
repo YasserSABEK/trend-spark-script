@@ -11,37 +11,41 @@ export function MobileHeader() {
 
   return (
     <header className="lg:hidden sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center justify-between px-4">
+      <div className="flex h-12 items-center justify-between px-3">
         {/* Left: Hamburger Menu */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="sm" className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 lg:hidden">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-10 h-10 p-0 hover:bg-muted focus-visible:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+            >
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle Menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="pr-0 pl-0 w-72">
-            <div className="h-full">
+          <SheetContent side="left" className="p-0 w-full sm:w-80 z-[100]">
+            <div className="h-full bg-sidebar-background">
               <AppSidebar />
             </div>
           </SheetContent>
         </Sheet>
 
         {/* Center: Logo */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1.5 flex-1 justify-center">
           <img 
             src="/lovable-uploads/a6a45a07-ab6a-4a98-9503-3624cff4fda0.png" 
             alt="Viraltify logo" 
-            className="w-6 h-6"
+            className="w-5 h-5"
           />
-          <span className="text-lg font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
+          <span className="text-base font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
             Viraltify
           </span>
         </div>
 
         {/* Right: Profile + Credits */}
-        <div className="flex items-center space-x-2">
-          <CreditMeter />
+        <div className="flex items-center space-x-1">
+          <CreditMeter compact={true} />
           <ProfileDropdown collapsed={true} />
         </div>
       </div>

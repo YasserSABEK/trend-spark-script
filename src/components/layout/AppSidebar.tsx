@@ -88,16 +88,16 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible="icon">
+    <Sidebar className={collapsed ? "w-14" : "w-72 sm:w-64"} collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center space-x-2 p-2">
+        <div className="flex items-center space-x-2 p-3 sm:p-2">
           <img 
             src="/lovable-uploads/a6a45a07-ab6a-4a98-9503-3624cff4fda0.png" 
             alt="Viraltify logo" 
             className="w-8 h-8"
           />
           {!collapsed && (
-            <span className="text-xl font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
+            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
               Viraltify
             </span>
           )}
@@ -117,7 +117,7 @@ export function AppSidebar() {
                   <NavLink
                     to="/dashboard"
                     className={({ isActive }) =>
-                      `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
                         isActive
                           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                           : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
@@ -135,7 +135,7 @@ export function AppSidebar() {
                 <NavigationFlyout
                   trigger={
                     <SidebarMenuButton
-                      className={`w-full justify-start ${
+                      className={`w-full justify-start min-h-[44px] px-3 py-3 sm:py-2 ${
                         isGroupActive(instagramFlyoutGroups)
                           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                           : "hover:bg-sidebar-accent/50"
@@ -156,7 +156,7 @@ export function AppSidebar() {
                 <NavigationFlyout
                   trigger={
                     <SidebarMenuButton
-                      className={`w-full justify-start ${
+                      className={`w-full justify-start min-h-[44px] px-3 py-3 sm:py-2 ${
                         isGroupActive(tiktokFlyoutGroups)
                           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                           : "hover:bg-sidebar-accent/50"
@@ -177,7 +177,7 @@ export function AppSidebar() {
                 <NavigationFlyout
                   trigger={
                     <SidebarMenuButton
-                      className={`w-full justify-start ${
+                      className={`w-full justify-start min-h-[44px] px-3 py-3 sm:py-2 ${
                         isGroupActive(savedFlyoutGroups)
                           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                           : "hover:bg-sidebar-accent/50"
@@ -199,7 +199,7 @@ export function AppSidebar() {
                   <NavLink
                     to="/script-generator"
                     className={({ isActive }) =>
-                      `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
                         isActive
                           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                           : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
@@ -218,7 +218,7 @@ export function AppSidebar() {
                   <NavLink
                     to="/content-calendar"
                     className={({ isActive }) =>
-                      `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
                         isActive
                           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                           : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
@@ -237,7 +237,7 @@ export function AppSidebar() {
                   <NavLink
                     to="/billing"
                     className={({ isActive }) =>
-                      `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
                         isActive
                           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                           : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
