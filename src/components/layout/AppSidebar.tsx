@@ -111,46 +111,23 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {/* Regular navigation items */}
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className={({ isActive }) =>
-                        `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                          isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                        }`
-                      }
-                    >
-                      <item.icon className="w-5 h-5 flex-shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-
-              {/* Saved flyout */}
+              {/* Home */}
               <SidebarMenuItem>
-                <NavigationFlyout
-                  trigger={
-                    <SidebarMenuButton
-                      className={`w-full justify-start ${
-                        isGroupActive(savedFlyoutGroups)
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/dashboard"
+                    className={({ isActive }) =>
+                      `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                        isActive
                           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50"
-                      }`}
-                    >
-                      <Bookmark className="w-5 h-5 flex-shrink-0" />
-                      {!collapsed && <span className="flex-1 text-left">Saved</span>}
-                    </SidebarMenuButton>
-                  }
-                  groups={savedFlyoutGroups}
-                  open={openFlyouts.saved || false}
-                  onOpenChange={(open) => handleFlyoutChange("saved", open)}
-                />
+                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                      }`
+                    }
+                  >
+                    <Home className="w-5 h-5 flex-shrink-0" />
+                    {!collapsed && <span>Home</span>}
+                  </NavLink>
+                </SidebarMenuButton>
               </SidebarMenuItem>
 
               {/* Instagram flyout */}
@@ -193,6 +170,84 @@ export function AppSidebar() {
                   open={openFlyouts.tiktok || false}
                   onOpenChange={(open) => handleFlyoutChange("tiktok", open)}
                 />
+              </SidebarMenuItem>
+
+              {/* Saved flyout */}
+              <SidebarMenuItem>
+                <NavigationFlyout
+                  trigger={
+                    <SidebarMenuButton
+                      className={`w-full justify-start ${
+                        isGroupActive(savedFlyoutGroups)
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "hover:bg-sidebar-accent/50"
+                      }`}
+                    >
+                      <Bookmark className="w-5 h-5 flex-shrink-0" />
+                      {!collapsed && <span className="flex-1 text-left">Saved</span>}
+                    </SidebarMenuButton>
+                  }
+                  groups={savedFlyoutGroups}
+                  open={openFlyouts.saved || false}
+                  onOpenChange={(open) => handleFlyoutChange("saved", open)}
+                />
+              </SidebarMenuItem>
+
+              {/* Script Generator */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/script-generator"
+                    className={({ isActive }) =>
+                      `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                      }`
+                    }
+                  >
+                    <Edit3 className="w-5 h-5 flex-shrink-0" />
+                    {!collapsed && <span>Script Generator</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Content Calendar */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/content-calendar"
+                    className={({ isActive }) =>
+                      `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                      }`
+                    }
+                  >
+                    <Calendar className="w-5 h-5 flex-shrink-0" />
+                    {!collapsed && <span>Content Calendar</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Billing */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/billing"
+                    className={({ isActive }) =>
+                      `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                      }`
+                    }
+                  >
+                    <CreditCard className="w-5 h-5 flex-shrink-0" />
+                    {!collapsed && <span>Billing</span>}
+                  </NavLink>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
