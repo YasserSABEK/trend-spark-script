@@ -368,7 +368,7 @@ export default function ContentCalendar() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+    <div className="space-y-4 sm:space-y-6">
       <header className="space-y-3 sm:space-y-4">
         <div className="space-y-1">
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight flex items-center gap-2">
@@ -425,7 +425,7 @@ export default function ContentCalendar() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
           {filteredItems.map((item) => (
             <ContentCard 
               key={item.id} 

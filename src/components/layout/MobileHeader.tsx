@@ -10,8 +10,8 @@ export function MobileHeader() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="lg:hidden sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-12 items-center justify-between px-3">
+    <header className="lg:hidden fixed top-0 left-0 right-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center justify-between px-3">
         {/* Left: Hamburger Menu */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
@@ -32,19 +32,19 @@ export function MobileHeader() {
         </Sheet>
 
         {/* Center: Logo */}
-        <div className="flex items-center space-x-1.5 flex-1 justify-center">
+        <div className="flex items-center space-x-1.5 flex-1 justify-center min-w-0">
           <img 
             src="/lovable-uploads/a6a45a07-ab6a-4a98-9503-3624cff4fda0.png" 
             alt="Viraltify logo" 
-            className="w-5 h-5"
+            className="w-5 h-5 shrink-0"
           />
-          <span className="text-base font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
+          <span className="text-sm font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent truncate">
             Viraltify
           </span>
         </div>
 
         {/* Right: Profile + Credits */}
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1 shrink-0">
           <CreditMeter compact={true} />
           <ProfileDropdown collapsed={true} />
         </div>

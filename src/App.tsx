@@ -87,28 +87,58 @@ function AppContent() {
     return <div>Redirecting...</div>;
   }
 
-  // Use sidebar layout for all other pages
+  // Mobile layout (no sidebar)
+  if (isMobile) {
+    return (
+      <div className="min-h-screen w-full">
+        {/* Fixed Mobile Header */}
+        <MobileHeader />
+        
+        {/* Main Content with proper top padding */}
+        <main className="pt-16 px-4 pb-6">
+          <Routes>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/tiktok-creators" element={<TikTokCreators />} />
+            <Route path="/tiktok-creators/:searchId" element={<TikTokCreatorResults />} />
+            <Route path="/instagram-creators" element={<InstagramCreators />} />
+            <Route path="/instagram-creators/:searchId" element={<InstagramCreatorResults />} />
+            <Route path="/viral-reels" element={<ViralReels />} />
+            <Route path="/viral-tiktoks" element={<ViralTikToks />} />
+            <Route path="/tiktoks/:username" element={<TikTokUserResults />} />
+            <Route path="/hashtag-search" element={<HashtagSearch />} />
+            <Route path="/hashtags/:hashtagId/videos" element={<HashtagVideos />} />
+            <Route path="/instagram-hashtags" element={<InstagramHashtags />} />
+            <Route path="/instagram/hashtags/:hashtagId/reels" element={<InstagramHashtagReels />} />
+            <Route path="/reels/:username" element={<ReelResults />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/script-generator" element={<ScriptGenerator />} />
+            <Route path="/my-scripts" element={<MyScripts />} />
+            <Route path="/content" element={<Content />} />
+            <Route path="/saved-creators" element={<SavedCreators />} />
+            <Route path="/content-calendar" element={<ContentCalendar />} />
+            <Route path="/billing" element={<Billing />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+      </div>
+    );
+  }
+
+  // Desktop layout with sidebar
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        {/* Mobile Header */}
-        {isMobile && <MobileHeader />}
-        
-        {/* Desktop Sidebar */}
-        {!isMobile && <AppSidebar />}
+        <AppSidebar />
         
         <SidebarInset className="flex-1">
-          {/* Desktop Header */}
-          {!isMobile && (
-            <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-              <SidebarTrigger className="-ml-1" />
-              <div className="ml-auto flex items-center space-x-4">
-                {/* Additional header content can go here */}
-              </div>
-            </header>
-          )}
+          <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+            <SidebarTrigger className="-ml-1" />
+            <div className="ml-auto flex items-center space-x-4">
+              {/* Additional header content can go here */}
+            </div>
+          </header>
           
-          <main className={`flex-1 p-6 ${isMobile ? 'pt-4' : ''}`}>
+          <main className="flex-1 p-6">
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/tiktok-creators" element={<TikTokCreators />} />
