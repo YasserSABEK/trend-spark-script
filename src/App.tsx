@@ -32,6 +32,7 @@ import ContentCalendar from "./pages/ContentCalendar";
 import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
+import AICoach from "./pages/AICoach";
 
 const queryClient = new QueryClient();
 
@@ -114,7 +115,8 @@ function AppContent() {
               <Route path="/script-generator" element={<ScriptGenerator />} />
               <Route path="/my-scripts" element={<MyScripts />} />
               <Route path="/content" element={<Content />} />
-              <Route path="/content/calendar" element={<ContentCalendar />} />
+              <Route path="/content-calendar" element={<ContentCalendar />} />
+              <Route path="/coach" element={<AICoach />} />
               <Route path="/billing" element={<Billing />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
