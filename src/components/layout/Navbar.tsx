@@ -66,14 +66,19 @@ export const Navbar = () => {
               </>
             ) : (
               <>
+                <Link to="/pricing">
+                  <Button variant="ghost" size="sm">
+                    Pricing
+                  </Button>
+                </Link>
                 <Link to="/auth">
                   <Button variant="ghost" size="sm">
-                    Sign In
+                    Login
                   </Button>
                 </Link>
                 <Link to="/auth?mode=signup">
                   <Button size="sm" className="bg-gradient-to-r from-instagram-pink to-instagram-purple">
-                    Start Free Trial
+                    Sign Up for Free
                   </Button>
                 </Link>
               </>

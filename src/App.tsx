@@ -31,6 +31,7 @@ import { Content } from "./pages/Content";
 import ContentCalendar from "./pages/ContentCalendar";
 import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -61,12 +62,13 @@ function AppContent() {
   }
 
   // On app subdomain, show navbar for auth pages, sidebar for authenticated pages
-  if (isLandingRoute || isAuthRoute) {
+  if (isLandingRoute || isAuthRoute || location.pathname === "/pricing") {
     return (
       <>
         <Navbar />
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/auth/reset-password" element={<ResetPassword />} />

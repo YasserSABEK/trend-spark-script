@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { GoogleSignupPopup } from "@/components/GoogleSignupPopup";
 import { 
   TrendingUp, 
   Brain, 
@@ -24,546 +24,404 @@ import {
 } from "lucide-react";
 
 export const LandingPage = () => {
-  const [demoNiche, setDemoNiche] = useState("");
-  const [currentActivity, setCurrentActivity] = useState(0);
+  const [showGooglePopup, setShowGooglePopup] = useState(false);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
   
-  // Real-time activity feed simulation
-  const activities = [
-    "Sarah just generated a script for fitness reels",
-    "Mike found 3 viral travel videos trending now",
-    "Emma got 2.1M views using our script template",
-    "Alex discovered breakthrough beauty trends",
-    "Jess created 5 scripts in the last hour"
+  const stats = [
+    { label: "creators trust us", value: "thousands of" },
+    { label: "views generated", value: "500M+" },
+    { label: "hours saved weekly", value: "15+" }
+  ];
+
+  const testimonials = [
+    {
+      name: "Sarah Chen",
+      handle: "@sarahfitslife", 
+      followers: "287K",
+      quote: "Viraltify helped me go from 12K to 287K followers. The AI scripts sound exactly like me!",
+      result: "+380% engagement"
+    },
+    {
+      name: "Mike Rodriguez", 
+      handle: "@mikecoachingfit",
+      followers: "156K", 
+      quote: "I was spending 4 hours daily looking for content ideas. Now I spend 15 minutes.",
+      result: "15h saved weekly"
+    },
+    {
+      name: "Emma Thompson",
+      handle: "@emmacooks",
+      followers: "94K",
+      quote: "I've caught 3 viral food trends before they exploded. My reach went through the roof!",
+      result: "+420% reach"
+    }
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentActivity((prev) => (prev + 1) % activities.length);
-    }, 3000);
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
 
-  const handleDemoSubmit = () => {
-    if (demoNiche.trim()) {
-      // Simulate demo - would integrate with actual API
-      alert(`Finding viral ${demoNiche} content and generating scripts...`);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Animated Background */}
+    <div className="min-h-screen bg-black text-white">
+      {/* Animated Background Orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse animation-delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-accent/5 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-pink-600/10 rounded-full blur-3xl animate-pulse animation-delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
       </div>
 
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Beta Badge with Urgency */}
-          <Badge className="mb-6 bg-gradient-to-r from-primary via-secondary to-accent text-primary-foreground border-none animate-pulse">
-            🚀 Save 15+ Hours Weekly • Join 12,347+ Creators
-          </Badge>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          {/* Hero Badge */}
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-600/30 rounded-full px-4 py-2 mb-6">
+            <Rocket className="w-4 h-4 text-blue-400" />
+            <span className="text-sm text-blue-200">🚀 Save 15+ hours weekly • Join thousands of creators</span>
+          </div>
           
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-            <span className="block">Turn Any Viral Reel Into</span>
-            <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              Your Next Hit in 60 Seconds
-            </span>
+            All‑in‑one platform for{" "}
+            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              viral content
+            </span>{" "}
+            growth
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-4xl mx-auto">
-            Stop endless scrolling for content ideas. Our AI finds trending reels and writes personalized scripts for you.
+          <p className="text-xl md:text-2xl text-gray-400 mb-8 max-w-4xl mx-auto">
+            Find trending Reels & TikToks and get scripts that sound like you. Turn any viral trend into your next hit.
           </p>
           
-          {/* Single Primary CTA */}
-          <div className="flex flex-col items-center gap-6 mb-12">
+          {/* Primary CTAs */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-lg px-12 py-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
-              onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
+              onClick={() => setShowGooglePopup(true)}
             >
-              <Rocket className="w-6 h-6 mr-3" />
-              Start Free Trial - No Credit Card Required
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Sign up with Google
             </Button>
-            
             <Button 
-              size="lg" 
               variant="outline" 
-              className="text-lg px-8 py-4 backdrop-blur-sm bg-card/50 border-muted hover:bg-card/80"
+              className="text-white border-white/20 hover:bg-white/10 text-lg px-8 py-4 h-auto"
+              onClick={() => setShowGooglePopup(true)}
             >
-              <Play className="w-5 h-5 mr-2" />
-              Watch 60-Second Demo
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Sign up with Google
             </Button>
           </div>
 
-          {/* Enhanced Social Proof */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                ))}
+          {/* Social Proof Chips */}
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            {stats.map((stat, index) => (
+              <div
+                key={index}
+                className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-600/30 rounded-full px-4 py-2"
+              >
+                <span className="text-sm text-green-200">
+                  {stat.value} {stat.label}
+                </span>
               </div>
-              <span className="text-lg font-semibold">12,347+ creators</span>
-              <span className="text-sm text-muted-foreground">love Viraltify</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <TrendingUp className="w-8 h-8 text-green-500" />
-              <span className="text-lg font-semibold">500M+ views</span>
-              <span className="text-sm text-muted-foreground">generated by users</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <Clock className="w-8 h-8 text-blue-500" />
-              <span className="text-lg font-semibold">15+ hours saved</span>
-              <span className="text-sm text-muted-foreground">weekly per creator</span>
-            </div>
-          </div>
-
-          {/* Real-time Activity Feed */}
-          <div className="mt-12 max-w-md mx-auto">
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                {activities[currentActivity]}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Interactive Demo Section */}
-      <section className="py-20 bg-card/30 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              See It in Action
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Try our demo - enter your niche and watch the magic happen
-            </p>
-          </div>
-
-          <div className="max-w-2xl mx-auto">
-            <Card className="bg-card/50 backdrop-blur-sm border-2 border-primary/20">
-              <CardContent className="p-8">
-                <div className="flex gap-4 mb-6">
-                  <Input 
-                    placeholder="Enter your niche (e.g., fitness, cooking, travel)"
-                    value={demoNiche}
-                    onChange={(e) => setDemoNiche(e.target.value)}
-                    className="text-lg"
-                  />
-                  <Button 
-                    onClick={handleDemoSubmit}
-                    className="bg-gradient-to-r from-primary to-secondary px-8"
-                  >
-                    Find Viral Content
-                  </Button>
-                </div>
-                
-                {/* Mock Demo Results */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  <Card className="bg-background/50">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-green-500" />
-                        Viral Content Found
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">#motivation workout</span>
-                          <Badge variant="secondary">+247% growth</Badge>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">#homeWorkout</span>
-                          <Badge variant="secondary">+189% growth</Badge>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">#fitnessjourney</span>
-                          <Badge variant="secondary">+156% growth</Badge>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="bg-background/50">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Brain className="w-5 h-5 text-purple-500" />
-                        AI Script Generated
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="bg-muted/50 rounded-lg p-3 text-sm">
-                        <p className="mb-2 font-medium">"Want to see the fastest way to..."</p>
-                        <p className="text-muted-foreground">Hook: Attention-grabbing question</p>
-                        <p className="text-muted-foreground">Body: Step-by-step value</p>
-                        <p className="text-muted-foreground">CTA: Follow for more tips</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Everything you need to go viral consistently
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              The complete toolkit for content creators who want to win
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="bg-gradient-to-br from-card to-card/50 border-2 hover:border-primary/50 transition-all duration-300 hover:scale-105">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center mb-4">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle>Never Miss a Trend</CardTitle>
-                <CardDescription>
-                  Real-time monitoring of viral content across all niches with early trend detection
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Real-time viral monitoring</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Early trend detection (24h ahead)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Niche-specific filtering</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Engagement rate analysis</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-card to-card/50 border-2 hover:border-primary/50 transition-all duration-300 hover:scale-105">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center mb-4">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle>AI Script Generation</CardTitle>
-                <CardDescription>
-                  Voice-matched scripts that sound like you, not a robot. Trained on viral formulas that work
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Voice-matched writing style</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Brand consistency guaranteed</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Instant generation (under 30s)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Viral hook formulas</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-card to-card/50 border-2 hover:border-primary/50 transition-all duration-300 hover:scale-105">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center mb-4">
-                  <BarChart3 className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle>Performance Analytics</CardTitle>
-                <CardDescription>
-                  Track what's working, predict viral potential, and optimize your content strategy
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Engagement tracking</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Viral potential predictions</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">ROI optimization insights</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Competitor analysis</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof & Success Stories */}
-      <section className="py-20 bg-gradient-to-br from-background to-card/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Real Creators, Real Results
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Join thousands who've transformed their content game
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Sarah Chen",
-                handle: "@sarahfitslife",
-                followers: "287K",
-                avatar: "SC",
-                rating: 5,
-                quote: "Viraltify helped me go from 12K to 287K followers in 6 months. The AI scripts sound exactly like me but better!",
-                metrics: [
-                  { label: "Engagement Rate", value: "+340%" },
-                  { label: "New Followers", value: "+275K" },
-                  { label: "Viral Videos", value: "23" }
-                ]
-              },
-              {
-                name: "Mike Rodriguez",
-                handle: "@mikecoachingfit",
-                followers: "156K",
-                avatar: "MR",
-                rating: 5,
-                quote: "I was spending 4 hours daily looking for content ideas. Now I spend 15 minutes and get better results.",
-                metrics: [
-                  { label: "Time Saved", value: "15h/week" },
-                  { label: "Views Generated", value: "12M+" },
-                  { label: "Revenue Growth", value: "+180%" }
-                ]
-              },
-              {
-                name: "Emma Thompson",
-                handle: "@emmacooks",
-                followers: "94K",
-                avatar: "ET",
-                rating: 5,
-                quote: "The trend detection is insane. I've caught 3 viral food trends before they exploded. My reach went through the roof!",
-                metrics: [
-                  { label: "Viral Hits", value: "8" },
-                  { label: "Reach Increase", value: "+420%" },
-                  { label: "Brand Deals", value: "12" }
-                ]
-              }
-            ].map((testimonial, index) => (
-              <Card key={index} className="bg-card/50 backdrop-blur-sm border-2 hover:border-primary/50 transition-all duration-300">
-                <CardHeader>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-bold">
-                      {testimonial.avatar}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">{testimonial.name}</h4>
-                      <p className="text-sm text-muted-foreground">{testimonial.handle} • {testimonial.followers} followers</p>
-                    </div>
-                  </div>
-                  <div className="flex">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm mb-4 italic">"{testimonial.quote}"</p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {testimonial.metrics.map((metric, i) => (
-                      <div key={i} className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">{metric.label}</span>
-                        <Badge variant="secondary" className="bg-green-500/10 text-green-700 dark:text-green-400">
-                          {metric.value}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Simplified Pricing */}
+      {/* Demo Video Section */}
       <section className="py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            The most productive platform on the planet
-          </h2>
-          <p className="text-xl text-muted-foreground mb-12">
-            Start free, upgrade when you're ready to dominate
-          </p>
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-600/30 rounded-full px-4 py-2 mb-6">
+                <Play className="w-4 h-4 text-blue-400" />
+                <span className="text-sm text-blue-200">See it in action</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                Daily{" "}
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  viral ideas
+                </span>{" "}
+                delivered
+              </h2>
+              <p className="text-xl text-gray-400 mb-8">
+                Get fresh content ideas every day based on what's trending in your niche. Our AI analyzes millions of posts to find the best opportunities.
+              </p>
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span className="text-gray-300">Real-time trending analysis</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                  <span className="text-gray-300">Personalized to your niche</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+                  <span className="text-gray-300">Script generation included</span>
+                </div>
+              </div>
+              <Button
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
+                onClick={() => setShowGooglePopup(true)}
+              >
+                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                See today's ideas
+              </Button>
+            </div>
+            
+            <div className="relative">
+              <div className="bg-gradient-to-b from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 to-pink-600/5"></div>
+                <div className="relative">
+                  <div className="aspect-video bg-gray-800 rounded-lg mb-4 flex items-center justify-center border border-gray-600">
+                    <div className="text-center">
+                      <Play className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                      <p className="text-gray-400">Demo Video</p>
+                      <p className="text-sm text-gray-500">See Viraltify in action</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold text-white">How to Find Viral Content in 2 Minutes</h4>
+                      <p className="text-sm text-gray-400">Watch how creators use our platform</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <Users className="w-4 h-4" />
+                      12K views
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Free Plan */}
-            <Card className="border-2 hover:border-primary/30 transition-all duration-300">
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-xl">Free</CardTitle>
-                <div className="text-4xl font-bold mt-4">
-                  $0
-                  <span className="text-lg font-normal text-muted-foreground">/month</span>
-                </div>
-                <CardDescription>Perfect for getting started</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">10 free credits</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Pay-per-use pricing</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Basic analytics</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Community support</span>
-                  </div>
-                </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
-                >
-                  Start Free
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">No credit card required</p>
-              </CardContent>
-            </Card>
-
-            {/* Creator Plan - Most Popular */}
-            <Card className="border-2 border-primary relative overflow-hidden shadow-2xl scale-105">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary"></div>
-              <CardHeader className="text-center pb-2 pt-8">
-                <Badge className="mx-auto mb-4 bg-gradient-to-r from-primary to-secondary text-primary-foreground">
-                  Most Popular
-                </Badge>
-                <CardTitle className="text-xl">Creator</CardTitle>
-                <div className="text-4xl font-bold mt-4">
-                  $19
-                  <span className="text-lg font-normal text-muted-foreground">/month</span>
-                </div>
-                <CardDescription>For serious content creators</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">75 credits per month</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Advanced analytics</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Priority support</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Trend alerts</span>
-                  </div>
-                </div>
-                <Button 
-                  className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-                  onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
-                >
-                  Start 7-Day Free Trial
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">Cancel anytime</p>
-              </CardContent>
-            </Card>
-
-            {/* Pro Plan */}
-            <Card className="border-2 hover:border-primary/30 transition-all duration-300">
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-xl">Pro</CardTitle>
-                <div className="text-4xl font-bold mt-4">
-                  $39
-                  <span className="text-lg font-normal text-muted-foreground">/month</span>
-                </div>
-                <CardDescription>For agencies & power users</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">200 credits per month</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">Team collaboration</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">White-label reports</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-sm">API access</span>
-                  </div>
-                </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
-                >
-                  Start 7-Day Free Trial
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">Team features included</p>
-              </CardContent>
-            </Card>
+      {/* Features Section - The Ultimate Viral Content Toolkit */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              The Ultimate{" "}
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Viral Content
+              </span>{" "}
+              Toolkit
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Everything you need to consistently create viral content that your audience loves
+            </p>
           </div>
 
-          <div className="mt-12 text-center">
-            <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-green-500" />
-                <span>30-day money back guarantee</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <TrendingUp className="w-6 h-6 text-white" />,
+                title: "Trend Radar",
+                description: "Real-time discovery of viral sounds & formats with niche filters"
+              },
+              {
+                icon: <Brain className="w-6 h-6 text-white" />,
+                title: "AI Script Generator", 
+                description: "Generates hooks, bodies and CTAs tailored to your voice"
+              },
+              {
+                icon: <BarChart3 className="w-6 h-6 text-white" />,
+                title: "Performance Analytics",
+                description: "Engagement tracking, viral score predictions and ROI insights"
+              },
+              {
+                icon: <Clock className="w-6 h-6 text-white" />,
+                title: "Daily Ideas",
+                description: "New content ideas every day based on what's working"
+              },
+              {
+                icon: <Users className="w-6 h-6 text-white" />,
+                title: "Hashtag & Sound Explorer",
+                description: "Discover high-impact hashtags and trending audio"
+              },
+              {
+                icon: <Rocket className="w-6 h-6 text-white" />,
+                title: "Team Collaboration",
+                description: "Shared workspaces, roles and comments"
+              }
+            ].map((feature, index) => (
+              <div
+                key={index}
+                className="bg-gradient-to-b from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-6 hover:border-purple-600/50 transition-all duration-300 backdrop-blur-sm"
+              >
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center mb-4">
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                <p className="text-gray-400">{feature.description}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>No setup fees</span>
+            ))}
+          </div>
+          
+          <div className="text-center mt-8">
+            <a href="#" className="text-purple-400 hover:text-purple-300 underline">
+              See all features
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Trusted by{" "}
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                thousands of creators
+              </span>{" "}
+              worldwide
+            </h2>
+            <div className="flex justify-center items-center gap-2 mb-8">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-6 h-6 fill-yellow-400 text-yellow-400" />
+                ))}
               </div>
-              <div className="flex items-center gap-2">
-                <Timer className="w-4 h-4 text-green-500" />
-                <span>Cancel anytime</span>
+              <span className="text-xl font-semibold ml-2">4.9/5</span>
+            </div>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gradient-to-b from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8 text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
+                  {testimonials[currentTestimonial].name.split(' ').map(n => n[0]).join('')}
+                </div>
+                <h4 className="text-2xl font-semibold">{testimonials[currentTestimonial].name}</h4>
+                <p className="text-gray-400">{testimonials[currentTestimonial].handle} • {testimonials[currentTestimonial].followers} followers</p>
+              </div>
+              
+              <blockquote className="text-xl italic mb-6 text-gray-300">
+                "{testimonials[currentTestimonial].quote}"
+              </blockquote>
+              
+              <div className="inline-flex items-center gap-2 bg-green-600/20 border border-green-600/30 rounded-full px-4 py-2">
+                <span className="text-green-400 font-semibold">{testimonials[currentTestimonial].result}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Deep-Dive Sections */}
+      <section className="py-20">
+        <div className="container mx-auto px-4 space-y-20">
+          {/* Trend Insights */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="bg-gradient-to-b from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8">
+              <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-600">
+                <div className="text-center">
+                  <TrendingUp className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                  <p className="text-gray-400">Trending Dashboard</p>
+                  <p className="text-sm text-gray-500">Real-time viral content tracking</p>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-3xl font-bold mb-6">
+                Never miss a{" "}
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  trending moment
+                </span>
+              </h3>
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-green-400" />
+                  <span className="text-gray-300">Trending Hashtags</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <BarChart3 className="w-5 h-5 text-purple-400" />
+                  <span className="text-gray-300">Viral Scores</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Users className="w-5 h-5 text-blue-400" />
+                  <span className="text-gray-300">Niche Filters</span>
+                </div>
+              </div>
+              <Button
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
+                onClick={() => setShowGooglePopup(true)}
+              >
+                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Explore trending reels
+              </Button>
+            </div>
+          </div>
+
+          {/* Personalized Scripts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="order-2 lg:order-1">
+              <h3 className="text-3xl font-bold mb-6">
+                Personalized{" "}
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  scripts & ideas
+                </span>
+              </h3>
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-3">
+                  <Brain className="w-5 h-5 text-purple-400" />
+                  <span className="text-gray-300">Tailored Hooks & CTAs</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <BarChart3 className="w-5 h-5 text-green-400" />
+                  <span className="text-gray-300">Predict Views & Outcomes</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-blue-400" />
+                  <span className="text-gray-300">Find Untapped Opportunities</span>
+                </div>
+              </div>
+              <Button
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
+                onClick={() => setShowGooglePopup(true)}
+              >
+                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                See today's ideas
+              </Button>
+            </div>
+            
+            <div className="order-1 lg:order-2 bg-gradient-to-b from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8">
+              <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-600">
+                <div className="text-center">
+                  <Brain className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                  <p className="text-gray-400">Script Generator</p>
+                  <p className="text-sm text-gray-500">AI-powered content creation</p>
+                </div>
               </div>
             </div>
           </div>
@@ -571,154 +429,160 @@ export const LandingPage = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-card/20 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Frequently Asked Questions
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               Everything you need to know about Viraltify
             </p>
           </div>
 
-          <div className="grid gap-8">
+          <div className="max-w-3xl mx-auto space-y-6">
             {[
               {
                 question: "How is this different from just browsing Instagram?",
-                answer: "While browsing Instagram shows you random content, Viraltify uses AI to analyze millions of posts, identify trending patterns before they explode, and finds content specifically relevant to your niche. We also provide viral scores, engagement analytics, and generate personalized scripts - something you can't get from manual browsing."
+                answer: "While browsing shows you random content, Viraltify uses AI to analyze millions of posts, identify trending patterns before they explode, and finds content specifically relevant to your niche. We also provide viral scores, engagement analytics, and generate personalized scripts."
               },
               {
                 question: "Will the AI scripts sound like me?",
-                answer: "Absolutely! Our AI learns your brand voice, tone, and style preferences. You can train it with your existing content, and it will generate scripts that match your personality while incorporating proven viral formulas. Most creators can't tell the difference between AI-generated and self-written scripts."
+                answer: "Absolutely! Our AI learns your brand voice, tone, and style preferences. You can train it with your existing content, and it will generate scripts that match your personality while incorporating proven viral formulas."
               },
               {
                 question: "What if I don't go viral using your platform?",
-                answer: "We offer a 30-day money-back guarantee. While we can't guarantee virality (no one can), we can guarantee you'll save 15+ hours per week and create higher-quality content. Our users see an average 200% increase in engagement within their first month."
-              },
-              {
-                question: "How many credits do I need per month?",
-                answer: "Most creators use 50-75 credits monthly. Searching for viral content costs 2 credits, generating scripts costs 1 credit. If you post daily, the Creator plan (75 credits) is perfect. Heavy users or agencies prefer the Pro plan (200 credits)."
+                answer: "We offer a 30-day money-back guarantee. While we can't guarantee virality, we can guarantee you'll save 15+ hours per week and create higher-quality content. Our users see an average 200% increase in engagement within their first month."
               },
               {
                 question: "Can I cancel anytime?",
                 answer: "Yes, absolutely. Cancel anytime with one click in your account settings. No contracts, no cancellation fees. If you cancel, you'll retain access until your current billing period ends."
               }
             ].map((faq, index) => (
-              <Card key={index} className="bg-card/50 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="text-lg">{faq.question}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{faq.answer}</p>
-                </CardContent>
-              </Card>
+              <div key={index} className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 border border-gray-700 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-2">{faq.question}</h3>
+                <p className="text-gray-400">{faq.answer}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA with Urgency */}
-      <section className="py-20 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Ready to join 12,347+ creators going viral daily?
+      {/* Final CTA Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            Ready to create{" "}
+            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              viral content
+            </span>{" "}
+            faster?
           </h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            Stop wasting hours on research. Start creating viral content that actually converts.
+          <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+            Stop wasting hours researching. Start creating content that actually converts.
           </p>
-          
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-lg px-12 py-6 shadow-xl hover:shadow-2xl transition-all duration-300"
-              onClick={() => window.location.href = 'https://app.viraltify.com/auth?mode=signup'}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
+              onClick={() => setShowGooglePopup(true)}
             >
-              <Rocket className="w-6 h-6 mr-3" />
-              Get Started Free
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Sign up with Google
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6">
-              Contact Sales
+            <Button 
+              variant="outline" 
+              className="text-white border-white/20 hover:bg-white/10 text-lg px-8 py-4 h-auto"
+            >
+              Contact sales
             </Button>
           </div>
-
-          <div className="text-center">
-            <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>Free forever</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>No credit card required</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-green-500" />
-                <span>12,347+ creators trust us</span>
-              </div>
-            </div>
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
+            <span className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-green-400" />
+              Free forever
+            </span>
+            <span className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-green-400" />
+              No credit card required
+            </span>
+            <span className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-green-400" />
+              Thousands of creators trust us
+            </span>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-card/50 backdrop-blur-sm border-t border-border py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="col-span-1">
-              <h3 className="text-xl font-bold mb-4">Viraltify</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                The most powerful viral content platform for content creators. Turn any viral reel into your next hit.
+      <footer className="bg-gray-900/50 border-t border-gray-800 py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Viraltify
+              </h3>
+              <p className="text-gray-400 mb-4">
+                Our mission is to empower creators with AI‑powered tools to save time and go viral.
               </p>
-              <div className="flex gap-4">
-                <Button size="sm" variant="outline">
-                  <Globe className="w-4 h-4" />
-                </Button>
-                <Button size="sm" variant="outline">
+              <div className="flex gap-3">
+                <Button size="sm" variant="outline" className="border-gray-600 hover:border-white">
                   <MessageSquare className="w-4 h-4" />
                 </Button>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" className="border-gray-600 hover:border-white">
                   <Share className="w-4 h-4" />
+                </Button>
+                <Button size="sm" variant="outline" className="border-gray-600 hover:border-white">
+                  <Users className="w-4 h-4" />
+                </Button>
+                <Button size="sm" variant="outline" className="border-gray-600 hover:border-white">
+                  <Play className="w-4 h-4" />
                 </Button>
               </div>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>Viral Content Discovery</p>
-                <p>AI Script Generation</p>
-                <p>Performance Analytics</p>
-                <p>Trend Monitoring</p>
+              <h4 className="font-semibold mb-4 text-white">Product</h4>
+              <div className="space-y-2 text-gray-400">
+                <p>Trend Radar</p>
+                <p>Script Generator</p>
+                <p>Analytics</p>
               </div>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>About Us</p>
+              <h4 className="font-semibold mb-4 text-white">Company</h4>
+              <div className="space-y-2 text-gray-400">
+                <p>About</p>
                 <p>Careers</p>
-                <p>Press</p>
-                <p>Contact</p>
+                <p>Blog</p>
               </div>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-semibold mb-4 text-white">Support</h4>
+              <div className="space-y-2 text-gray-400">
                 <p>Help Center</p>
-                <p>API Documentation</p>
-                <p>Status Page</p>
-                <p>Terms & Privacy</p>
+                <p>Terms</p>
+                <p>Privacy</p>
               </div>
             </div>
           </div>
           
-          <div className="border-t border-border mt-12 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 Viraltify. All rights reserved. Built for creators who want to win.</p>
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 Viraltify. All rights reserved.</p>
           </div>
         </div>
       </footer>
+
+      <GoogleSignupPopup 
+        isOpen={showGooglePopup} 
+        onClose={() => setShowGooglePopup(false)} 
+      />
     </div>
   );
 };
