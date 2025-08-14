@@ -61,13 +61,12 @@ function AppContent() {
     );
   }
 
-  // On app subdomain, show navbar for auth pages, sidebar for authenticated pages
-  if (isLandingRoute || isAuthRoute || location.pathname === "/pricing") {
+  // On app subdomain, handle auth/pricing pages with navbar
+  if (isAuthRoute || location.pathname === "/pricing") {
     return (
       <>
         <Navbar />
         <Routes>
-          <Route path="/" element={<LandingPage />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
@@ -76,6 +75,12 @@ function AppContent() {
         </Routes>
       </>
     );
+  }
+  
+  // On app subdomain, redirect home to auth
+  if (isLandingRoute) {
+    window.location.href = "/auth";
+    return <div>Redirecting...</div>;
   }
 
   // Use sidebar layout for all other pages
