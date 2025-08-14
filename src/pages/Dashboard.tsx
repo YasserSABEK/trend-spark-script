@@ -5,63 +5,100 @@ import { Badge } from "@/components/ui/badge";
 import { 
   TrendingUp, 
   FileText, 
-  Heart, 
-  BarChart3, 
-  Clock, 
-  Zap, 
+  Hash,
+  Users,
+  Zap,
   Play,
-  ArrowRight,
-  RefreshCw,
-  Search,
+  Calendar,
+  Eye,
+  Trash2,
   CheckCircle,
   AlertCircle,
   Loader2,
-  Eye,
-  Trash2
+  Clock,
+  Search,
+  ArrowRight,
+  Instagram,
+  Video
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
 import { CreditWarning } from "@/components/credits/CreditWarning";
+import { PageContainer } from "@/components/layout/PageContainer";
 
-interface DashboardStats {
-  reelsFoundToday: number;
-  scriptsGenerated: number;
-  savedIdeas: number;
-  activeSearches: number;
-  totalSearches: number;
-  lastScrapeTime: string;
-}
+const features = [
+  {
+    title: "Find Viral Reels",
+    description: "Discover trending Instagram content",
+    icon: TrendingUp,
+    href: "/viral-reels",
+    gradient: "from-instagram-pink to-instagram-purple"
+  },
+  {
+    title: "Instagram Creators",
+    description: "Find top performing creators",
+    icon: Users,
+    href: "/instagram-creators",
+    gradient: "from-instagram-purple to-instagram-orange"
+  },
+  {
+    title: "TikTok Creators",
+    description: "Explore viral TikTok profiles",
+    icon: Video,
+    href: "/tiktok-creators",
+    gradient: "from-instagram-orange to-instagram-yellow"
+  },
+  {
+    title: "Instagram Hashtags",
+    description: "Research trending hashtags",
+    icon: Hash,
+    href: "/instagram-hashtags",
+    gradient: "from-instagram-yellow to-instagram-pink"
+  },
+  {
+    title: "TikTok Hashtags",
+    description: "Find viral TikTok hashtags",
+    icon: Hash,
+    href: "/hashtag-search",
+    gradient: "from-instagram-pink to-secondary"
+  },
+  {
+    title: "Generate AI Scripts",
+    description: "Create viral video scripts",
+    icon: Zap,
+    href: "/script-generator",
+    gradient: "from-secondary to-accent"
+  },
+  {
+    title: "My Scripts",
+    description: "View your saved scripts",
+    icon: FileText,
+    href: "/my-scripts",
+    gradient: "from-accent to-instagram-orange"
+  },
+  {
+    title: "Content Calendar",
+    description: "Plan your content strategy",
+    icon: Calendar,
+    href: "/content/calendar",
+    gradient: "from-instagram-orange to-instagram-purple"
+  }
+];
 
 export const Dashboard = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState<DashboardStats>({
-    reelsFoundToday: 0,
-    scriptsGenerated: 0,
-    savedIdeas: 0,
-    activeSearches: 0,
-    totalSearches: 0,
-    lastScrapeTime: 'Never'
-  });
   const [recentSearches, setRecentSearches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      loadDashboardData();
+      loadRecentSearches();
     }
   }, [user]);
 
-  const loadDashboardData = async () => {
+  const loadRecentSearches = async () => {
     try {
-      // Load user scripts count
-      const { count: scriptsCount } = await supabase
-        .from('generated_scripts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user?.id);
-
-      // Load recent searches (user's own searches)
       const { data: searches } = await supabase
         .from('search_queue')
         .select('*')
@@ -69,56 +106,49 @@ export const Dashboard = () => {
         .order('requested_at', { ascending: false })
         .limit(6);
 
-      // Load active searches count
-      const { count: activeSearchesCount } = await supabase
-        .from('search_queue')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user?.id)
-        .in('status', ['pending', 'processing']);
-
-      // Load total searches count
-      const { count: totalSearchesCount } = await supabase
-        .from('search_queue')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user?.id);
-
-      // Load favorite scripts count
-      const { count: favoritesCount } = await supabase
-        .from('generated_scripts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user?.id)
-        .eq('is_favorite', true);
-
-      // Load reels found today
-      const today = new Date().toISOString().split('T')[0];
-      const { count: reelsToday } = await supabase
-        .from('instagram_reels')
-        .select('*', { count: 'exact', head: true })
-        .gte('scraped_at', today);
-
-      // Load last scrape time
-      const { data: lastReel } = await supabase
-        .from('instagram_reels')
-        .select('scraped_at')
-        .order('scraped_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      setStats({
-        reelsFoundToday: reelsToday || 0,
-        scriptsGenerated: scriptsCount || 0,
-        savedIdeas: favoritesCount || 0,
-        activeSearches: activeSearchesCount || 0,
-        totalSearches: totalSearchesCount || 0,
-        lastScrapeTime: lastReel ? new Date(lastReel.scraped_at).toLocaleTimeString() : 'Never'
-      });
-
       setRecentSearches(searches || []);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      console.error('Error loading recent searches:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteSearch = async (searchId: string) => {
+    try {
+      await supabase
+        .from('search_queue')
+        .delete()
+        .eq('id', searchId);
+      
+      setRecentSearches(prev => prev.filter(search => search.id !== searchId));
+    } catch (error) {
+      console.error('Error deleting search:', error);
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'processing':
+        return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
+      case 'failed':
+        return <AlertCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return <Clock className="w-4 h-4 text-yellow-500" />;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      completed: { text: 'Completed', className: 'bg-green-500/10 text-green-700 border-green-200' },
+      processing: { text: 'Processing', className: 'bg-blue-500/10 text-blue-700 border-blue-200' },
+      failed: { text: 'Failed', className: 'bg-red-500/10 text-red-700 border-red-200' },
+      pending: { text: 'Pending', className: 'bg-yellow-500/10 text-yellow-700 border-yellow-200' }
+    };
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return <Badge variant="outline" className={config.className}>{config.text}</Badge>;
   };
 
   if (loading) {
@@ -130,234 +160,179 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Credit Warning */}
+    <PageContainer>
       <CreditWarning />
       
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold">Welcome back!</h1>
-          <p className="text-muted-foreground">
-            Here's what's trending on Instagram today
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="w-4 h-4" />
-            Last updated: {stats.lastScrapeTime}
-            <Button size="sm" variant="outline" onClick={loadDashboardData}>
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-          </div>
-          
-        </div>
+      {/* Hero Section */}
+      <div className="text-center py-12 space-y-4">
+        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-instagram-pink via-instagram-purple to-instagram-orange bg-clip-text text-transparent">
+          What would you like to do today?
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Choose from our powerful tools to discover viral content, analyze creators, and grow your social media presence
+        </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Reels Found Today
-                </p>
-                <p className="text-2xl font-bold">{stats.reelsFoundToday}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Scripts Generated
-                </p>
-                <p className="text-2xl font-bold">{stats.scriptsGenerated}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-instagram-purple to-instagram-orange flex items-center justify-center">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Saved Ideas
-                </p>
-                <p className="text-2xl font-bold">{stats.savedIdeas}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-instagram-orange to-instagram-yellow flex items-center justify-center">
-                <Heart className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Active Searches
-                </p>
-                <p className="text-2xl font-bold">{stats.activeSearches}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                <Search className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Feature Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {features.map((feature) => {
+          const Icon = feature.icon;
+          return (
+            <Link key={feature.title} to={feature.href} className="group">
+              <Card className="h-full transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 border-2 hover:border-primary/20">
+                <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all opacity-0 group-hover:opacity-100" />
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Get started with the most popular features
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link to="/viral-reels">
-              <Button className="w-full h-auto p-6 flex flex-col items-center gap-2 bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90">
-                <TrendingUp className="w-8 h-8" />
-                <span className="font-semibold">Browse Viral Reels</span>
-                <span className="text-sm opacity-90">Discover trending content</span>
-              </Button>
-            </Link>
-
-            <Link to="/script-generator">
-              <Button variant="outline" className="w-full h-auto p-6 flex flex-col items-center gap-2 border-2 hover:border-primary">
-                <Zap className="w-8 h-8" />
-                <span className="font-semibold">Generate Script</span>
-                <span className="text-sm text-muted-foreground">Create viral content</span>
-              </Button>
-            </Link>
-
-            <Link to="/analytics">
-              <Button variant="outline" className="w-full h-auto p-6 flex flex-col items-center gap-2 border-2 hover:border-primary">
-                <BarChart3 className="w-8 h-8" />
-                <span className="font-semibold">View Analytics</span>
-                <span className="text-sm text-muted-foreground">Track performance</span>
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Recent Searches */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Recent Searches</CardTitle>
+      <Card className="mb-12">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <div className="space-y-1">
+            <CardTitle className="text-2xl">Recent Searches</CardTitle>
             <CardDescription>
-              Your latest Instagram profile searches
+              Your latest profile and hashtag searches
             </CardDescription>
           </div>
           <Link to="/viral-reels">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="gap-2">
               New Search
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <Search className="w-4 h-4" />
             </Button>
           </Link>
         </CardHeader>
         <CardContent>
           {recentSearches.length > 0 ? (
-            <div className="space-y-4">
-              {recentSearches.map((search) => {
-                const getStatusIcon = (status: string) => {
-                  switch (status) {
-                    case 'completed':
-                      return <CheckCircle className="w-4 h-4 text-green-500" />;
-                    case 'processing':
-                      return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
-                    case 'failed':
-                      return <AlertCircle className="w-4 h-4 text-red-500" />;
-                    default:
-                      return <Clock className="w-4 h-4 text-yellow-500" />;
-                  }
-                };
-
-                const getStatusBadge = (status: string) => {
-                  const statusConfig = {
-                    completed: { text: 'Completed', className: 'bg-green-500/10 text-green-700 border-green-200' },
-                    processing: { text: 'Processing', className: 'bg-blue-500/10 text-blue-700 border-blue-200' },
-                    failed: { text: 'Failed', className: 'bg-red-500/10 text-red-700 border-red-200' },
-                    pending: { text: 'Pending', className: 'bg-yellow-500/10 text-yellow-700 border-yellow-200' }
-                  };
-                  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-                  return <Badge variant="outline" className={config.className}>{config.text}</Badge>;
-                };
-
-                return (
-                  <Card key={search.id} className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center text-white font-semibold text-sm">
-                          {search.username ? search.username.charAt(0).toUpperCase() : 'U'}
-                        </div>
-                        <div>
-                          <p className="font-medium">@{search.username}</p>
-                          <div className="flex items-center gap-2">
-                            {getStatusIcon(search.status)}
-                            <span className="text-sm text-muted-foreground">
-                              {new Date(search.requested_at).toLocaleDateString()} at {new Date(search.requested_at).toLocaleTimeString()}
-                            </span>
-                          </div>
-                        </div>
+            <div className="grid gap-4">
+              {recentSearches.map((search) => (
+                <Card key={search.id} className="p-4 hover:shadow-md transition-all duration-200 border hover:border-primary/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center text-white font-semibold">
+                        {search.username ? search.username.charAt(0).toUpperCase() : search.hashtag ? '#' : 'U'}
                       </div>
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(search.status)}
-                        {search.status === 'completed' && search.total_results > 0 && (
-                          <Link to={`/reel-results?username=${search.username}`}>
-                            <Button size="sm" variant="outline" className="gap-1">
-                              <Eye className="w-4 h-4" />
-                              View Results ({search.total_results})
-                            </Button>
-                          </Link>
-                        )}
-                        {search.status === 'failed' && (
-                          <Button size="sm" variant="outline" className="gap-1 text-red-600 hover:text-red-700">
-                            <Trash2 className="w-4 h-4" />
-                            Remove
-                          </Button>
-                        )}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">
+                            {search.username ? `@${search.username}` : search.hashtag ? `#${search.hashtag}` : 'Unknown'}
+                          </p>
+                          {search.platform && (
+                            <Badge variant="secondary" className="text-xs">
+                              {search.platform}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          {getStatusIcon(search.status)}
+                          <span>
+                            {new Date(search.requested_at).toLocaleDateString()} at {new Date(search.requested_at).toLocaleTimeString()}
+                          </span>
+                          {search.total_results > 0 && (
+                            <span className="text-primary font-medium">
+                              • {search.total_results} results
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </Card>
-                );
-              })}
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(search.status)}
+                      {search.status === 'completed' && search.total_results > 0 && (
+                        <Link to={search.username ? `/reel-results?username=${search.username}` : `/hashtag-videos?hashtag=${search.hashtag}`}>
+                          <Button size="sm" variant="outline" className="gap-2">
+                            <Eye className="w-4 h-4" />
+                            View Results
+                          </Button>
+                        </Link>
+                      )}
+                      {search.status === 'failed' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="gap-2 text-red-600 hover:text-red-700 hover:border-red-300"
+                          onClick={() => handleDeleteSearch(search.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No searches yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Start by searching for Instagram profiles to analyze their viral content
-              </p>
+            <div className="text-center py-12 space-y-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center mx-auto">
+                <Search className="w-8 h-8 text-white" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">No searches yet</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Start by searching for Instagram profiles or hashtags to analyze viral content and discover trends
+                </p>
+              </div>
               <Link to="/viral-reels">
-                <Button>
+                <Button className="gap-2">
                   Start Searching
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
             </div>
           )}
         </CardContent>
       </Card>
-    </div>
+
+      {/* Trending Now - Placeholder */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Trending Now</CardTitle>
+          <CardDescription>
+            Discover what's going viral across social media platforms
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-12 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-instagram-orange to-instagram-yellow flex items-center justify-center mx-auto">
+              <Play className="w-8 h-8 text-white" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Coming Soon</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                We're working on bringing you real-time trending content from across all platforms
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Badge variant="outline" className="gap-1">
+                <Instagram className="w-3 h-3" />
+                Instagram
+              </Badge>
+              <Badge variant="outline" className="gap-1">
+                <Video className="w-3 h-3" />
+                TikTok
+              </Badge>
+              <Badge variant="outline">
+                YouTube Shorts
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </PageContainer>
   );
 };
