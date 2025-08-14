@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GoogleSignupPopup } from "@/components/GoogleSignupPopup";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { 
   TrendingUp, 
   Brain, 
@@ -24,8 +25,32 @@ import {
 } from "lucide-react";
 
 export const LandingPage = () => {
-  const [showGooglePopup, setShowGooglePopup] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const { toast } = useToast();
+
+  const handleGoogleSignUp = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      toast({
+        title: "Authentication Error",
+        description: error.message || "Failed to sign in with Google.",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
+  };
   
   const stats = [
     { label: "creators trust us", value: "thousands of" },
@@ -98,7 +123,8 @@ export const LandingPage = () => {
           <div className="flex justify-center mb-12">
             <Button 
               className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
-              onClick={() => setShowGooglePopup(true)}
+              onClick={handleGoogleSignUp}
+              disabled={loading}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -106,7 +132,7 @@ export const LandingPage = () => {
                 <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Sign up with Google
+              {loading ? "Signing up..." : "Sign up with Google"}
             </Button>
           </div>
 
@@ -161,7 +187,8 @@ export const LandingPage = () => {
               </div>
               <Button
                 className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
-                onClick={() => setShowGooglePopup(true)}
+                onClick={handleGoogleSignUp}
+                disabled={loading}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -169,7 +196,7 @@ export const LandingPage = () => {
                   <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                See today's ideas
+                {loading ? "Signing up..." : "See today's ideas"}
               </Button>
             </div>
             
@@ -352,7 +379,8 @@ export const LandingPage = () => {
               </div>
               <Button
                 className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
-                onClick={() => setShowGooglePopup(true)}
+                onClick={handleGoogleSignUp}
+                disabled={loading}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -360,7 +388,7 @@ export const LandingPage = () => {
                   <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Explore trending reels
+                {loading ? "Signing up..." : "Explore trending reels"}
               </Button>
             </div>
           </div>
@@ -390,7 +418,8 @@ export const LandingPage = () => {
               </div>
               <Button
                 className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
-                onClick={() => setShowGooglePopup(true)}
+                onClick={handleGoogleSignUp}
+                disabled={loading}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -398,7 +427,7 @@ export const LandingPage = () => {
                   <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                See today's ideas
+                {loading ? "Signing up..." : "See today's ideas"}
               </Button>
             </div>
             
@@ -471,7 +500,8 @@ export const LandingPage = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button 
               className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
-              onClick={() => setShowGooglePopup(true)}
+              onClick={handleGoogleSignUp}
+              disabled={loading}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -479,7 +509,7 @@ export const LandingPage = () => {
                 <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Sign up with Google
+              {loading ? "Signing up..." : "Sign up with Google"}
             </Button>
             <Button 
               variant="outline" 
@@ -566,10 +596,6 @@ export const LandingPage = () => {
         </div>
       </footer>
 
-      <GoogleSignupPopup 
-        isOpen={showGooglePopup} 
-        onClose={() => setShowGooglePopup(false)} 
-      />
     </div>
   );
 };

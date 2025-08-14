@@ -3,8 +3,36 @@ import { useAuth } from "@/components/auth/AuthContext";
 import { LogOut, User, Zap } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { CreditMeter } from "@/components/credits/CreditMeter";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export const Navbar = () => {
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleGoogleSignUp = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      toast({
+        title: "Authentication Error",
+        description: error.message || "Failed to sign in with Google.",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
+  };
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -71,16 +99,12 @@ export const Navbar = () => {
                     Pricing
                   </Button>
                 </Link>
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/auth?mode=signup">
-                  <Button size="sm" className="bg-gradient-to-r from-instagram-pink to-instagram-purple">
-                    Sign Up for Free
-                  </Button>
-                </Link>
+                <Button variant="ghost" size="sm" onClick={handleGoogleSignUp} disabled={loading}>
+                  {loading ? "Signing in..." : "Login"}
+                </Button>
+                <Button size="sm" className="bg-gradient-to-r from-instagram-pink to-instagram-purple" onClick={handleGoogleSignUp} disabled={loading}>
+                  {loading ? "Signing up..." : "Sign Up for Free"}
+                </Button>
               </>
             )}
           </div>
