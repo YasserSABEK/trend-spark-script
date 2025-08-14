@@ -1,148 +1,60 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
-  Home, 
-  Zap,
-  Compass,
-  Plus,
-  Bot,
-  Crown,
+  LayoutDashboard, 
   Video, 
   Hash,
   Edit3, 
   Bookmark,
+  CreditCard,
   Instagram,
   Music2,
-  Users
+  Calendar,
+  ChevronRight
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarHeader,
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { SidebarProfileSection } from "@/components/profile/SidebarProfileSection";
-import { cn } from "@/lib/utils";
 
-interface NavigationItem {
-  key: string;
-  label: string;
-  icon: any;
-  route?: string;
-  type: 'link' | 'flyout';
-  children?: FlyoutItem[];
-  description?: string;
-  pinned?: boolean;
-}
-
-interface FlyoutItem {
-  title: string;
-  url: string;
-  icon: any;
-  description: string;
-}
-
-const navigationItems: NavigationItem[] = [
-  { 
-    key: "home", 
-    label: "Home", 
-    icon: Home, 
-    route: "/dashboard", 
-    type: "link" 
-  },
+const navigationItems = [
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   {
-    key: "optimize",
-    label: "Optimize",
-    icon: Zap,
-    type: "flyout",
-    children: [
-      { 
-        title: "Script Generator", 
-        url: "/script-generator", 
-        icon: Edit3, 
-        description: "Generate scripts" 
-      },
-      { 
-        title: "Saved Content", 
-        url: "/content", 
-        icon: Bookmark, 
-        description: "Your saved videos" 
-      },
+    title: "Instagram",
+    icon: Instagram,
+    items: [
+      { title: "Instagram Creators", url: "/instagram-creators", icon: Instagram },
+      { title: "Viral Reels", url: "/viral-reels", icon: Video },
+      { title: "Hashtags", url: "/instagram-hashtags", icon: Hash },
     ]
   },
   {
-    key: "discover",
-    label: "Discover",
-    icon: Compass,
-    type: "flyout",
-    children: [
-      { 
-        title: "Instagram Creators", 
-        url: "/instagram-creators", 
-        icon: Users, 
-        description: "Find top creators" 
-      },
-      { 
-        title: "Viral Reels", 
-        url: "/viral-reels", 
-        icon: Video, 
-        description: "Find standout videos" 
-      },
-      { 
-        title: "Instagram Hashtags", 
-        url: "/instagram-hashtags", 
-        icon: Hash, 
-        description: "Trending topics" 
-      },
-      { 
-        title: "TikTok Creators", 
-        url: "/tiktok-creators", 
-        icon: Users, 
-        description: "Find top creators" 
-      },
-      { 
-        title: "Viral TikToks", 
-        url: "/viral-tiktoks", 
-        icon: Video, 
-        description: "Find standout videos" 
-      },
-      { 
-        title: "TikTok Hashtags", 
-        url: "/hashtag-search", 
-        icon: Hash, 
-        description: "Trending topics" 
-      },
+    title: "TikTok",
+    icon: Music2,
+    items: [
+      { title: "TikTok Creators", url: "/tiktok-creators", icon: Music2 },
+      { title: "Viral Videos", url: "/viral-tiktoks", icon: Video },
+      { title: "Hashtags", url: "/hashtag-search", icon: Hash },
     ]
   },
-  { 
-    key: "create", 
-    label: "Create", 
-    icon: Plus, 
-    route: "/content-calendar", 
-    type: "link" 
-  },
-  { 
-    key: "coach", 
-    label: "AI Coach", 
-    icon: Bot, 
-    route: "/coach", 
-    type: "link" 
-  },
-  { 
-    key: "upgrade", 
-    label: "Upgrade", 
-    icon: Crown, 
-    route: "/billing", 
-    type: "link", 
-    pinned: true 
-  },
+  { title: "Script Generator", url: "/script-generator", icon: Edit3 },
+  { title: "Saved Content", url: "/content", icon: Bookmark },
+  { title: "Content Calendar", url: "/content-calendar", icon: Calendar },
+  { title: "Billing", url: "/billing", icon: CreditCard },
 ];
 
 export function AppSidebar() {
@@ -150,200 +62,145 @@ export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
-  const [openFlyout, setOpenFlyout] = useState<string | null>(null);
+  const [openGroups, setOpenGroups] = useState<string[]>([]);
 
   const isActive = (path: string) => currentPath === path;
   
-  const isGroupActive = (children?: FlyoutItem[]) => {
-    return children?.some(item => isActive(item.url)) || false;
+  const isGroupActive = (items: any[]) => {
+    return items?.some(item => isActive(item.url));
   };
 
-  const handleFlyoutToggle = (key: string) => {
-    setOpenFlyout(openFlyout === key ? null : key);
-  };
-
-  const regularItems = navigationItems.filter(item => !item.pinned);
-  const pinnedItems = navigationItems.filter(item => item.pinned);
-
-  const renderNavigationItem = (item: NavigationItem) => {
-    if (item.type === "link") {
-      return (
-        <SidebarMenuItem key={item.key}>
-          <SidebarMenuButton asChild>
-            <NavLink
-              to={item.route!}
-              className={({ isActive }) =>
-                cn(
-                  "flex flex-col items-center justify-center h-16 w-full rounded-lg transition-colors",
-                  collapsed ? "px-2" : "px-4",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                )
-              }
-            >
-              <item.icon className="w-6 h-6 mb-1" />
-              <span className={cn("text-xs", collapsed && "sr-only")}>{item.label}</span>
-            </NavLink>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      );
-    }
-
-    // Flyout items
-    const hasActiveChild = isGroupActive(item.children);
+  const handleGroupHover = (groupTitle: string, isEntering: boolean) => {
+    if (collapsed) return; // Don't handle hover when collapsed
     
-    return (
-      <SidebarMenuItem key={item.key}>
-        <Popover 
-          open={openFlyout === item.key} 
-          onOpenChange={(open) => setOpenFlyout(open ? item.key : null)}
-        >
-          <PopoverTrigger asChild>
-            <SidebarMenuButton
-              className={cn(
-                "flex flex-col items-center justify-center h-16 w-full rounded-lg transition-colors",
-                collapsed ? "px-2" : "px-4",
-                hasActiveChild
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                  : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-              )}
-              onClick={() => handleFlyoutToggle(item.key)}
-            >
-              <item.icon className="w-6 h-6 mb-1" />
-              <span className={cn("text-xs", collapsed && "sr-only")}>{item.label}</span>
-            </SidebarMenuButton>
-          </PopoverTrigger>
-          <PopoverContent 
-            side="right" 
-            className={cn(
-              "p-4 w-80 ml-2",
-              item.key === "discover" && "w-96"
-            )}
-            align="start"
-          >
-            <div className="space-y-2">
-              <h3 className="font-semibold text-lg mb-4">{item.label}</h3>
-              {item.key === "discover" ? (
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                      <Instagram className="w-4 h-4" />
-                      Instagram
-                    </h4>
-                    <div className="space-y-2">
-                      {item.children?.slice(0, 3).map((child) => (
-                        <NavLink
-                          key={child.title}
-                          to={child.url}
-                          onClick={() => setOpenFlyout(null)}
-                          className={({ isActive }) =>
-                            cn(
-                              "flex items-center space-x-3 p-3 rounded-lg transition-colors",
-                              isActive
-                                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                : "hover:bg-sidebar-accent/50"
-                            )
-                          }
-                        >
-                          <child.icon className="w-5 h-5 flex-shrink-0" />
-                          <div>
-                            <div className="font-medium">{child.title}</div>
-                            <div className="text-sm text-muted-foreground">{child.description}</div>
-                          </div>
-                        </NavLink>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                      <Music2 className="w-4 h-4" />
-                      TikTok
-                    </h4>
-                    <div className="space-y-2">
-                      {item.children?.slice(3).map((child) => (
-                        <NavLink
-                          key={child.title}
-                          to={child.url}
-                          onClick={() => setOpenFlyout(null)}
-                          className={({ isActive }) =>
-                            cn(
-                              "flex items-center space-x-3 p-3 rounded-lg transition-colors",
-                              isActive
-                                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                : "hover:bg-sidebar-accent/50"
-                            )
-                          }
-                        >
-                          <child.icon className="w-5 h-5 flex-shrink-0" />
-                          <div>
-                            <div className="font-medium">{child.title}</div>
-                            <div className="text-sm text-muted-foreground">{child.description}</div>
-                          </div>
-                        </NavLink>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {item.children?.map((child) => (
-                    <NavLink
-                      key={child.title}
-                      to={child.url}
-                      onClick={() => setOpenFlyout(null)}
-                      className={({ isActive }) =>
-                        cn(
-                          "flex items-center space-x-3 p-3 rounded-lg transition-colors",
-                          isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                            : "hover:bg-sidebar-accent/50"
-                        )
-                      }
-                    >
-                      <child.icon className="w-5 h-5 flex-shrink-0" />
-                      <div>
-                        <div className="font-medium">{child.title}</div>
-                        <div className="text-sm text-muted-foreground">{child.description}</div>
-                      </div>
-                    </NavLink>
-                  ))}
-                </div>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
-      </SidebarMenuItem>
-    );
+    setOpenGroups(prev => {
+      if (isEntering) {
+        return prev.includes(groupTitle) ? prev : [...prev, groupTitle];
+      } else {
+        return prev.filter(title => title !== groupTitle);
+      }
+    });
   };
 
   return (
-    <Sidebar className={collapsed ? "w-16" : "w-20"} collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border p-4">
-        <div className="flex items-center justify-center">
+    <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible="icon">
+      <SidebarHeader className="border-b border-sidebar-border">
+        <div className="flex items-center space-x-2 p-2">
           <img 
             src="/lovable-uploads/a6a45a07-ab6a-4a98-9503-3624cff4fda0.png" 
             alt="Viraltify logo" 
             className="w-8 h-8"
           />
+          {!collapsed && (
+            <span className="text-xl font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
+              Viraltify
+            </span>
+          )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
+      <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel className={collapsed ? "sr-only" : ""}>
+            Navigation
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
-              {regularItems.map(renderNavigationItem)}
+            <SidebarMenu>
+              {navigationItems.map((item) => {
+                // Handle dropdown items (Instagram, TikTok)
+                if (item.items) {
+                  const isGroupExpanded = openGroups.includes(item.title);
+                  const hasActiveChild = isGroupActive(item.items);
+                  
+                  return (
+                    <Collapsible
+                      key={item.title}
+                      open={isGroupExpanded}
+                      onOpenChange={(open) => {
+                        setOpenGroups(prev => 
+                          open 
+                            ? [...prev.filter(t => t !== item.title), item.title]
+                            : prev.filter(t => t !== item.title)
+                        );
+                      }}
+                    >
+                      <SidebarMenuItem>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            className={`group/collapsible ${
+                              hasActiveChild 
+                                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
+                                : "hover:bg-sidebar-accent/50"
+                            }`}
+                            onMouseEnter={() => handleGroupHover(item.title, true)}
+                            onMouseLeave={() => handleGroupHover(item.title, false)}
+                          >
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                            {!collapsed && (
+                              <>
+                                <span className="flex-1">{item.title}</span>
+                                <ChevronRight className={`w-4 h-4 transition-transform ${isGroupExpanded ? 'rotate-90' : ''}`} />
+                              </>
+                            )}
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        {!collapsed && (
+                          <CollapsibleContent>
+                            <SidebarMenuSub>
+                              {item.items.map((subItem) => (
+                                <SidebarMenuSubItem key={subItem.title}>
+                                  <SidebarMenuSubButton asChild>
+                                    <NavLink
+                                      to={subItem.url}
+                                      className={({ isActive }) =>
+                                        `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                                          isActive
+                                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                                            : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                                        }`
+                                      }
+                                    >
+                                      <subItem.icon className="w-4 h-4 flex-shrink-0" />
+                                      <span>{subItem.title}</span>
+                                    </NavLink>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              ))}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        )}
+                      </SidebarMenuItem>
+                    </Collapsible>
+                  );
+                }
+
+                // Handle single items
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={({ isActive }) =>
+                          `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                            isActive
+                              ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                              : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                          }`
+                        }
+                      >
+                        <item.icon className="w-5 h-5 flex-shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-2 space-y-2">
-        <SidebarMenu>
-          {pinnedItems.map(renderNavigationItem)}
-        </SidebarMenu>
+      <SidebarFooter className="border-t border-sidebar-border p-0">
         <SidebarProfileSection collapsed={collapsed} />
       </SidebarFooter>
     </Sidebar>
