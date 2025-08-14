@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CreditMeter } from "@/components/credits/CreditMeter";
 import { ProfileDropdown } from "@/components/profile/ProfileDropdown";
-import { AppSidebar } from "./AppSidebar";
+import { MobileSidebar } from "./MobileSidebar";
 
 export function MobileHeader() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,9 +25,7 @@ export function MobileHeader() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-full sm:w-80 z-[100]">
-            <div className="h-full bg-sidebar-background">
-              <AppSidebar />
-            </div>
+            <MobileSidebar onClose={() => setIsOpen(false)} />
           </SheetContent>
         </Sheet>
 
