@@ -90,39 +90,38 @@ export const LandingPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Animated Background Orbs */}
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Subtle Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-pink-600/10 rounded-full blur-3xl animate-pulse animation-delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-r from-secondary/5 to-accent/5 rounded-full blur-3xl"></div>
       </div>
 
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 text-center relative z-10">
           {/* Hero Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-600/30 rounded-full px-4 py-2 mb-6">
-            <Rocket className="w-4 h-4 text-blue-400" />
-            <span className="text-sm text-blue-200">🚀 Save 15+ hours weekly • Join thousands of creators</span>
+          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-6">
+            <Rocket className="w-4 h-4 text-primary" />
+            <span className="text-sm text-muted-foreground">🚀 Save 15+ hours weekly • Join thousands of creators</span>
           </div>
           
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-            All‑in‑one platform for{" "}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              viral content
+            Turn Any Viral Reel Into{" "}
+            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Your Next Hit
             </span>{" "}
-            growth
+            in 60 Seconds
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-400 mb-8 max-w-4xl mx-auto">
-            Find trending Reels & TikToks and get scripts that sound like you. Turn any viral trend into your next hit.
+          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-4xl mx-auto">
+            Stop endless scrolling for content ideas. Our AI finds trending reels and writes personalized scripts for you.
           </p>
           
           {/* Primary CTA */}
           <div className="flex justify-center mb-12">
             <Button 
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
+              className="bg-gradient-to-r from-primary to-secondary text-primary-foreground text-lg px-8 py-4 h-auto hover:opacity-90 shadow-lg"
               onClick={handleGoogleSignUp}
               disabled={loading}
             >
@@ -141,9 +140,9 @@ export const LandingPage = () => {
             {stats.map((stat, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-600/30 rounded-full px-4 py-2"
+                className="bg-accent/10 border border-accent/20 rounded-full px-4 py-2"
               >
-                <span className="text-sm text-green-200">
+                <span className="text-sm text-muted-foreground">
                   {stat.value} {stat.label}
                 </span>
               </div>
@@ -157,36 +156,36 @@ export const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-600/30 rounded-full px-4 py-2 mb-6">
-                <Play className="w-4 h-4 text-blue-400" />
-                <span className="text-sm text-blue-200">See it in action</span>
+              <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-6">
+                <Play className="w-4 h-4 text-primary" />
+                <span className="text-sm text-muted-foreground">See it in action</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
                 Daily{" "}
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   viral ideas
                 </span>{" "}
                 delivered
               </h2>
-              <p className="text-xl text-gray-400 mb-8">
+              <p className="text-xl text-muted-foreground mb-8">
                 Get fresh content ideas every day based on what's trending in your niche. Our AI analyzes millions of posts to find the best opportunities.
               </p>
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-gray-300">Real-time trending analysis</span>
+                  <div className="w-2 h-2 bg-accent rounded-full"></div>
+                  <span className="text-foreground">Real-time trending analysis</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                  <span className="text-gray-300">Personalized to your niche</span>
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span className="text-foreground">Personalized to your niche</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
-                  <span className="text-gray-300">Script generation included</span>
+                  <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                  <span className="text-foreground">Script generation included</span>
                 </div>
               </div>
               <Button
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
+                className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-8 py-4 h-auto hover:opacity-90"
                 onClick={handleGoogleSignUp}
                 disabled={loading}
               >
@@ -201,22 +200,22 @@ export const LandingPage = () => {
             </div>
             
             <div className="relative">
-              <div className="bg-gradient-to-b from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 to-pink-600/5"></div>
+              <div className="bg-card border rounded-2xl p-8 relative overflow-hidden shadow-lg">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5"></div>
                 <div className="relative">
-                  <div className="aspect-video bg-gray-800 rounded-lg mb-4 flex items-center justify-center border border-gray-600">
+                  <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center border">
                     <div className="text-center">
-                      <Play className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                      <p className="text-gray-400">Demo Video</p>
-                      <p className="text-sm text-gray-500">See Viraltify in action</p>
+                      <Play className="w-16 h-16 text-primary mx-auto mb-4" />
+                      <p className="text-muted-foreground">Demo Video</p>
+                      <p className="text-sm text-muted-foreground">See Viraltify in action</p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-semibold text-white">How to Find Viral Content in 2 Minutes</h4>
-                      <p className="text-sm text-gray-400">Watch how creators use our platform</p>
+                      <h4 className="font-semibold text-foreground">How to Find Viral Content in 2 Minutes</h4>
+                      <p className="text-sm text-muted-foreground">Watch how creators use our platform</p>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Users className="w-4 h-4" />
                       12K views
                     </div>
@@ -234,12 +233,12 @@ export const LandingPage = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               The Ultimate{" "}
-              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Viral Content
               </span>{" "}
               Toolkit
             </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Everything you need to consistently create viral content that your audience loves
             </p>
           </div>
@@ -279,19 +278,19 @@ export const LandingPage = () => {
             ].map((feature, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-b from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-6 hover:border-purple-600/50 transition-all duration-300 backdrop-blur-sm"
+                className="bg-card border rounded-2xl p-6 hover:border-primary/50 transition-all duration-300 shadow-lg"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-primary to-secondary flex items-center justify-center mb-4">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-gray-400">{feature.description}</p>
+                <p className="text-muted-foreground">{feature.description}</p>
               </div>
             ))}
           </div>
           
           <div className="text-center mt-8">
-            <a href="#" className="text-purple-400 hover:text-purple-300 underline">
+            <a href="#" className="text-primary hover:text-primary/80 underline">
               See all features
             </a>
           </div>
@@ -304,7 +303,7 @@ export const LandingPage = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Trusted by{" "}
-              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 thousands of creators
               </span>{" "}
               worldwide
@@ -320,21 +319,21 @@ export const LandingPage = () => {
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <div className="bg-gradient-to-b from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8 text-center">
+            <div className="bg-card border rounded-2xl p-8 text-center shadow-lg">
               <div className="mb-6">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-xl mx-auto mb-4">
                   {testimonials[currentTestimonial].name.split(' ').map(n => n[0]).join('')}
                 </div>
                 <h4 className="text-2xl font-semibold">{testimonials[currentTestimonial].name}</h4>
-                <p className="text-gray-400">{testimonials[currentTestimonial].handle} • {testimonials[currentTestimonial].followers} followers</p>
+                <p className="text-muted-foreground">{testimonials[currentTestimonial].handle} • {testimonials[currentTestimonial].followers} followers</p>
               </div>
               
-              <blockquote className="text-xl italic mb-6 text-gray-300">
+              <blockquote className="text-xl italic mb-6 text-foreground">
                 "{testimonials[currentTestimonial].quote}"
               </blockquote>
               
-              <div className="inline-flex items-center gap-2 bg-green-600/20 border border-green-600/30 rounded-full px-4 py-2">
-                <span className="text-green-400 font-semibold">{testimonials[currentTestimonial].result}</span>
+              <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-4 py-2">
+                <span className="text-accent-foreground font-semibold">{testimonials[currentTestimonial].result}</span>
               </div>
             </div>
           </div>
@@ -346,12 +345,12 @@ export const LandingPage = () => {
         <div className="container mx-auto px-4 space-y-20">
           {/* Trend Insights */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="bg-gradient-to-b from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8">
-              <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-600">
+            <div className="bg-card border rounded-2xl p-8 shadow-lg">
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center border">
                 <div className="text-center">
-                  <TrendingUp className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                  <p className="text-gray-400">Trending Dashboard</p>
-                  <p className="text-sm text-gray-500">Real-time viral content tracking</p>
+                  <TrendingUp className="w-16 h-16 text-primary mx-auto mb-4" />
+                  <p className="text-muted-foreground">Trending Dashboard</p>
+                  <p className="text-sm text-muted-foreground">Real-time viral content tracking</p>
                 </div>
               </div>
             </div>
@@ -359,26 +358,26 @@ export const LandingPage = () => {
             <div>
               <h3 className="text-3xl font-bold mb-6">
                 Never miss a{" "}
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   trending moment
                 </span>
               </h3>
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-3">
-                  <TrendingUp className="w-5 h-5 text-green-400" />
-                  <span className="text-gray-300">Trending Hashtags</span>
+                  <TrendingUp className="w-5 h-5 text-accent" />
+                  <span className="text-foreground">Trending Hashtags</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <BarChart3 className="w-5 h-5 text-purple-400" />
-                  <span className="text-gray-300">Viral Scores</span>
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  <span className="text-foreground">Viral Scores</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5 text-blue-400" />
-                  <span className="text-gray-300">Niche Filters</span>
+                  <Users className="w-5 h-5 text-secondary" />
+                  <span className="text-foreground">Niche Filters</span>
                 </div>
               </div>
               <Button
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
+                className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-8 py-4 h-auto hover:opacity-90"
                 onClick={handleGoogleSignUp}
                 disabled={loading}
               >
@@ -398,26 +397,26 @@ export const LandingPage = () => {
             <div className="order-2 lg:order-1">
               <h3 className="text-3xl font-bold mb-6">
                 Personalized{" "}
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   scripts & ideas
                 </span>
               </h3>
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-3">
-                  <Brain className="w-5 h-5 text-purple-400" />
-                  <span className="text-gray-300">Tailored Hooks & CTAs</span>
+                  <Brain className="w-5 h-5 text-primary" />
+                  <span className="text-foreground">Tailored Hooks & CTAs</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <BarChart3 className="w-5 h-5 text-green-400" />
-                  <span className="text-gray-300">Predict Views & Outcomes</span>
+                  <BarChart3 className="w-5 h-5 text-accent" />
+                  <span className="text-foreground">Predict Views & Outcomes</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <TrendingUp className="w-5 h-5 text-blue-400" />
-                  <span className="text-gray-300">Find Untapped Opportunities</span>
+                  <TrendingUp className="w-5 h-5 text-secondary" />
+                  <span className="text-foreground">Find Untapped Opportunities</span>
                 </div>
               </div>
               <Button
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
+                className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-8 py-4 h-auto hover:opacity-90"
                 onClick={handleGoogleSignUp}
                 disabled={loading}
               >
@@ -431,12 +430,12 @@ export const LandingPage = () => {
               </Button>
             </div>
             
-            <div className="order-1 lg:order-2 bg-gradient-to-b from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-8">
-              <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-600">
+            <div className="order-1 lg:order-2 bg-card border rounded-2xl p-8 shadow-lg">
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center border">
                 <div className="text-center">
-                  <Brain className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                  <p className="text-gray-400">Script Generator</p>
-                  <p className="text-sm text-gray-500">AI-powered content creation</p>
+                  <Brain className="w-16 h-16 text-primary mx-auto mb-4" />
+                  <p className="text-muted-foreground">Script Generator</p>
+                  <p className="text-sm text-muted-foreground">AI-powered content creation</p>
                 </div>
               </div>
             </div>
@@ -451,7 +450,7 @@ export const LandingPage = () => {
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Frequently Asked Questions
             </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Everything you need to know about Viraltify
             </p>
           </div>
@@ -475,9 +474,9 @@ export const LandingPage = () => {
                 answer: "Yes, absolutely. Cancel anytime with one click in your account settings. No contracts, no cancellation fees. If you cancel, you'll retain access until your current billing period ends."
               }
             ].map((faq, index) => (
-              <div key={index} className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 border border-gray-700 rounded-lg p-6">
+              <div key={index} className="bg-card border rounded-lg p-6 shadow-lg">
                 <h3 className="text-lg font-semibold mb-2">{faq.question}</h3>
-                <p className="text-gray-400">{faq.answer}</p>
+                <p className="text-muted-foreground">{faq.answer}</p>
               </div>
             ))}
           </div>
@@ -489,17 +488,17 @@ export const LandingPage = () => {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Ready to create{" "}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               viral content
             </span>{" "}
             faster?
           </h2>
-          <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Stop wasting hours researching. Start creating content that actually converts.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button 
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg px-8 py-4 h-auto hover:from-purple-700 hover:to-pink-700"
+              className="bg-gradient-to-r from-primary to-secondary text-primary-foreground text-lg px-8 py-4 h-auto hover:opacity-90 shadow-lg"
               onClick={handleGoogleSignUp}
               disabled={loading}
             >
@@ -513,22 +512,22 @@ export const LandingPage = () => {
             </Button>
             <Button 
               variant="outline" 
-              className="text-white border-white/20 hover:bg-white/10 text-lg px-8 py-4 h-auto"
+              className="text-foreground border-border hover:bg-muted text-lg px-8 py-4 h-auto"
             >
               Contact sales
             </Button>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-green-400" />
+              <Check className="w-4 h-4 text-accent" />
               Free forever
             </span>
             <span className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-green-400" />
+              <Check className="w-4 h-4 text-accent" />
               No credit card required
             </span>
             <span className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-green-400" />
+              <Check className="w-4 h-4 text-accent" />
               Thousands of creators trust us
             </span>
           </div>
@@ -536,35 +535,35 @@ export const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900/50 border-t border-gray-800 py-16">
+      <footer className="bg-muted/50 border-t py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Viraltify
               </h3>
-              <p className="text-gray-400 mb-4">
+              <p className="text-muted-foreground mb-4">
                 Our mission is to empower creators with AI‑powered tools to save time and go viral.
               </p>
               <div className="flex gap-3">
-                <Button size="sm" variant="outline" className="border-gray-600 hover:border-white">
+                <Button size="sm" variant="outline" className="border-border hover:border-primary">
                   <MessageSquare className="w-4 h-4" />
                 </Button>
-                <Button size="sm" variant="outline" className="border-gray-600 hover:border-white">
+                <Button size="sm" variant="outline" className="border-border hover:border-primary">
                   <Share className="w-4 h-4" />
                 </Button>
-                <Button size="sm" variant="outline" className="border-gray-600 hover:border-white">
+                <Button size="sm" variant="outline" className="border-border hover:border-primary">
                   <Users className="w-4 h-4" />
                 </Button>
-                <Button size="sm" variant="outline" className="border-gray-600 hover:border-white">
+                <Button size="sm" variant="outline" className="border-border hover:border-primary">
                   <Play className="w-4 h-4" />
                 </Button>
               </div>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4 text-white">Product</h4>
-              <div className="space-y-2 text-gray-400">
+              <h4 className="font-semibold mb-4 text-foreground">Product</h4>
+              <div className="space-y-2 text-muted-foreground">
                 <p>Trend Radar</p>
                 <p>Script Generator</p>
                 <p>Analytics</p>
@@ -572,8 +571,8 @@ export const LandingPage = () => {
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4 text-white">Company</h4>
-              <div className="space-y-2 text-gray-400">
+              <h4 className="font-semibold mb-4 text-foreground">Company</h4>
+              <div className="space-y-2 text-muted-foreground">
                 <p>About</p>
                 <p>Careers</p>
                 <p>Blog</p>
@@ -581,8 +580,8 @@ export const LandingPage = () => {
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4 text-white">Support</h4>
-              <div className="space-y-2 text-gray-400">
+              <h4 className="font-semibold mb-4 text-foreground">Support</h4>
+              <div className="space-y-2 text-muted-foreground">
                 <p>Help Center</p>
                 <p>Terms</p>
                 <p>Privacy</p>
@@ -590,7 +589,7 @@ export const LandingPage = () => {
             </div>
           </div>
           
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+          <div className="border-t mt-12 pt-8 text-center text-muted-foreground">
             <p>&copy; 2025 Viraltify. All rights reserved.</p>
           </div>
         </div>
