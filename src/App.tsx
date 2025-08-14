@@ -7,6 +7,8 @@ import { AuthProvider } from "@/components/auth/AuthContext";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Navbar } from "@/components/layout/Navbar";
+import { MobileHeader } from "@/components/layout/MobileHeader";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { LandingPage } from "./pages/LandingPage";
 import { AuthPage } from "./pages/AuthPage";
 import { AuthCallback } from "./pages/AuthCallback";
@@ -32,6 +34,7 @@ import ContentCalendar from "./pages/ContentCalendar";
 import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
+import SavedCreators from "./pages/SavedCreators";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +42,7 @@ function AppContent() {
   const location = useLocation();
   const isAuthRoute = location.pathname === "/auth" || location.pathname.startsWith("/auth/");
   const isLandingRoute = location.pathname === "/";
+  const isMobile = useIsMobile();
   
   // Check if we're on the main domain (viraltify.com) vs app subdomain (app.viraltify.com)
   const isMainDomain = window.location.hostname === "viraltify.com" || 
@@ -87,15 +91,24 @@ function AppContent() {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <AppSidebar />
+        {/* Mobile Header */}
+        {isMobile && <MobileHeader />}
+        
+        {/* Desktop Sidebar */}
+        {!isMobile && <AppSidebar />}
+        
         <SidebarInset className="flex-1">
-          <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-            <SidebarTrigger className="-ml-1" />
-            <div className="ml-auto flex items-center space-x-4">
-              {/* Additional header content can go here */}
-            </div>
-          </header>
-          <main className="flex-1 p-6">
+          {/* Desktop Header */}
+          {!isMobile && (
+            <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+              <SidebarTrigger className="-ml-1" />
+              <div className="ml-auto flex items-center space-x-4">
+                {/* Additional header content can go here */}
+              </div>
+            </header>
+          )}
+          
+          <main className={`flex-1 p-6 ${isMobile ? 'pt-4' : ''}`}>
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/tiktok-creators" element={<TikTokCreators />} />
@@ -114,7 +127,8 @@ function AppContent() {
               <Route path="/script-generator" element={<ScriptGenerator />} />
               <Route path="/my-scripts" element={<MyScripts />} />
               <Route path="/content" element={<Content />} />
-              <Route path="/content/calendar" element={<ContentCalendar />} />
+              <Route path="/saved-creators" element={<SavedCreators />} />
+              <Route path="/content-calendar" element={<ContentCalendar />} />
               <Route path="/billing" element={<Billing />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
