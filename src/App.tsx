@@ -90,13 +90,14 @@ function AppContent() {
   // Mobile layout (no sidebar)
   if (isMobile) {
     return (
-      <div className="min-h-screen w-full">
-        {/* Fixed Mobile Header */}
-        <MobileHeader />
-        
-        {/* Main Content with proper top padding */}
-        <main className="pt-16 px-4 pb-6">
-          <Routes>
+      <SidebarProvider>
+        <div className="min-h-screen w-full">
+          {/* Fixed Mobile Header */}
+          <MobileHeader />
+          
+          {/* Main Content with proper top padding */}
+          <main className="pt-16 px-4 pb-6">
+            <Routes>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/tiktok-creators" element={<TikTokCreators />} />
             <Route path="/tiktok-creators/:searchId" element={<TikTokCreatorResults />} />
@@ -121,6 +122,7 @@ function AppContent() {
           </Routes>
         </main>
       </div>
+    </SidebarProvider>
     );
   }
 
