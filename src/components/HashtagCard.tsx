@@ -5,6 +5,7 @@ import { Clock, CheckCircle, AlertCircle, Loader2, Play, Trash2, Hash } from "lu
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { InstallationProgress } from "./InstallationProgress";
 
 interface HashtagSearch {
   id: string;
@@ -156,8 +157,16 @@ export const HashtagCard = ({ search, onViewResults, onDelete }: HashtagCardProp
           </p>
         )}
 
-        {/* Action button */}
-        {search.status === 'completed' && search.total_results > 0 ? (
+        {/* Installation Progress or Action button */}
+        {search.status === 'processing' || search.status === 'pending' ? (
+          <InstallationProgress
+            status={search.status as 'processing' | 'pending'}
+            startTime={search.requested_at}
+            icon={<Hash className="w-4 h-4 text-primary" />}
+            title={`Hashtag #${displayHashtag}`}
+            className="w-full"
+          />
+        ) : search.status === 'completed' && search.total_results > 0 ? (
           <Button
             size="sm"
             className="w-full bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
@@ -169,16 +178,13 @@ export const HashtagCard = ({ search, onViewResults, onDelete }: HashtagCardProp
             <Play className="w-4 h-4 mr-2" />
             View {search.total_results} Videos
           </Button>
-        ) : search.status === 'processing' ? (
-          <Button size="sm" className="w-full" disabled>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Processing...
-          </Button>
         ) : search.status === 'failed' ? (
-          <Button size="sm" variant="outline" className="w-full" disabled>
-            <AlertCircle className="w-4 h-4 mr-2" />
-            Failed
-          </Button>
+          <InstallationProgress
+            status="failed"
+            icon={<Hash className="w-4 h-4 text-destructive" />}
+            title={`Hashtag #${displayHashtag}`}
+            className="w-full"
+          />
         ) : (
           <Button size="sm" variant="outline" className="w-full" disabled>
             <Clock className="w-4 h-4 mr-2" />

@@ -2,6 +2,7 @@ import { Users, Clock, TrendingUp, AlertCircle, Play } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { InstallationProgress } from './InstallationProgress';
 
 interface CreatorSearch {
   id: string;
@@ -131,26 +132,46 @@ export const CreatorSearchCard = ({ search, onViewResults, onDelete }: CreatorSe
           </div>
         )}
 
-        {/* Footer actions */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onViewResults}
-            disabled={!isViewEnabled}
-            className="flex-1 mr-2"
-          >
-            {search.status === 'failed' ? 'Retry' : 'View Creators'}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDelete}
-            className="text-muted-foreground hover:text-destructive"
-          >
-            Delete
-          </Button>
-        </div>
+        {/* Installation Progress or Footer actions */}
+        {search.status === 'running' || search.status === 'queued' ? (
+          <div className="space-y-3">
+            <InstallationProgress
+              status={search.status as 'running' | 'queued'}
+              startTime={search.requested_at}
+              icon={<Users className="w-4 h-4 text-primary" />}
+              title={`Creators: ${search.query}`}
+              className="w-full"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDelete}
+              className="w-full text-muted-foreground hover:text-destructive"
+            >
+              Cancel & Delete
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onViewResults}
+              disabled={!isViewEnabled}
+              className="flex-1 mr-2"
+            >
+              {search.status === 'failed' ? 'Retry' : 'View Creators'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDelete}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              Delete
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
