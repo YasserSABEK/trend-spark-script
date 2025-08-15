@@ -144,17 +144,35 @@ export const ViralReels = () => {
       const processingTime = Math.round((Date.now() - startTime) / 1000);
 
       if (error) {
-        // Update queue with error
+        console.error('❌ Scraping error:', error);
+        
+        // Enhanced error handling for better user experience
+        let errorMessage = error.message;
+        let errorCode = 'UNKNOWN_ERROR';
+        
+        if (error.message.includes('API key not configured') || error.message.includes('MISSING_API_KEY')) {
+          errorMessage = 'Scraping service is temporarily unavailable. Please try again later or contact support.';
+          errorCode = 'MISSING_API_KEY';
+        } else if (error.message.includes('Unauthorized')) {
+          errorMessage = 'API authentication failed. Please contact support.';
+          errorCode = 'API_AUTH_FAILED';
+        } else if (error.message.includes('non-2xx status code')) {
+          errorMessage = 'Service temporarily unavailable. Please try again in a few minutes.';
+          errorCode = 'SERVICE_UNAVAILABLE';
+        }
+        
+        // Update queue with enhanced error info
         await supabase
           .from('search_queue')
           .update({ 
             status: 'failed', 
-            error_message: error.message,
+            error_message: errorMessage,
             processing_time_seconds: processingTime,
             completed_at: new Date().toISOString()
           })
           .eq('id', queueData.id);
-        throw error;
+          
+        throw new Error(errorMessage);
       }
 
       if (data.success && data.data) {

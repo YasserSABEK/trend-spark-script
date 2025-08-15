@@ -89,17 +89,51 @@ serve(async (req) => {
 
     console.log('✅ Credits deducted successfully for user:', user.id, 'Remaining:', creditResult.remaining_credits);
 
+    // Enhanced API key validation and logging
     const apifyApiKey = Deno.env.get('APIFY_API_KEY');
+    const allEnvKeys = Object.keys(Deno.env.toObject()).filter(key => 
+      key.includes('APIFY') || key.includes('API')
+    );
+    
+    console.log('🔍 Environment check for scrape-instagram-hashtags:');
+    console.log('- Key exists:', !!apifyApiKey);
+    console.log('- Key length:', apifyApiKey ? apifyApiKey.length : 0);
+    console.log('- Key prefix:', apifyApiKey ? apifyApiKey.substring(0, 15) + '...' : 'NOT_FOUND');
+    console.log('- All API-related env keys:', allEnvKeys);
+    
     if (!apifyApiKey) {
       console.error('❌ APIFY_API_KEY not found in environment variables');
+      console.error('Available environment keys:', Object.keys(Deno.env.toObject()));
+      
+      // Update search queue with failure status
+      try {
+        if (searchId) {
+          await supabase
+            .from('search_queue')
+            .update({ 
+              status: 'failed',
+              error_message: 'API key not configured'
+            })
+            .eq('id', searchId);
+        }
+      } catch (error) {
+        console.error('Failed to update search queue:', error);
+      }
+      
       return new Response(
-        JSON.stringify({ error: 'API service unavailable. Please contact support.' }),
+        JSON.stringify({ 
+          error: 'Instagram hashtag scraping temporarily unavailable. API key not configured.', 
+          code: 'MISSING_API_KEY',
+          timestamp: new Date().toISOString()
+        }),
         { 
           status: 503, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
+    
+    console.log('✅ APIFY_API_KEY found, proceeding with hashtag scraping...');
 
     // Clean hashtag (remove # if present)
     const cleanHashtag = hashtag.startsWith('#') ? hashtag.slice(1) : hashtag;

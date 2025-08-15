@@ -25,10 +25,25 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const apifyToken = Deno.env.get('APIFY_API_KEY');
+    
+    // Enhanced API key validation and logging
+    const allEnvKeys = Object.keys(Deno.env.toObject()).filter(key => 
+      key.includes('APIFY') || key.includes('API')
+    );
+    
+    console.log('🔍 Environment check for scrape-tiktok-user:');
+    console.log('- APIFY_API_KEY exists:', !!apifyToken);
+    console.log('- APIFY_API_KEY length:', apifyToken ? apifyToken.length : 0);
+    console.log('- APIFY_API_KEY prefix:', apifyToken ? apifyToken.substring(0, 15) + '...' : 'NOT_FOUND');
+    console.log('- All API-related env keys:', allEnvKeys);
+    
     if (!apifyToken) {
       console.error('❌ APIFY_API_KEY not found in environment variables');
-      throw new Error('API service unavailable. Please contact support.');
+      console.error('Available environment keys:', Object.keys(Deno.env.toObject()));
+      throw new Error('TikTok scraping service temporarily unavailable. API key not configured.');
     }
+    
+    console.log('✅ APIFY_API_KEY found, proceeding with TikTok user scraping...');
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 

@@ -79,12 +79,41 @@ serve(async (req) => {
       console.error('Error adding to search queue:', searchError);
     }
 
-    // Configure Apify run
+    // Enhanced API key validation and logging
     const apifyToken = Deno.env.get('APIFY_API_KEY');
+    const allEnvKeys = Object.keys(Deno.env.toObject()).filter(key => 
+      key.includes('APIFY') || key.includes('API')
+    );
+    
+    console.log('🔍 Environment check for scrape-tiktok-hashtags:');
+    console.log('- Key exists:', !!apifyToken);
+    console.log('- Key length:', apifyToken ? apifyToken.length : 0);
+    console.log('- Key prefix:', apifyToken ? apifyToken.substring(0, 15) + '...' : 'NOT_FOUND');
+    console.log('- All API-related env keys:', allEnvKeys);
+    
     if (!apifyToken) {
       console.error('❌ APIFY_API_KEY not found in environment variables');
-      throw new Error('API service unavailable. Please contact support.');
+      console.error('Available environment keys:', Object.keys(Deno.env.toObject()));
+      
+      // Update search queue with failure status  
+      try {
+        if (searchEntry?.id) {
+          await supabase
+            .from('search_queue')
+            .update({ 
+              status: 'failed',
+              error_message: 'API key not configured'
+            })
+            .eq('id', searchEntry.id);
+        }
+      } catch (error) {
+        console.error('Failed to update search queue:', error);
+      }
+      
+      throw new Error('TikTok hashtag scraping temporarily unavailable. API key not configured.');
     }
+    
+    console.log('✅ APIFY_API_KEY found, proceeding with TikTok hashtag scraping...');
 
     const actorId = 'GdWCkxBtKWOsKjdch'; // Corrected TikTok scraper actor ID
     const input = {

@@ -1,5 +1,8 @@
 project_id = "siafgzfpzowztfhlajtn"
 
+[functions.test-apify-access]
+verify_jwt = false
+
 [functions.scrape-instagram]
 verify_jwt = false
 
@@ -37,4 +40,13 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.recover-stuck-analyses]
+verify_jwt = true
+
+[functions.scrape-instagram-hashtags]
+verify_jwt = true
+
+[functions.scrape-tiktok-hashtags]
+verify_jwt = true
+
+[functions.search-tiktok-creators]
 verify_jwt = true
