@@ -65,16 +65,25 @@ function AppContent() {
     );
   }
 
-  // On app subdomain, handle auth/pricing pages with navbar
-  if (isAuthRoute || location.pathname === "/pricing") {
+  // On app subdomain, handle auth pages without navbar for clean design
+  if (isAuthRoute) {
+    return (
+      <Routes>
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    );
+  }
+
+  // Pricing page with navbar
+  if (location.pathname === "/pricing") {
     return (
       <>
         <Navbar />
         <Routes>
           <Route path="/pricing" element={<Pricing />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </>
