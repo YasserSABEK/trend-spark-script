@@ -32,7 +32,7 @@ export function MobileHeader() {
         {/* Center: Logo */}
         <div className="flex items-center flex-1 justify-center min-w-0">
           <img 
-            src="/lovable-uploads/7a468b69-3009-4221-9766-43b7b40b274a.png" 
+            src="/lovable-uploads/20438a19-0f33-4e14-ad03-f2ce206ada62.png" 
             alt="Viraltify logo" 
             className="h-10 w-auto max-w-[120px] shrink-0 object-contain"
           />

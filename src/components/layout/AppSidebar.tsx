@@ -92,7 +92,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center space-x-2 p-3 sm:p-2">
           <img 
-            src="/lovable-uploads/7a468b69-3009-4221-9766-43b7b40b274a.png" 
+            src="/lovable-uploads/20438a19-0f33-4e14-ad03-f2ce206ada62.png" 
             alt="Viraltify logo" 
             className={collapsed ? "w-8 h-8 object-contain" : "h-10 w-auto max-w-[120px] object-contain"}
           />

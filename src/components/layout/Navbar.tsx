@@ -48,7 +48,7 @@ export const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <img 
-                src="/lovable-uploads/7a468b69-3009-4221-9766-43b7b40b274a.png" 
+                src="/lovable-uploads/20438a19-0f33-4e14-ad03-f2ce206ada62.png" 
                 alt="Viraltify logo" 
                 className="h-10 w-auto max-w-[140px] object-contain"
               />
