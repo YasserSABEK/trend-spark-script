@@ -392,7 +392,7 @@ export const ViralReels = () => {
                   onSubmit={scrapeInstagramUser}
                   disabled={scrapingLoading}
                   loading={scrapingLoading}
-                  buttonText="Search Reels (2 Credits)"
+                  buttonText="Search Reels (1 Credit)"
                   buttonIcon={<Search className="w-4 h-4" />}
                   buttonClassName="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
                 />

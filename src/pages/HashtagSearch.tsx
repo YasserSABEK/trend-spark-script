@@ -152,8 +152,8 @@ export function HashtagSearch() {
       return;
     }
 
-    if (!hasCredits(2)) {
-      toast.error("Insufficient credits. You need 2 credits for hashtag search.");
+    if (!hasCredits(1)) {
+      toast.error("Insufficient credits. You need 1 credit for hashtag search.");
       return;
     }
 
@@ -324,11 +324,11 @@ export function HashtagSearch() {
               Search TikTok Hashtags
             </CardTitle>
             <CardDescription>
-              Search for viral TikTok videos by hashtag (2 credits per search)
+              Search for viral TikTok videos by hashtag (1 credit per search)
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CreditGuard requiredCredits={2} action="hashtag search">
+            <CreditGuard requiredCredits={1} action="hashtag search">
               <ResponsiveSearch
                 placeholder="Enter hashtag (e.g., makemoneyonline, fitness, travel)"
                 value={searchTerm}

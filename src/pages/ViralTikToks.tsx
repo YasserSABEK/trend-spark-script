@@ -203,7 +203,7 @@ export const ViralTikToks = () => {
               <p className="text-muted-foreground mb-6">
                 Search for any TikTok username to analyze their most viral videos and get insights for your content strategy.
               </p>
-              <CreditGuard requiredCredits={2} action="search for tiktoks">
+              <CreditGuard requiredCredits={1} action="search for tiktoks">
                 <ResponsiveSearch
                   placeholder="Enter TikTok username (e.g., nike, mrbeast)"
                   value={tiktokUsername}
@@ -211,7 +211,7 @@ export const ViralTikToks = () => {
                   onSubmit={scrapeTikTokUser}
                   disabled={scrapingLoading}
                   loading={scrapingLoading}
-                  buttonText="Search TikToks (2 Credits)"
+                  buttonText="Search TikToks (1 Credit)"
                   buttonIcon={<Search className="w-4 h-4" />}
                   buttonClassName="bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
                 />

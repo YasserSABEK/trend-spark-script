@@ -43,7 +43,7 @@ serve(async (req) => {
     // Use secure credit deduction with proper validation
     const { data: creditResult, error: creditError } = await supabase.rpc('safe_deduct_credits', {
       user_id_param: user.id,
-      credits_to_deduct: 2
+      credits_to_deduct: 1
     });
 
     if (creditError) {

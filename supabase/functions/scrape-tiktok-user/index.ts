@@ -54,7 +54,7 @@ serve(async (req) => {
     // Deduct credits securely
     const { data: creditResult, error: creditError } = await supabase.rpc('safe_deduct_credits', {
       user_id_param: user.id,
-      credits_to_deduct: 2,
+      credits_to_deduct: 1,
     });
     if (creditError) throw new Error('Failed to process credits: ' + creditError.message);
     if (!creditResult.success) throw new Error(creditResult.message || 'Insufficient credits');
