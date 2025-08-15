@@ -18,7 +18,10 @@ Deno.serve(async (req) => {
     const apifyApiKey = Deno.env.get('APIFY_API_KEY');
     
     console.log('Debug: Raw APIFY_API_KEY value:', apifyApiKey);
+    console.log('Debug: APIFY_API_KEY trimmed length:', apifyApiKey ? apifyApiKey.trim().length : 0);
+    console.log('Debug: APIFY_API_KEY starts with "apify_api":', apifyApiKey ? apifyApiKey.startsWith('apify_api') : false);
     console.log('Debug: Environment keys containing "API":', Object.keys(Deno.env.toObject()).filter(k => k.includes('API')));
+    console.log('Debug: All environment keys:', Object.keys(Deno.env.toObject()));
     
     const diagnostics = {
       timestamp: new Date().toISOString(),

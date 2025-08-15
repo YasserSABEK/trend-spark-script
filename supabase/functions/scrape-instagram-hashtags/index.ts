@@ -1,368 +1,233 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get user from Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+      return new Response(JSON.stringify({ error: 'No authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const { hashtag } = await req.json();
-
-    if (!hashtag) {
-      return new Response(
-        JSON.stringify({ error: 'Hashtag is required' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    // Use secure credit deduction with proper validation
-    const { data: creditResult, error: creditError } = await supabaseClient.rpc(
-      'safe_deduct_credits',
-      { user_id_param: user.id, credits_to_deduct: 2 }
-    );
-
-    if (creditError) {
-      console.error('❌ Credit deduction error:', creditError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to process credits' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    if (!creditResult.success) {
-      console.log('❌ Insufficient credits for user:', user.id, creditResult.message);
-      return new Response(
-        JSON.stringify({ 
-          error: creditResult.message,
-          remaining_credits: creditResult.remaining_credits 
-        }),
-        { 
-          status: 402, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    console.log('✅ Credits deducted successfully for user:', user.id, 'Remaining:', creditResult.remaining_credits);
-
-    // Enhanced API key validation and logging
+    // Check if APIFY_API_KEY is available
     const apifyApiKey = Deno.env.get('APIFY_API_KEY');
-    const allEnvKeys = Object.keys(Deno.env.toObject()).filter(key => 
-      key.includes('APIFY') || key.includes('API')
-    );
     
     console.log('🔍 Environment check for scrape-instagram-hashtags:');
-    console.log('- Key exists:', !!apifyApiKey);
-    console.log('- Key length:', apifyApiKey ? apifyApiKey.length : 0);
-    console.log('- Key prefix:', apifyApiKey ? apifyApiKey.substring(0, 15) + '...' : 'NOT_FOUND');
-    console.log('- All API-related env keys:', allEnvKeys);
+    console.log('- APIFY_API_KEY exists:', !!apifyApiKey);
+    console.log('- APIFY_API_KEY length:', apifyApiKey ? apifyApiKey.length : 0);
+    console.log('- APIFY_API_KEY prefix:', apifyApiKey ? apifyApiKey.substring(0, 15) + '...' : 'NOT_FOUND');
+    console.log('- APIFY_API_KEY trimmed length:', apifyApiKey ? apifyApiKey.trim().length : 0);
+    console.log('- SUPABASE_URL exists:', !!Deno.env.get('SUPABASE_URL'));
+    console.log('- SUPABASE_SERVICE_ROLE_KEY exists:', !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+    console.log('- All API-related env keys:', Object.keys(Deno.env.toObject()).filter(key => 
+      key.includes('APIFY') || key.includes('API')
+    ));
     
-    if (!apifyApiKey) {
-      console.error('❌ APIFY_API_KEY not found in environment variables');
-      console.error('Available environment keys:', Object.keys(Deno.env.toObject()));
+    if (!apifyApiKey || apifyApiKey.trim() === '') {
+      console.error('❌ APIFY_API_KEY not found or empty in environment variables');
+      console.log('Available environment keys:', Object.keys(Deno.env.toObject()));
       
-      // Update search queue with failure status
-      try {
-        if (searchId) {
-          await supabase
-            .from('search_queue')
-            .update({ 
-              status: 'failed',
-              error_message: 'API key not configured'
-            })
-            .eq('id', searchId);
-        }
-      } catch (error) {
-        console.error('Failed to update search queue:', error);
-      }
-      
-      return new Response(
-        JSON.stringify({ 
-          error: 'Instagram hashtag scraping temporarily unavailable. API key not configured.', 
-          code: 'MISSING_API_KEY',
-          timestamp: new Date().toISOString()
-        }),
-        { 
-          status: 503, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+      return new Response(JSON.stringify({
+        code: 'MISSING_API_KEY',
+        error: 'Apify API key not configured or empty. Please contact support.'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    const { hashtag, limit = 30 } = await req.json();
     
-    console.log('✅ APIFY_API_KEY found, proceeding with hashtag scraping...');
+    if (!hashtag) {
+      return new Response(JSON.stringify({ error: 'Hashtag is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    // Clean hashtag (remove # if present)
-    const cleanHashtag = hashtag.startsWith('#') ? hashtag.slice(1) : hashtag;
+    // Deduct credits first
+    const creditCost = 5;
+    const { data: creditResult, error: creditError } = await supabase.rpc('spend_credits', {
+      user_id_param: user.id,
+      amount_param: creditCost,
+      reason_param: 'instagram_hashtag_scraping',
+      ref_type_param: 'hashtag',
+      ref_id_param: hashtag
+    });
 
-    console.log(`Starting hashtag scrape for: ${cleanHashtag}`);
+    if (creditError) {
+      console.error('Credit deduction error:', creditError);
+      return new Response(JSON.stringify({
+        code: 'CREDIT_ERROR',
+        error: 'Failed to process credits'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    // Configure Apify actor for hashtag scraping
-    const actorConfig = {
-      hashtags: [cleanHashtag],
-      resultsType: "posts",
-      resultsLimit: 50,
-      searchLimit: 1,
-      addParentData: false,
-    };
+    if (!creditResult?.ok) {
+      return new Response(JSON.stringify({
+        code: 'INSUFFICIENT_CREDITS',
+        error: 'Insufficient credits to perform this operation',
+        current_balance: creditResult?.current_balance || 0
+      }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    // Start Apify actor run
-    const actorResponse = await fetch(
-      'https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs',
-      {
+    console.log(`✅ Credits deducted successfully. New balance: ${creditResult.new_balance}`);
+
+    try {
+      // Create the Apify run
+      const apifyResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apifyApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(actorConfig),
+        body: JSON.stringify({
+          hashtags: [hashtag],
+          resultsLimit: limit,
+          addParentData: false
+        }),
+      });
+
+      if (!apifyResponse.ok) {
+        console.error('Apify API error:', apifyResponse.status, apifyResponse.statusText);
+        
+        // Refund credits on API failure
+        await supabase.rpc('spend_credits', {
+          user_id_param: user.id,
+          amount_param: -creditCost,
+          reason_param: 'instagram_hashtag_scraping_refund',
+          ref_type_param: 'hashtag',
+          ref_id_param: hashtag
+        });
+        
+        throw new Error(`Apify API error: ${apifyResponse.statusText}`);
       }
-    );
 
-    if (!actorResponse.ok) {
-      const errorText = await actorResponse.text();
-      console.error('Apify actor start failed:', errorText);
-      return new Response(
-        JSON.stringify({ error: 'Failed to start scraping job' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      const runData = await apifyResponse.json();
+      console.log('Apify run created:', runData.id);
+
+      // Wait for the run to complete
+      let attempts = 0;
+      const maxAttempts = 30;
+      
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        const statusResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs/${runData.id}`, {
+          headers: {
+            'Authorization': `Bearer ${apifyApiKey}`,
+          },
+        });
+
+        if (!statusResponse.ok) {
+          throw new Error(`Failed to check run status: ${statusResponse.statusText}`);
         }
-      );
-    }
 
-    const runData = await actorResponse.json();
-    const runId = runData.data.id;
-    console.log(`Started Apify run: ${runId}`);
-
-    // Add to search queue
-    const { data: searchQueueData, error: queueError } = await supabaseClient
-      .from('search_queue')
-      .insert({
-        user_id: user.id,
-        platform: 'instagram',
-        username: cleanHashtag, // Using username field for hashtag name
-        hashtag: cleanHashtag,
-        search_type: 'hashtag',
-        status: 'processing',
-      })
-      .select()
-      .single();
-
-    if (queueError) {
-      console.error('Error adding to search queue:', queueError);
-    }
-
-    // Poll for completion
-    let attempts = 0;
-    const maxAttempts = 60; // 5 minutes with 5-second intervals
-    
-    while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-      attempts++;
-
-      const statusResponse = await fetch(
-        `https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs/${runId}`,
-        {
-          headers: { 'Authorization': `Bearer ${apifyApiKey}` },
-        }
-      );
-
-      if (statusResponse.ok) {
         const statusData = await statusResponse.json();
-        console.log(`Run status (attempt ${attempts}):`, statusData.data.status);
+        console.log(`Run status: ${statusData.data.status}`);
 
         if (statusData.data.status === 'SUCCEEDED') {
-          console.log('Run completed successfully');
-          
-          // Get dataset items
-          const datasetResponse = await fetch(
-            `https://api.apify.com/v2/datasets/${statusData.data.defaultDatasetId}/items`,
-            {
-              headers: { 'Authorization': `Bearer ${apifyApiKey}` },
-            }
-          );
+          // Get the results
+          const resultsResponse = await fetch(`https://api.apify.com/v2/datasets/${statusData.data.defaultDatasetId}/items`, {
+            headers: {
+              'Authorization': `Bearer ${apifyApiKey}`,
+            },
+          });
 
-          if (datasetResponse.ok) {
-            const posts = await datasetResponse.json();
-            console.log(`Retrieved ${posts.length} posts for hashtag: ${cleanHashtag}`);
-
-            // Process and filter posts for Reels from the last year
-            const oneYearAgo = new Date();
-            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-
-            const processedPosts = posts
-              .filter((post: any) => {
-                // Filter for video content and recent posts
-                const postDate = new Date(post.timestamp);
-                return post.type === 'Video' || post.isVideo === true && postDate >= oneYearAgo;
-              })
-              .map((post: any) => ({
-                post_id: post.id || post.shortCode,
-                url: post.url,
-                shortcode: post.shortCode,
-                caption: post.caption || '',
-                hashtags: extractHashtags(post.caption || ''),
-                mentions: post.mentions || [],
-                username: post.ownerUsername,
-                display_name: post.ownerFullName,
-                followers: null,
-                verified: post.isVerified || false,
-                likes: post.likesCount || 0,
-                comments: post.commentsCount || 0,
-                video_view_count: post.videoViewCount || 0,
-                video_play_count: post.videoPlayCount || 0,
-                viral_score: calculateViralScore(
-                  post.likesCount || 0,
-                  post.commentsCount || 0,
-                  post.videoViewCount || 0
-                ),
-                engagement_rate: calculateEngagementRate(
-                  post.likesCount || 0,
-                  post.commentsCount || 0
-                ),
-                timestamp: post.timestamp,
-                thumbnail_url: post.displayUrl,
-                video_url: post.videoUrl,
-                video_duration: post.videoDuration,
-                is_video: true,
-                search_hashtag: cleanHashtag,
-                search_status: 'completed',
-                product_type: 'clips',
-                user_id: user.id, // Add user association for RLS
-              }));
-
-            // Insert posts into database
-            if (processedPosts.length > 0) {
-              const { error: insertError } = await supabaseClient
-                .from('instagram_reels')
-                .insert(processedPosts);
-
-              if (insertError) {
-                console.error('Error inserting posts:', insertError);
-              } else {
-                console.log(`Inserted ${processedPosts.length} posts`);
-              }
-            }
-
-            // Update search queue status
-            if (searchQueueData) {
-              await supabaseClient
-                .from('search_queue')
-                .update({
-                  status: 'completed',
-                  completed_at: new Date().toISOString(),
-                  total_results: processedPosts.length,
-                })
-                .eq('id', searchQueueData.id);
-            }
-
-            return new Response(
-              JSON.stringify({
-                success: true,
-                hashtag: cleanHashtag,
-                totalPosts: processedPosts.length,
-                posts: processedPosts.slice(0, 20), // Return first 20 for immediate display
-              }),
-              { 
-                status: 200, 
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-              }
-            );
+          if (!resultsResponse.ok) {
+            throw new Error(`Failed to fetch results: ${resultsResponse.statusText}`);
           }
+
+          const results = await resultsResponse.json();
+          console.log(`✅ Retrieved ${results.length} hashtag results`);
+
+          return new Response(JSON.stringify({ 
+            success: true, 
+            data: results,
+            credits_used: creditCost,
+            remaining_credits: creditResult.new_balance
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
         } else if (statusData.data.status === 'FAILED') {
+          // Refund credits on scraping failure
+          await supabase.rpc('spend_credits', {
+            user_id_param: user.id,
+            amount_param: -creditCost,
+            reason_param: 'instagram_hashtag_scraping_refund',
+            ref_type_param: 'hashtag',
+            ref_id_param: hashtag
+          });
+          
           throw new Error('Scraping job failed');
         }
-      }
-    }
 
-    // Timeout
-    if (searchQueueData) {
-      await supabaseClient
-        .from('search_queue')
-        .update({
-          status: 'failed',
-          error_message: 'Timeout waiting for scraping to complete',
-        })
-        .eq('id', searchQueueData.id);
-    }
-
-    return new Response(
-      JSON.stringify({ error: 'Timeout waiting for scraping to complete' }),
-      { 
-        status: 408, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        attempts++;
       }
-    );
+
+      // Timeout - refund credits
+      await supabase.rpc('spend_credits', {
+        user_id_param: user.id,
+        amount_param: -creditCost,
+        reason_param: 'instagram_hashtag_scraping_refund',
+        ref_type_param: 'hashtag',
+        ref_id_param: hashtag
+      });
+      
+      throw new Error('Scraping job timed out');
+
+    } catch (scrapingError) {
+      console.error('Scraping error:', scrapingError);
+      
+      return new Response(JSON.stringify({
+        code: 'SCRAPING_ERROR',
+        error: scrapingError.message || 'Failed to scrape Instagram hashtag'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
   } catch (error) {
-    console.error('Error in hashtag scraping:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    console.error('Function error:', error);
+    
+    return new Response(JSON.stringify({
+      error: error.message || 'An unexpected error occurred'
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });
-
-// Helper functions
-function extractHashtags(caption: string): string[] {
-  const hashtagRegex = /#[a-zA-Z0-9_]+/g;
-  return caption.match(hashtagRegex) || [];
-}
-
-function calculateViralScore(likes: number, comments: number, views: number = 0): number {
-  const engagement = likes + (comments * 3);
-  const viewRatio = views > 0 ? engagement / views : 0;
-  return Math.floor((engagement * 0.7) + (viewRatio * 100 * 0.3));
-}
-
-function calculateEngagementRate(likes: number, comments: number): number {
-  const totalEngagement = likes + comments;
-  return parseFloat((totalEngagement * 0.1).toFixed(2)); // Simplified calculation
-}

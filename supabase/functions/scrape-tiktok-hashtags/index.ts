@@ -81,19 +81,21 @@ serve(async (req) => {
 
     // Enhanced API key validation and logging
     const apifyToken = Deno.env.get('APIFY_API_KEY');
-    const allEnvKeys = Object.keys(Deno.env.toObject()).filter(key => 
-      key.includes('APIFY') || key.includes('API')
-    );
     
     console.log('🔍 Environment check for scrape-tiktok-hashtags:');
-    console.log('- Key exists:', !!apifyToken);
-    console.log('- Key length:', apifyToken ? apifyToken.length : 0);
-    console.log('- Key prefix:', apifyToken ? apifyToken.substring(0, 15) + '...' : 'NOT_FOUND');
-    console.log('- All API-related env keys:', allEnvKeys);
+    console.log('- APIFY_API_KEY exists:', !!apifyToken);
+    console.log('- APIFY_API_KEY length:', apifyToken ? apifyToken.length : 0);
+    console.log('- APIFY_API_KEY prefix:', apifyToken ? apifyToken.substring(0, 15) + '...' : 'NOT_FOUND');
+    console.log('- APIFY_API_KEY trimmed length:', apifyToken ? apifyToken.trim().length : 0);
+    console.log('- SUPABASE_URL exists:', !!Deno.env.get('SUPABASE_URL'));
+    console.log('- SUPABASE_SERVICE_ROLE_KEY exists:', !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+    console.log('- All API-related env keys:', Object.keys(Deno.env.toObject()).filter(key => 
+      key.includes('APIFY') || key.includes('API')
+    ));
     
-    if (!apifyToken) {
-      console.error('❌ APIFY_API_KEY not found in environment variables');
-      console.error('Available environment keys:', Object.keys(Deno.env.toObject()));
+    if (!apifyToken || apifyToken.trim() === '') {
+      console.error('❌ APIFY_API_KEY not found or empty in environment variables');
+      console.log('Available environment keys:', Object.keys(Deno.env.toObject()));
       
       // Update search queue with failure status  
       try {
@@ -102,7 +104,7 @@ serve(async (req) => {
             .from('search_queue')
             .update({ 
               status: 'failed',
-              error_message: 'API key not configured'
+              error_message: 'API key not configured or empty'
             })
             .eq('id', searchEntry.id);
         }
@@ -110,7 +112,7 @@ serve(async (req) => {
         console.error('Failed to update search queue:', error);
       }
       
-      throw new Error('TikTok hashtag scraping temporarily unavailable. API key not configured.');
+      throw new Error('TikTok hashtag scraping temporarily unavailable. API key not configured or empty.');
     }
     
     console.log('✅ APIFY_API_KEY found, proceeding with TikTok hashtag scraping...');

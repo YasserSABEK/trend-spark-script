@@ -79,30 +79,29 @@ Deno.serve(async (req) => {
 
     // Enhanced API key validation and logging
     const apifyApiKey = Deno.env.get('APIFY_API_KEY');
-    const allEnvKeys = Object.keys(Deno.env.toObject()).filter(key => 
+    
+    console.log('🔍 Environment check for scrape-instagram:');
+    console.log('- APIFY_API_KEY exists:', !!apifyApiKey);
+    console.log('- APIFY_API_KEY length:', apifyApiKey ? apifyApiKey.length : 0);
+    console.log('- APIFY_API_KEY prefix:', apifyApiKey ? apifyApiKey.substring(0, 15) + '...' : 'NOT_FOUND');
+    console.log('- APIFY_API_KEY trimmed length:', apifyApiKey ? apifyApiKey.trim().length : 0);
+    console.log('- SUPABASE_URL exists:', !!Deno.env.get('SUPABASE_URL'));
+    console.log('- SUPABASE_SERVICE_ROLE_KEY exists:', !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+    console.log('- All API-related env keys:', Object.keys(Deno.env.toObject()).filter(key => 
       key.includes('APIFY') || key.includes('API')
-    );
+    ));
     
-    console.log('🔍 Environment check for APIFY_API_KEY:');
-    console.log('- Key exists:', !!apifyApiKey);
-    console.log('- Key length:', apifyApiKey ? apifyApiKey.length : 0);
-    console.log('- Key prefix:', apifyApiKey ? apifyApiKey.substring(0, 15) + '...' : 'NOT_FOUND');
-    console.log('- All API-related env keys:', allEnvKeys);
-    
-    if (!apifyApiKey) {
-      console.error('❌ APIFY_API_KEY not found in environment variables');
-      console.error('Available environment keys:', Object.keys(Deno.env.toObject()));
-      return new Response(
-        JSON.stringify({ 
-          error: 'Scraping service temporarily unavailable. API key not configured.', 
-          code: 'MISSING_API_KEY',
-          timestamp: new Date().toISOString()
-        }),
-        { 
-          status: 503, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+    if (!apifyApiKey || apifyApiKey.trim() === '') {
+      console.error('❌ APIFY_API_KEY not found or empty in environment variables');
+      console.log('Available environment keys:', Object.keys(Deno.env.toObject()));
+      
+      return new Response(JSON.stringify({
+        code: 'MISSING_API_KEY',
+        error: 'Apify API key not configured or empty. Please contact support.'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
     
     console.log('✅ APIFY_API_KEY found, proceeding with scraping...');
