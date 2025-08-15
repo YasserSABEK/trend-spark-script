@@ -73,15 +73,12 @@ export function MobileSidebar({ onClose }: MobileSidebarProps) {
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
       <div className="border-b p-4">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center">
           <img 
-            src="/lovable-uploads/a6a45a07-ab6a-4a98-9503-3624cff4fda0.png" 
+            src="/lovable-uploads/b53ba23d-aedf-4a64-a602-a32711e3f4a9.png" 
             alt="Viraltify logo" 
-            className="w-8 h-8"
+            className="h-8 w-auto"
           />
-          <span className="text-lg font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
-            Viraltify
-          </span>
         </div>
       </div>
 

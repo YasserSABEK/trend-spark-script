@@ -30,15 +30,12 @@ export function MobileHeader() {
         </Sheet>
 
         {/* Center: Logo */}
-        <div className="flex items-center space-x-1.5 flex-1 justify-center min-w-0">
+        <div className="flex items-center flex-1 justify-center min-w-0">
           <img 
-            src="/lovable-uploads/a6a45a07-ab6a-4a98-9503-3624cff4fda0.png" 
+            src="/lovable-uploads/b53ba23d-aedf-4a64-a602-a32711e3f4a9.png" 
             alt="Viraltify logo" 
-            className="w-5 h-5 shrink-0"
+            className="h-5 w-auto shrink-0"
           />
-          <span className="text-sm font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent truncate">
-            Viraltify
-          </span>
         </div>
 
         {/* Right: Profile + Credits */}

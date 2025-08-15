@@ -46,15 +46,12 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center">
               <img 
-                src="/lovable-uploads/a6a45a07-ab6a-4a98-9503-3624cff4fda0.png" 
+                src="/lovable-uploads/b53ba23d-aedf-4a64-a602-a32711e3f4a9.png" 
                 alt="Viraltify logo" 
-                className="w-8 h-8"
+                className="h-8 w-auto"
               />
-              <span className="text-xl font-bold bg-gradient-to-r from-instagram-pink to-instagram-purple bg-clip-text text-transparent">
-                Viraltify
-              </span>
             </Link>
           </div>
 
