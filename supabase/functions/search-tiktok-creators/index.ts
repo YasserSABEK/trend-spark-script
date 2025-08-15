@@ -65,18 +65,32 @@ serve(async (req) => {
       });
     }
 
-    if (!apifyApiKey) {
-      console.error('❌ APIFY_API_KEY not found in environment variables');
-      console.error('Available environment keys:', Object.keys(Deno.env.toObject()));
-      return new Response(JSON.stringify({ 
-        error: 'TikTok creator search temporarily unavailable. API key not configured.',
-        code: 'MISSING_API_KEY',
-        timestamp: new Date().toISOString()
-      }), {
-        status: 503,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+  if (!apifyApiKey) {
+    console.error('❌ APIFY_API_KEY not found in environment variables');
+    console.error('Available environment keys:', Object.keys(Deno.env.toObject()));
+    
+    // Refund credits since the function failed
+    if (user) {
+      try {
+        await supabase.rpc('add_credits', {
+          user_id_param: user.id,
+          credits_to_add: 5
+        });
+        console.log('✅ Refunded credits due to API key issue');
+      } catch (refundError) {
+        console.error('Failed to refund credits:', refundError);
+      }
     }
+    
+    return new Response(JSON.stringify({
+      error: 'TikTok creator search temporarily unavailable. API key not configured.',
+      code: 'MISSING_API_KEY',
+      timestamp: new Date().toISOString()
+    }), {
+      status: 503,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
     
     console.log('✅ All environment variables found, proceeding with TikTok creator search...');
     

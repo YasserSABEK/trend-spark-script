@@ -17,11 +17,14 @@ Deno.serve(async (req) => {
     // Check if APIFY_API_KEY is available
     const apifyApiKey = Deno.env.get('APIFY_API_KEY');
     
+    console.log('Debug: Raw APIFY_API_KEY value:', apifyApiKey);
+    console.log('Debug: Environment keys containing "API":', Object.keys(Deno.env.toObject()).filter(k => k.includes('API')));
+    
     const diagnostics = {
       timestamp: new Date().toISOString(),
       apifyKeyExists: !!apifyApiKey,
       apifyKeyLength: apifyApiKey ? apifyApiKey.length : 0,
-      apifyKeyPrefix: apifyApiKey ? apifyApiKey.substring(0, 10) + '...' : 'NOT_FOUND',
+      apifyKeyPrefix: apifyApiKey ? apifyApiKey.substring(0, 15) + '...' : 'NOT_FOUND',
       environment: {
         supabaseUrl: !!Deno.env.get('SUPABASE_URL'),
         supabaseServiceKey: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
@@ -29,7 +32,11 @@ Deno.serve(async (req) => {
       },
       allEnvKeys: Object.keys(Deno.env.toObject()).filter(key => 
         key.includes('APIFY') || key.includes('API')
-      )
+      ),
+      rawEnvCheck: {
+        hasApifyKey: 'APIFY_API_KEY' in Deno.env.toObject(),
+        allKeys: Object.keys(Deno.env.toObject())
+      }
     };
 
     console.log('📊 Environment Diagnostics:', JSON.stringify(diagnostics, null, 2));
