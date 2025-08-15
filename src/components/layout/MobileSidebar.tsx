@@ -77,7 +77,7 @@ export function MobileSidebar({ onClose }: MobileSidebarProps) {
           <img 
             src="/lovable-uploads/7a468b69-3009-4221-9766-43b7b40b274a.png" 
             alt="Viraltify logo" 
-            className="h-8 w-auto max-w-[120px] object-contain"
+            className="h-12 w-auto max-w-[160px] object-contain"
           />
         </div>
       </div>
