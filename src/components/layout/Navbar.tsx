@@ -50,7 +50,7 @@ export const Navbar = () => {
               <img 
                 src="/lovable-uploads/7a468b69-3009-4221-9766-43b7b40b274a.png" 
                 alt="Viraltify logo" 
-                className="h-10 w-auto max-w-[140px] object-contain"
+                className="w-40 h-40 object-contain"
               />
             </Link>
           </div>
