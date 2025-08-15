@@ -20,6 +20,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 const navigationItems = [
   { title: "Home", url: "/dashboard", icon: Home },
+];
+
+const bottomNavigationItems = [
   { title: "Script Generator", url: "/script-generator", icon: Edit3 },
   { title: "Content Calendar", url: "/content-calendar", icon: Calendar },
   { title: "Billing", url: "/billing", icon: CreditCard },
@@ -84,7 +87,7 @@ export function MobileSidebar({ onClose }: MobileSidebarProps) {
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {/* Main Navigation */}
+        {/* Home */}
         {navigationItems.map((item) => (
           <NavLink
             key={item.url}
@@ -213,6 +216,25 @@ export function MobileSidebar({ onClose }: MobileSidebarProps) {
             ))}
           </CollapsibleContent>
         </Collapsible>
+
+        {/* Bottom Navigation Items */}
+        {bottomNavigationItems.map((item) => (
+          <NavLink
+            key={item.url}
+            to={item.url}
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center space-x-3 px-3 py-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-primary text-primary-foreground font-medium"
+                  : "hover:bg-muted text-foreground"
+              }`
+            }
+          >
+            <item.icon className="w-5 h-5" />
+            <span>{item.title}</span>
+          </NavLink>
+        ))}
       </div>
 
       {/* Footer */}
