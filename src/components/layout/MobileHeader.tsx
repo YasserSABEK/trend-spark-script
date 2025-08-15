@@ -34,7 +34,7 @@ export function MobileHeader() {
           <img 
             src="/lovable-uploads/7a468b69-3009-4221-9766-43b7b40b274a.png" 
             alt="Viraltify logo" 
-            className="h-18 sm:h-22 w-auto max-w-[200px] sm:max-w-[240px] shrink-0 object-contain"
+            className="h-8 w-auto max-w-[120px] shrink-0 object-contain"
           />
         </div>
 
