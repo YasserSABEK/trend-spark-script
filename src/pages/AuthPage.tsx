@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
 
 export const AuthPage = () => {
@@ -86,11 +86,13 @@ export const AuthPage = () => {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <img 
-            src="/lovable-uploads/20438a19-0f33-4e14-ad03-f2ce206ada62.png" 
-            alt="Viraltify" 
-            className="h-12 w-auto object-contain"
-          />
+          <Link to="/" className="hover:opacity-80 transition-opacity">
+            <img 
+              src="/lovable-uploads/20438a19-0f33-4e14-ad03-f2ce206ada62.png" 
+              alt="Viraltify" 
+              className="h-12 w-auto object-contain"
+            />
+          </Link>
         </div>
 
         {/* Header */}
