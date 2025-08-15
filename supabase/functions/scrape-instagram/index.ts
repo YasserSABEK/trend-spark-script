@@ -82,11 +82,11 @@ Deno.serve(async (req) => {
 
     const apifyApiKey = Deno.env.get('APIFY_API_KEY');
     if (!apifyApiKey) {
-      console.error('APIFY_API_KEY not found in environment variables');
+      console.error('❌ APIFY_API_KEY not found in environment variables');
       return new Response(
-        JSON.stringify({ error: 'API configuration error' }),
+        JSON.stringify({ error: 'API service unavailable. Please contact support.' }),
         { 
-          status: 500, 
+          status: 503, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );

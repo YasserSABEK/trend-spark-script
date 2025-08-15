@@ -25,7 +25,10 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const apifyToken = Deno.env.get('APIFY_API_KEY');
-    if (!apifyToken) throw new Error('Apify API key not configured');
+    if (!apifyToken) {
+      console.error('❌ APIFY_API_KEY not found in environment variables');
+      throw new Error('API service unavailable. Please contact support.');
+    }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 

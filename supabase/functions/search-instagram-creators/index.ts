@@ -33,9 +33,26 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const apifyApiKey = Deno.env.get('APIFY_API_KEY')!;
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const apifyApiKey = Deno.env.get('APIFY_API_KEY');
+
+  // Validate environment variables
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Missing Supabase environment variables');
+    return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (!apifyApiKey) {
+    console.error('APIFY_API_KEY not found in environment variables');
+    return new Response(JSON.stringify({ error: 'API service unavailable' }), {
+      status: 503,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -149,7 +166,9 @@ serve(async (req) => {
     });
 
     if (!runResponse.ok) {
-      throw new Error(`Failed to start Apify run: ${runResponse.statusText}`);
+      const errorText = await runResponse.text();
+      console.error('Apify run failed:', runResponse.status, runResponse.statusText, errorText);
+      throw new Error(`Failed to start Apify run: ${runResponse.statusText} - ${errorText}`);
     }
 
     const runData = await runResponse.json();
@@ -271,19 +290,24 @@ serve(async (req) => {
     
     // Update search queue status if we have a searchId
     try {
-      const { searchId } = await req.json();
-      if (searchId) {
-        await supabase
+      const requestBody = await req.text();
+      const requestData = JSON.parse(requestBody);
+      if (requestData.searchId) {
+        const { error: updateError } = await supabase
           .from('search_queue')
           .update({
             status: 'failed',
             error_message: error.message,
             completed_at: new Date().toISOString()
           })
-          .eq('id', searchId);
+          .eq('id', requestData.searchId);
+        
+        if (updateError) {
+          console.error('Error updating search status:', updateError);
+        }
       }
     } catch (updateError) {
-      console.error('Error updating search status:', updateError);
+      console.error('Error parsing request for status update:', updateError);
     }
 
     return new Response(JSON.stringify({ error: error.message }), {

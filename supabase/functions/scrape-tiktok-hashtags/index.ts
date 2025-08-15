@@ -82,7 +82,8 @@ serve(async (req) => {
     // Configure Apify run
     const apifyToken = Deno.env.get('APIFY_API_KEY');
     if (!apifyToken) {
-      throw new Error('Apify API key not configured');
+      console.error('❌ APIFY_API_KEY not found in environment variables');
+      throw new Error('API service unavailable. Please contact support.');
     }
 
     const actorId = 'GdWCkxBtKWOsKjdch'; // Corrected TikTok scraper actor ID
