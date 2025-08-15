@@ -7,6 +7,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { CreditGuard } from '@/components/credits/CreditGuard';
 import { CostPreview } from '@/components/credits/CostPreview';
 import { CreatorSearchCard } from '@/components/CreatorSearchCard';
+import { ResponsiveSearch } from '@/components/ui/responsive-search';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
 import { toast } from 'sonner';
@@ -199,30 +200,19 @@ export default function TikTokCreators() {
 
         {/* Search Form */}
         <div className="space-y-6">
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <Input
-                placeholder="Enter niche (e.g., make money online, fitness hacks)"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="text-base"
-              />
-            </div>
-            <CreditGuard
-              requiredCredits={1}
-              action="search for creators"
-            >
-              <Button 
-                onClick={handleSearch}
-                disabled={!query.trim() || isSearching}
-                className="px-6"
-              >
-                <Search className="w-4 h-4 mr-2" />
-                {isSearching ? 'Searching...' : 'Search Creators'}
-              </Button>
-            </CreditGuard>
-          </div>
+          <CreditGuard requiredCredits={1} action="search for creators">
+            <ResponsiveSearch
+              placeholder="Enter niche (e.g., make money online, fitness hacks)"
+              value={query}
+              onChange={setQuery}
+              onSubmit={handleSearch}
+              disabled={isSearching}
+              loading={isSearching}
+              buttonText="Search Creators"
+              buttonIcon={<Search className="w-4 h-4" />}
+              buttonClassName="bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
+            />
+          </CreditGuard>
         </div>
 
         {/* My Creator Searches */}

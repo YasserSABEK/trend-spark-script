@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
 import { SearchCard } from "@/components/SearchCard";
+import { ResponsiveSearch } from "@/components/ui/responsive-search";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -202,29 +203,19 @@ export const ViralTikToks = () => {
               <p className="text-muted-foreground mb-6">
                 Search for any TikTok username to analyze their most viral videos and get insights for your content strategy.
               </p>
-              <div className="flex gap-2">
-                <Input
+              <CreditGuard requiredCredits={2} action="search for tiktoks">
+                <ResponsiveSearch
                   placeholder="Enter TikTok username (e.g., nike, mrbeast)"
                   value={tiktokUsername}
-                  onChange={(e) => setTiktokUsername(e.target.value)}
-                  className="flex-1"
+                  onChange={setTiktokUsername}
+                  onSubmit={scrapeTikTokUser}
                   disabled={scrapingLoading}
+                  loading={scrapingLoading}
+                  buttonText="Search TikToks (2 Credits)"
+                  buttonIcon={<Search className="w-4 h-4" />}
+                  buttonClassName="bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
                 />
-                <CreditGuard requiredCredits={2} action="search for tiktoks">
-                  <Button
-                    onClick={scrapeTikTokUser}
-                    disabled={scrapingLoading || !tiktokUsername.trim()}
-                    className="bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
-                  >
-                    {scrapingLoading ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Search className="w-4 h-4 mr-2" />
-                    )}
-                    {scrapingLoading ? 'Searching...' : 'Search TikToks (2 Credits)'}
-                  </Button>
-                </CreditGuard>
-              </div>
+              </CreditGuard>
             </CardContent>
           </Card>
 

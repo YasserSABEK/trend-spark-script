@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { ResponsiveSearch } from "@/components/ui/responsive-search";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -259,8 +260,7 @@ export function HashtagSearch() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = () => {
     if (searchTerm.trim()) {
       scrapeHashtagPosts(searchTerm.trim());
     }
@@ -328,32 +328,20 @@ export function HashtagSearch() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <div className="relative flex-1">
-                <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Enter hashtag (e.g., makemoneyonline, fitness, travel)"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <CreditGuard requiredCredits={2} action="hashtag search">
-                <Button 
-                  type="submit" 
-                  disabled={loading || !searchTerm.trim()}
-                  className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
-                >
-                  {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Search className="w-4 h-4" />
-                  )}
-                  {loading ? "Searching..." : "Search TikToks"}
-                </Button>
-              </CreditGuard>
-            </form>
+            <CreditGuard requiredCredits={2} action="hashtag search">
+              <ResponsiveSearch
+                placeholder="Enter hashtag (e.g., makemoneyonline, fitness, travel)"
+                value={searchTerm}
+                onChange={setSearchTerm}
+                onSubmit={handleSearch}
+                disabled={loading}
+                loading={loading}
+                buttonText="Search TikToks"
+                buttonIcon={<Search className="w-4 h-4" />}
+                leftIcon={<Hash className="w-4 h-4" />}
+                buttonClassName="bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
+              />
+            </CreditGuard>
             {balance > 0 && (
               <p className="text-sm text-muted-foreground mt-2">
                 Available credits: {balance}

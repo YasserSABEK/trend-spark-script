@@ -120,7 +120,7 @@ export default function SavedCreators() {
               placeholder="Search saved creators..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full"
             />
           </div>
         </div>

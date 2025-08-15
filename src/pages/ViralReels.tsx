@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Filter, TrendingUp, Search, ChevronDown, Loader2 } from "lucide-react";
 import { ReelCard } from "@/components/ReelCard";
 import { SearchCard } from "@/components/SearchCard";
+import { ResponsiveSearch } from "@/components/ui/responsive-search";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -362,32 +363,22 @@ export const ViralReels = () => {
               <p className="text-muted-foreground mb-6">
                 Search for any Instagram username to analyze their most viral reels and get insights for your content strategy.
               </p>
-              <div className="flex gap-2">
-                <Input
+              <CreditGuard
+                requiredCredits={2}
+                action="search for reels"
+              >
+                <ResponsiveSearch
                   placeholder="Enter Instagram username (e.g., nike, cristiano)"
                   value={instagramUsername}
-                  onChange={(e) => setInstagramUsername(e.target.value)}
-                  className="flex-1"
+                  onChange={setInstagramUsername}
+                  onSubmit={scrapeInstagramUser}
                   disabled={scrapingLoading}
+                  loading={scrapingLoading}
+                  buttonText="Search Reels (2 Credits)"
+                  buttonIcon={<Search className="w-4 h-4" />}
+                  buttonClassName="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
                 />
-                <CreditGuard
-                  requiredCredits={2}
-                  action="search for reels"
-                >
-                  <Button
-                    onClick={scrapeInstagramUser}
-                    disabled={scrapingLoading || !instagramUsername.trim()}
-                    className="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
-                  >
-                    {scrapingLoading ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Search className="w-4 h-4 mr-2" />
-                    )}
-                    {scrapingLoading ? 'Searching...' : 'Search Reels (2 Credits)'}
-                  </Button>
-                </CreditGuard>
-              </div>
+              </CreditGuard>
             </CardContent>
           </Card>
 

@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
-import { Search, Hash, TrendingUp, Loader2 } from "lucide-react";
+import { Hash, Search, Loader2, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/auth/AuthContext";
-import { useCreditBalance } from "@/hooks/useCreditBalance";
+import { ResponsiveSearch } from "@/components/ui/responsive-search";
 import { CreditGuard } from "@/components/credits/CreditGuard";
 import { InstagramHashtagCard } from "@/components/InstagramHashtagCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/auth/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { useCreditBalance } from "@/hooks/useCreditBalance";
+import { toast } from "sonner";
 
 interface HashtagSearch {
   id: string;
@@ -157,8 +159,7 @@ export function InstagramHashtags() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = () => {
     if (searchTerm.trim()) {
       scrapeHashtagPosts(searchTerm.trim());
     }
@@ -183,32 +184,20 @@ export function InstagramHashtags() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <div className="relative flex-1">
-                <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Enter hashtag (e.g., travel, fitness, food)"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <CreditGuard requiredCredits={2} action="hashtag search">
-                <Button 
-                  type="submit" 
-                  disabled={loading || !searchTerm.trim()}
-                  className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
-                >
-                  {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Search className="w-4 h-4" />
-                  )}
-                  {loading ? "Searching..." : "Search Reels"}
-                </Button>
-              </CreditGuard>
-            </form>
+            <CreditGuard requiredCredits={2} action="hashtag search">
+              <ResponsiveSearch
+                placeholder="Enter hashtag (e.g., travel, fitness, food)"
+                value={searchTerm}
+                onChange={setSearchTerm}
+                onSubmit={handleSearch}
+                disabled={loading}
+                loading={loading}
+                buttonText="Search Reels"
+                buttonIcon={<Search className="w-4 h-4" />}
+                leftIcon={<Hash className="w-4 h-4" />}
+                buttonClassName="bg-gradient-to-r from-instagram-pink to-instagram-purple hover:opacity-90"
+              />
+            </CreditGuard>
             {balance > 0 && (
               <p className="text-sm text-muted-foreground mt-2">
                 Available credits: {balance}
