@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useCredits } from '@/hooks/useCredits';
+import { useCreditBalance } from '@/hooks/useCreditBalance';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Coins, Zap } from 'lucide-react';
@@ -12,9 +12,9 @@ interface CreditGuardProps {
 }
 
 export const CreditGuard = ({ children, requiredCredits, action, onProceed }: CreditGuardProps) => {
-  const { credits, hasCredits } = useCredits();
+  const { balance, hasCredits, plan } = useCreditBalance();
 
-  if (!credits || hasCredits(requiredCredits)) {
+  if (!plan || hasCredits(requiredCredits)) {
     return <>{children}</>;
   }
 
@@ -30,7 +30,7 @@ export const CreditGuard = ({ children, requiredCredits, action, onProceed }: Cr
             Insufficient Credits
           </DialogTitle>
           <DialogDescription>
-            You need {requiredCredits} credits to {action}, but you only have {credits.current_credits} credits remaining.
+            You need {requiredCredits} credits to {action}, but you only have {balance} credits remaining.
           </DialogDescription>
         </DialogHeader>
         
@@ -38,11 +38,11 @@ export const CreditGuard = ({ children, requiredCredits, action, onProceed }: Cr
           <div className="p-4 bg-muted rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Current Plan</span>
-              <span className="text-sm capitalize">{credits.subscription_plan}</span>
+              <span className="text-sm capitalize">{plan.name}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">Credits Remaining</span>
-              <span className="text-sm font-medium">{credits.current_credits}</span>
+              <span className="text-sm font-medium">{balance}</span>
             </div>
           </div>
           

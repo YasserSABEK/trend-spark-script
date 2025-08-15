@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthContext";
-import { useCredits } from "@/hooks/useCredits";
+import { useCreditBalance } from "@/hooks/useCreditBalance";
 import { CreditGuard } from "@/components/credits/CreditGuard";
 import { InstagramHashtagCard } from "@/components/InstagramHashtagCard";
 
@@ -22,7 +22,7 @@ interface HashtagSearch {
 
 export function InstagramHashtags() {
   const { user } = useAuth();
-  const { credits, hasCredits } = useCredits();
+  const { balance, hasCredits } = useCreditBalance();
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [searches, setSearches] = useState<HashtagSearch[]>([]);
@@ -209,9 +209,9 @@ export function InstagramHashtags() {
                 </Button>
               </CreditGuard>
             </form>
-            {credits && (
+            {balance > 0 && (
               <p className="text-sm text-muted-foreground mt-2">
-                Available credits: {credits.current_credits}
+                Available credits: {balance}
               </p>
             )}
           </CardContent>

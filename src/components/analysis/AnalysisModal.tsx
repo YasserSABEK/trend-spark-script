@@ -16,7 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useCredits } from '@/hooks/useCredits';
+import { useCreditBalance } from '@/hooks/useCreditBalance';
 
 interface ContentItem {
   id: string;
@@ -52,7 +52,7 @@ export function AnalysisModal({ open, onOpenChange, contentItem, onSendToGenerat
   const [uploadUrl, setUploadUrl] = useState('');
   const [deeperAnalysis, setDeeperAnalysis] = useState(false);
   const [currentContentItemId, setCurrentContentItemId] = useState<string | null>(null);
-  const { credits, hasCredits } = useCredits();
+  const { balance, hasCredits } = useCreditBalance();
 
   useEffect(() => {
     if (open && contentItem) {

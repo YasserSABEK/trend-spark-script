@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -89,8 +89,77 @@ export type Database = {
         }
         Relationships: []
       }
+      content_analysis: {
+        Row: {
+          analysis_result: Json | null
+          completed_at: string | null
+          content_item_id: string
+          created_at: string
+          credits_used: number | null
+          deeper_analysis: boolean | null
+          error_message: string | null
+          hook_text: string | null
+          id: string
+          insights: Json | null
+          sections: Json | null
+          status: string
+          transcript: string | null
+          updated_at: string
+          user_id: string
+          video_duration: number | null
+          video_url: string | null
+        }
+        Insert: {
+          analysis_result?: Json | null
+          completed_at?: string | null
+          content_item_id: string
+          created_at?: string
+          credits_used?: number | null
+          deeper_analysis?: boolean | null
+          error_message?: string | null
+          hook_text?: string | null
+          id?: string
+          insights?: Json | null
+          sections?: Json | null
+          status?: string
+          transcript?: string | null
+          updated_at?: string
+          user_id: string
+          video_duration?: number | null
+          video_url?: string | null
+        }
+        Update: {
+          analysis_result?: Json | null
+          completed_at?: string | null
+          content_item_id?: string
+          created_at?: string
+          credits_used?: number | null
+          deeper_analysis?: boolean | null
+          error_message?: string | null
+          hook_text?: string | null
+          id?: string
+          insights?: Json | null
+          sections?: Json | null
+          status?: string
+          transcript?: string | null
+          updated_at?: string
+          user_id?: string
+          video_duration?: number | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_analysis_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_items: {
         Row: {
+          analysis_id: string | null
           caption: string | null
           color: string | null
           created_at: string
@@ -108,6 +177,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          analysis_id?: string | null
           caption?: string | null
           color?: string | null
           created_at?: string
@@ -125,6 +195,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          analysis_id?: string | null
           caption?: string | null
           color?: string | null
           created_at?: string
@@ -141,7 +212,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_items_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "content_analysis"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       credit_balances: {
         Row: {
@@ -516,6 +595,45 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_creators: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          follower_count: number | null
+          id: string
+          platform: string
+          profile_url: string | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          follower_count?: number | null
+          id?: string
+          platform?: string
+          profile_url?: string | null
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          follower_count?: number | null
+          id?: string
+          platform?: string
+          profile_url?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       search_cache: {
         Row: {
           cache_key: string
@@ -525,6 +643,7 @@ export type Database = {
           items: Json
           source_run_id: string | null
           total_count: number | null
+          user_id: string | null
         }
         Insert: {
           cache_key: string
@@ -534,6 +653,7 @@ export type Database = {
           items: Json
           source_run_id?: string | null
           total_count?: number | null
+          user_id?: string | null
         }
         Update: {
           cache_key?: string
@@ -543,6 +663,7 @@ export type Database = {
           items?: Json
           source_run_id?: string | null
           total_count?: number | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -656,6 +777,7 @@ export type Database = {
           search_id: string | null
           search_requested_at: string | null
           search_status: string | null
+          search_username: string | null
           share_count: number | null
           shortcode: string | null
           thumbnail_url: string | null
@@ -697,6 +819,7 @@ export type Database = {
           search_id?: string | null
           search_requested_at?: string | null
           search_status?: string | null
+          search_username?: string | null
           share_count?: number | null
           shortcode?: string | null
           thumbnail_url?: string | null
@@ -738,6 +861,7 @@ export type Database = {
           search_id?: string | null
           search_requested_at?: string | null
           search_status?: string | null
+          search_username?: string | null
           share_count?: number | null
           shortcode?: string | null
           thumbnail_url?: string | null
@@ -834,21 +958,65 @@ export type Database = {
     }
     Functions: {
       add_credits: {
-        Args: { user_id_param: string; credits_to_add: number }
+        Args: { credits_to_add: number; user_id_param: string }
         Returns: undefined
       }
       deduct_credits: {
-        Args: { user_id_param: string; credits_to_deduct: number }
+        Args: { credits_to_deduct: number; user_id_param: string }
         Returns: boolean
+      }
+      get_analysis_by_id: {
+        Args: { analysis_id_param: string }
+        Returns: {
+          analysis_result: Json
+          completed_at: string
+          content_item_id: string
+          created_at: string
+          credits_used: number
+          deeper_analysis: boolean
+          error_message: string
+          hook_text: string
+          id: string
+          insights: Json
+          sections: Json
+          status: string
+          transcript: string
+          updated_at: string
+          user_id: string
+          video_duration: number
+          video_url: string
+        }[]
+      }
+      get_content_analysis: {
+        Args: { content_item_id_param: string }
+        Returns: {
+          analysis_result: Json
+          completed_at: string
+          content_item_id: string
+          created_at: string
+          credits_used: number
+          deeper_analysis: boolean
+          error_message: string
+          hook_text: string
+          id: string
+          insights: Json
+          sections: Json
+          status: string
+          transcript: string
+          updated_at: string
+          user_id: string
+          video_duration: number
+          video_url: string
+        }[]
       }
       get_user_credits: {
         Args: { user_id_param: string }
         Returns: {
+          billing_cycle_start: string
+          credits_used: number
           current_credits: number
           monthly_limit: number
-          credits_used: number
           subscription_plan: string
-          billing_cycle_start: string
         }[]
       }
       grant_monthly_credits: {
@@ -856,27 +1024,27 @@ export type Database = {
         Returns: undefined
       }
       safe_deduct_credits: {
-        Args: { user_id_param: string; credits_to_deduct: number }
+        Args: { credits_to_deduct: number; user_id_param: string }
         Returns: Json
       }
       spend_credits: {
         Args: {
-          user_id_param: string
           amount_param: number
-          reason_param: string
-          ref_type_param?: string
-          ref_id_param?: string
           idempotency_key_param?: string
+          reason_param: string
+          ref_id_param?: string
+          ref_type_param?: string
+          user_id_param: string
         }
         Returns: Json
       }
       update_subscription_plan: {
         Args: {
-          user_id_param: string
-          plan_name: string
           credit_limit: number
+          plan_name: string
           stripe_customer_id_param?: string
           stripe_subscription_id_param?: string
+          user_id_param: string
         }
         Returns: undefined
       }

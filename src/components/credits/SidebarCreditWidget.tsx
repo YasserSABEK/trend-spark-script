@@ -1,4 +1,4 @@
-import { useCredits } from '@/hooks/useCredits';
+import { useCreditBalance } from '@/hooks/useCreditBalance';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,7 +9,7 @@ interface SidebarCreditWidgetProps {
 }
 
 export function SidebarCreditWidget({ collapsed }: SidebarCreditWidgetProps) {
-  const { credits, loading } = useCredits();
+  const { balance, loading, plan } = useCreditBalance();
 
   if (loading) {
     return (
@@ -20,14 +20,14 @@ export function SidebarCreditWidget({ collapsed }: SidebarCreditWidgetProps) {
     );
   }
 
-  if (!credits) return null;
+  if (!plan) return null;
 
-  const usagePercentage = credits.monthly_limit > 0 
-    ? Math.min((credits.credits_used / credits.monthly_limit) * 100, 100)
+  const usagePercentage = plan.monthly_credits > 0 
+    ? Math.min(((plan.monthly_credits - balance) / plan.monthly_credits) * 100, 100)
     : 0;
 
-  const getPlanColor = (plan: string) => {
-    switch (plan.toLowerCase()) {
+  const getPlanColor = (planName: string) => {
+    switch (planName.toLowerCase()) {
       case 'pro':
         return 'default';
       case 'premium':
@@ -41,7 +41,7 @@ export function SidebarCreditWidget({ collapsed }: SidebarCreditWidgetProps) {
     return (
       <div className="flex flex-col items-center space-y-1 p-1">
         <Zap className="h-4 w-4 text-primary" />
-        <span className="text-xs font-medium">{credits.current_credits}</span>
+        <span className="text-xs font-medium">{balance}</span>
       </div>
     );
   }
@@ -50,23 +50,23 @@ export function SidebarCreditWidget({ collapsed }: SidebarCreditWidgetProps) {
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">Credits</span>
-        <Badge variant={getPlanColor(credits.subscription_plan)} className="text-xs">
-          {credits.subscription_plan}
+        <Badge variant={getPlanColor(plan.name)} className="text-xs">
+          {plan.name}
         </Badge>
       </div>
       
       <div className="space-y-1">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Available</span>
-          <span className="font-medium">{credits.current_credits}</span>
+          <span className="font-medium">{balance}</span>
         </div>
         
-        {credits.monthly_limit > 0 && (
+        {plan.monthly_credits > 0 && (
           <>
             <Progress value={usagePercentage} className="h-2" />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{credits.credits_used} used</span>
-              <span>{credits.monthly_limit} limit</span>
+              <span>{plan.monthly_credits - balance} used</span>
+              <span>{plan.monthly_credits} limit</span>
             </div>
           </>
         )}

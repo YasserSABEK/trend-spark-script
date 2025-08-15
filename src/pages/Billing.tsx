@@ -22,10 +22,11 @@ const plans = [
     credits: 0,
     features: [
       '0 monthly credits',
-      'Search results in 50-item chunks (1 credit each)',
-      'Script generation (1 credit)',
+      'Pay per action (1 credit each)',
+      'Search results (50 items)',
+      'Script generation',
       'High accuracy scripts (+1 credit)',
-      'Cached results free for 10 minutes'
+      'No monthly limits'
     ],
     icon: Star,
     popular: false
@@ -37,11 +38,11 @@ const plans = [
     credits: 75,
     features: [
       '75 credits per month',
-      'Search results in 50-item chunks (1 credit each)',
+      'All search and generation features',
       'Script generation (1 credit)',
       'High accuracy scripts (+1 credit)',
-      'Cached results free for 10 minutes',
-      'Basic analytics'
+      'Basic analytics',
+      'Credits reset monthly'
     ],
     icon: Zap,
     popular: false
@@ -53,10 +54,9 @@ const plans = [
     credits: 200,
     features: [
       '200 credits per month',
-      'Search results in 50-item chunks (1 credit each)',
+      'All search and generation features',
       'Script generation (1 credit)',
       'High accuracy scripts (+1 credit)',
-      'Cached results free for 10 minutes',
       'Advanced analytics',
       'Priority support'
     ],
@@ -70,10 +70,9 @@ const plans = [
     credits: 700,
     features: [
       '700 credits per month',
-      'Search results in 50-item chunks (1 credit each)',
+      'All search and generation features',
       'Script generation (1 credit)',
       'High accuracy scripts (+1 credit)',
-      'Cached results free for 10 minutes',
       'Advanced analytics',
       'Priority support',
       'Team collaboration features',
@@ -117,9 +116,9 @@ export default function Billing() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2">Billing & Subscription</h1>
+        <h1 className="text-3xl font-bold mb-2">Simple Credit-Based Billing</h1>
         <p className="text-muted-foreground">
-          Manage your subscription and view usage details
+          Every action costs 1 credit. No complicated caching or wait times.
         </p>
       </div>
 
@@ -169,7 +168,7 @@ export default function Billing() {
                 <p className="text-sm text-muted-foreground">
                   {subscription?.current_period_end 
                     ? `Resets ${new Date(subscription.current_period_end).toLocaleDateString()}` 
-                    : 'No reset scheduled'
+                    : plan.monthly_credits === 0 ? 'Pay per use' : 'No reset scheduled'
                   }
                 </p>
               </div>
@@ -207,7 +206,7 @@ export default function Billing() {
                   <span className="text-lg text-muted-foreground">/month</span>
                 </div>
                 <CardDescription>
-                  {planItem.credits === 0 ? 'Pay per use' : `${planItem.credits} credits per month`}
+                  {planItem.credits === 0 ? 'Pay per action' : `${planItem.credits} credits per month`}
                 </CardDescription>
               </CardHeader>
               
@@ -241,12 +240,12 @@ export default function Billing() {
         })}
       </div>
 
-      {/* Credit Usage Breakdown */}
+      {/* Simplified Credit Usage */}
       <Card>
         <CardHeader>
-          <CardTitle>Credit Usage & Billing</CardTitle>
+          <CardTitle>How Credits Work</CardTitle>
           <CardDescription>
-            Understand how credits work with our chunked search system
+            Simple, transparent pricing - every action costs exactly 1 credit
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -267,20 +266,20 @@ export default function Billing() {
                   <Badge variant="outline">+1 credit</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Cached Results (≤10 min)</span>
-                  <Badge variant="secondary">Free</Badge>
+                  <span className="text-sm">Content Analysis</span>
+                  <Badge variant="outline">1 credit</Badge>
                 </div>
               </div>
             </div>
             
             <div className="space-y-4">
-              <h4 className="font-semibold">How It Works</h4>
+              <h4 className="font-semibold">What's New</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>• Searches return results in 50-item chunks</p>
-                <p>• "Deep Hashtag (100)" = 2 chunks = 2 credits</p>
-                <p>• Cached results are free for 10 minutes</p>
-                <p>• Top-ups available: 25 ($5), 75 ($10), 150 ($15)</p>
-                <p>• All plans include cached result benefits</p>
+                <p>✅ Immediate credit deduction - no waiting</p>
+                <p>✅ No complicated caching system</p>
+                <p>✅ Every action costs exactly 1 credit</p>
+                <p>✅ Simple and transparent pricing</p>
+                <p>✅ Credits work on all devices including mobile</p>
               </div>
             </div>
           </div>
