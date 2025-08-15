@@ -94,7 +94,7 @@ export function AppSidebar() {
           <img 
             src="/lovable-uploads/7a468b69-3009-4221-9766-43b7b40b274a.png" 
             alt="Viraltify logo" 
-            className={collapsed ? "w-8 h-8 object-contain" : "w-40 h-40 object-contain"}
+            className={collapsed ? "w-8 h-8 object-contain" : "h-10 w-auto max-w-[120px] object-contain"}
           />
         </div>
       </SidebarHeader>
