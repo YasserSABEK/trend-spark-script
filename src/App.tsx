@@ -35,6 +35,8 @@ import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import SavedCreators from "./pages/SavedCreators";
+import TestApifyAccess from "./pages/TestApifyAccess";
+import SystemStatus from "./pages/SystemStatus";
 
 const queryClient = new QueryClient();
 
@@ -127,6 +129,8 @@ function AppContent() {
             <Route path="/saved-creators" element={<SavedCreators />} />
             <Route path="/content-calendar" element={<ContentCalendar />} />
             <Route path="/billing" element={<Billing />} />
+            <Route path="/test-apify-access" element={<TestApifyAccess />} />
+            <Route path="/system-status" element={<SystemStatus />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
@@ -171,6 +175,8 @@ function AppContent() {
               <Route path="/saved-creators" element={<SavedCreators />} />
               <Route path="/content-calendar" element={<ContentCalendar />} />
               <Route path="/billing" element={<Billing />} />
+              <Route path="/test-apify-access" element={<TestApifyAccess />} />
+              <Route path="/system-status" element={<SystemStatus />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

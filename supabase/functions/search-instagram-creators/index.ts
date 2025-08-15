@@ -151,16 +151,22 @@ serve(async (req) => {
 
     // User is already authenticated above, proceed with credit deduction
 
-    // Deduct credits using safe_deduct_credits function
+    // Deduct credits using spend_credits function
     const { data: creditResult, error: creditError } = await supabase
-      .rpc('safe_deduct_credits', {
+      .rpc('spend_credits', {
         user_id_param: user.id,
-        credits_to_deduct: 1
+        amount_param: 1,
+        reason_param: 'instagram_creator_search',
+        ref_type_param: 'search',
+        ref_id_param: searchId || query
       });
 
-    if (creditError || !creditResult?.success) {
+    if (creditError || !creditResult?.ok) {
+      console.error('❌ Credit deduction failed:', creditError || creditResult);
       return new Response(JSON.stringify({ 
-        error: creditResult?.message || 'Insufficient credits'
+        error: 'Insufficient credits. Please check your billing page.',
+        code: 'INSUFFICIENT_CREDITS',
+        details: creditResult?.error || creditError?.message
       }), {
         status: 402,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

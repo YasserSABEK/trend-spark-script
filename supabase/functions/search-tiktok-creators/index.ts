@@ -69,19 +69,6 @@ serve(async (req) => {
     console.error('❌ APIFY_API_KEY not found in environment variables');
     console.error('Available environment keys:', Object.keys(Deno.env.toObject()));
     
-    // Refund credits since the function failed
-    if (user) {
-      try {
-        await supabase.rpc('add_credits', {
-          user_id_param: user.id,
-          credits_to_add: 5
-        });
-        console.log('✅ Refunded credits due to API key issue');
-      } catch (refundError) {
-        console.error('Failed to refund credits:', refundError);
-      }
-    }
-    
     return new Response(JSON.stringify({
       error: 'TikTok creator search temporarily unavailable. API key not configured.',
       code: 'MISSING_API_KEY',
@@ -174,14 +161,20 @@ serve(async (req) => {
     // User is already authenticated above, proceed with credit deduction
 
     // Check and deduct credits (only if no fresh cache)
-    const { data: creditResult, error: creditError } = await supabase.rpc('safe_deduct_credits', {
+    const { data: creditResult, error: creditError } = await supabase.rpc('spend_credits', {
       user_id_param: user.id,
-      credits_to_deduct: 1
+      amount_param: 1,
+      reason_param: 'tiktok_creator_search',
+      ref_type_param: 'search',
+      ref_id_param: searchId || query
     });
 
-    if (creditError || !creditResult?.success) {
+    if (creditError || !creditResult?.ok) {
+      console.error('❌ Credit deduction failed:', creditError || creditResult);
       return new Response(JSON.stringify({ 
-        error: creditResult?.message || 'Insufficient credits' 
+        error: 'Insufficient credits. Please check your billing page.',
+        code: 'INSUFFICIENT_CREDITS',
+        details: creditResult?.error || creditError?.message
       }), {
         status: 402,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

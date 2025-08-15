@@ -24,7 +24,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Get user from Authorization header
+    // Parse request body first to get username
+    const { username } = await req.json();
+
+    if (!username) {
+      return new Response(
+        JSON.stringify({ error: 'Username is required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Get user from Authorization header and handle credits
     const authHeader = req.headers.get('Authorization');
     let userId = null;
     
@@ -40,44 +53,28 @@ Deno.serve(async (req) => {
         userId = user.id;
         
         // Use secure credit deduction with proper validation
-        const { data: creditResult, error: creditError } = await supabase.rpc('safe_deduct_credits', {
+        const { data: creditResult, error: creditError } = await supabase.rpc('spend_credits', {
           user_id_param: userId,
-          credits_to_deduct: 2
+          amount_param: 2,
+          reason_param: 'instagram_user_scrape',
+          ref_type_param: 'user',
+          ref_id_param: username
         });
 
-        if (creditError) {
-          console.error('❌ Credit deduction error:', creditError);
-          return new Response(
-            JSON.stringify({ error: 'Failed to process credits' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-          );
-        }
-
-        if (!creditResult.success) {
-          console.log('❌ Insufficient credits for user:', userId, creditResult.message);
+        if (creditError || !creditResult?.ok) {
+          console.error('❌ Credit deduction error:', creditError || creditResult);
           return new Response(
             JSON.stringify({ 
-              error: creditResult.message,
-              remaining_credits: creditResult.remaining_credits 
+              error: 'Insufficient credits. Please check your billing page.',
+              code: 'INSUFFICIENT_CREDITS',
+              details: creditResult?.error || creditError?.message
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 402 }
           );
         }
 
-        console.log('✅ Credits deducted successfully for user:', userId, 'Remaining:', creditResult.remaining_credits);
+        console.log('✅ Credits deducted successfully for user:', userId, 'New balance:', creditResult.new_balance);
       }
-    }
-
-    const { username } = await req.json();
-
-    if (!username) {
-      return new Response(
-        JSON.stringify({ error: 'Username is required' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
     }
 
     // Enhanced API key validation and logging
