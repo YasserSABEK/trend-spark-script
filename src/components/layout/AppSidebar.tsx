@@ -227,24 +227,6 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              {/* System Diagnostics */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/test-apify-access"
-                    className={({ isActive }) =>
-                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                      }`
-                    }
-                  >
-                    <Settings className="w-5 h-5 flex-shrink-0" />
-                    {!collapsed && <span>Diagnostics</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
 
               {/* Billing */}
               <SidebarMenuItem>
