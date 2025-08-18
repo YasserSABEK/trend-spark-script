@@ -120,15 +120,13 @@ serve(async (req) => {
     
     console.log('✅ APIFY_API_KEY found, proceeding with TikTok hashtag scraping...');
 
-    const actorId = 'GdWCkxBtKWOsKjdch'; // Corrected TikTok scraper actor ID
+    const actorId = '5K30i8aFccKNF5ICs'; // Official apidojo/tiktok-scraper actor ID
     const input = {
-      hashtags: [cleanHashtag],
-      proxyCountryCode: "None",
-      resultsPerPage: 100,
-      shouldDownloadCovers: true,
-      shouldDownloadSlideshowImages: false,
-      shouldDownloadSubtitles: false,
-      shouldDownloadVideos: false
+      customMapFunction: "(object) => { return {...object} }",
+      includeSearchKeywords: false,
+      maxItems: 100,
+      sortType: "RELEVANCE",
+      startUrls: [`https://www.tiktok.com/tag/${cleanHashtag}`]
     };
 
     console.log('Starting Apify run with input:', JSON.stringify(input, null, 2));
@@ -213,68 +211,72 @@ serve(async (req) => {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
+    // Filter videos from the last year using apidojo format
     const recentVideos = videos.filter((video: any) => {
-      if (!video.createTimeISO) return false;
-      const videoDate = new Date(video.createTimeISO);
+      const uploadedAt = video.uploadedAt || video.uploadedAtFormatted || null;
+      if (!uploadedAt) return false;
+      // Handle both timestamp (seconds) and ISO string formats
+      const timestamp = typeof uploadedAt === 'number' ? uploadedAt * 1000 : uploadedAt;
+      const videoDate = new Date(timestamp);
       return videoDate >= oneYearAgo;
     });
 
-    // Process and insert videos
+    // Process and insert videos using apidojo format
     const processedVideos = recentVideos.map((video: any) => {
-      // Extract hashtags from text
-      const hashtags = extractHashtags(video.text || '');
+      // Extract hashtags from title (apidojo format)
+      const hashtags = extractHashtags(video.title || '');
       
       // Calculate viral score based on TikTok metrics
       const viralScore = calculateViralScore(
-        video.diggCount || 0,
-        video.commentCount || 0,
-        video.playCount || 0,
-        video.shareCount || 0
+        video.likes || 0,
+        video.comments || 0,
+        video.views || 0,
+        video.shares || 0
       );
 
       // Calculate engagement rate
       const engagementRate = calculateEngagementRate(
-        video.diggCount || 0,
-        video.commentCount || 0,
-        video.shareCount || 0,
-        video.collectCount || 0,
-        video.playCount || 0
+        video.likes || 0,
+        video.comments || 0,
+        video.shares || 0,
+        video.bookmarks || 0,
+        video.views || 0
       );
 
       return {
-        post_id: video.webVideoUrl?.split('/').pop() || `tiktok_${Date.now()}_${Math.random()}`,
-        url: video.webVideoUrl,
-        web_video_url: video.webVideoUrl,
-        caption: video.text,
+        post_id: video.id || `tiktok_${Date.now()}_${Math.random()}`,
+        url: video.postPage || video.url,
+        web_video_url: video.postPage || video.url,
+        caption: video.title || '',
         hashtags,
-        username: video.authorMeta?.name || video.author?.name,
-        display_name: video.authorMeta?.nickname || video.author?.nickname,
-        author_avatar: video.authorMeta?.avatar || video.author?.avatar,
+        username: video['channel.username'] || '',
+        display_name: video['channel.name'] || null,
+        author_avatar: video['channel.avatar'] || null,
         
-        // TikTok engagement metrics
-        digg_count: video.diggCount || 0,
-        share_count: video.shareCount || 0,
-        play_count: video.playCount || 0,
-        comment_count: video.commentCount || 0,
-        collect_count: video.collectCount || 0,
+        // TikTok engagement metrics (apidojo format)
+        digg_count: video.likes || 0,
+        share_count: video.shares || 0,
+        play_count: video.views || 0,
+        comment_count: video.comments || 0,
+        collect_count: video.bookmarks || 0,
         
-        // Video metadata
-        video_duration: video.videoMeta?.duration || video.duration,
+        // Video metadata (apidojo format)
+        video_duration: video['video.duration'] || null,
         is_video: true,
-        thumbnail_url: video.covers?.default || video.videoMeta?.coverUrl || video.videoMeta?.originalCoverUrl || video.covers?.[0] || video.thumbnail || video.thumbnailUrl || video.cover,
-        video_url: video.videoUrl || video.downloadUrl,
+        thumbnail_url: video['video.thumbnail'] || video['video.cover'] || null,
+        video_url: video['video.url'] || null,
         
-        // Music metadata
-        music_name: video.musicMeta?.musicName || video.music?.title,
-        music_author: video.musicMeta?.musicAuthor || video.music?.authorName,
-        music_original: video.musicMeta?.musicOriginal || false,
+        // Music metadata (apidojo format)
+        music_name: video['song.title'] || null,
+        music_author: video['song.artist'] || null,
+        music_original: video['song.artist'] === video['channel.name'],
         
         // Calculated metrics
         viral_score: viralScore,
         engagement_rate: engagementRate,
         
-        // Timestamps
-        timestamp: video.createTimeISO,
+        // Timestamps (apidojo format)
+        timestamp: video.uploadedAtFormatted || (video.uploadedAt ? new Date(video.uploadedAt * 1000).toISOString() : null),
         
         // Search metadata
         search_hashtag: cleanHashtag,
