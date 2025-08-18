@@ -16,7 +16,7 @@ serve(async (req) => {
   const startTime = new Date();
 
   try {
-    const { hashtag, offset = 0, limit = 20 } = await req.json();
+    const { hashtag, offset = 0, limit = 50 } = await req.json();
 
     if (!hashtag) {
       return new Response(
