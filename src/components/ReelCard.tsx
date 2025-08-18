@@ -73,7 +73,8 @@ const [imageLoading, setImageLoading] = useState(true);
 
   const getThumbnailUrl = (url: string) => {
     if (!url) return null;
-    return `https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(url)}`;
+    // Try the direct URL first, fallback to proxy if needed
+    return url;
   };
 
   const handleImageLoad = () => {
@@ -85,6 +86,17 @@ const [imageLoading, setImageLoading] = useState(true);
     console.error('Thumbnail failed to load:', reel.thumbnail_url);
     setImageLoading(false);
     setImageError(true);
+    
+    // Try with proxy as fallback
+    const img = document.createElement('img');
+    img.onload = () => {
+      setImageError(false);
+      const currentImg = document.querySelector(`img[alt="Instagram reel by @${reel.username}"]`) as HTMLImageElement;
+      if (currentImg) {
+        currentImg.src = `https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(reel.thumbnail_url)}`;
+      }
+    };
+    img.src = `https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(reel.thumbnail_url)}`;
   };
 
   const openInstagramPost = () => {
