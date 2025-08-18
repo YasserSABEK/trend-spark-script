@@ -75,8 +75,10 @@ serve(async (req) => {
     // Track operation for potential refund
     shouldRefundCredits = true;
 
-    // Configure Apify run with new apidojo/tiktok-scraper
-    const actorId = 'HeKlzx1SPmubcOfmA';
+    // Configure Apify run with correct apidojo/tiktok-scraper actor ID
+    const actorId = '5K30i8aFccKNF5ICs'; // Official apidojo/tiktok-scraper ID
+    console.log(`Using Apify actor: ${actorId} for user: ${cleanUsername}`);
+    
     const input = {
       customMapFunction: "(object) => { return {...object} }",
       includeSearchKeywords: false,
@@ -84,6 +86,8 @@ serve(async (req) => {
       sortType: "RELEVANCE",
       startUrls: [`https://www.tiktok.com/@${cleanUsername}`]
     } as Record<string, unknown>;
+    
+    console.log('Apify input:', JSON.stringify(input, null, 2));
 
     // Start Apify run
     const startResponse = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs`, {
