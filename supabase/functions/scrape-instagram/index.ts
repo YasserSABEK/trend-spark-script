@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
 
     console.log(`Starting Instagram scrape for username: ${username}`);
 
-    // Start Apify actor run with new actor
+    // Start Apify actor run with reels-specific configuration
     const actorRunResponse = await fetch(
       'https://api.apify.com/v2/acts/apidojo~instagram-scraper/runs',
       {
@@ -119,8 +119,9 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           customMapFunction: "(object) => { return {...object} }",
-          maxItems: 100,
-          startUrls: [`https://www.instagram.com/${username.replace('@', '')}/`]
+          maxItems: 1000,
+          startUrls: [`https://www.instagram.com/${username.replace('@', '')}/reels`],
+          until: "2023-12-31"
         }),
       }
     );
@@ -146,6 +147,7 @@ Deno.serve(async (req) => {
     let attempts = 0;
     const maxAttempts = 60; // 5 minutes timeout
     let runStatus = 'RUNNING';
+    let finalRunData = null;
 
     while (runStatus === 'RUNNING' && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
@@ -161,6 +163,7 @@ Deno.serve(async (req) => {
 
       if (statusResponse.ok) {
         const statusData = await statusResponse.json();
+        finalRunData = statusData.data;
         runStatus = statusData.data.status;
         console.log(`Run status: ${runStatus}, attempt: ${attempts + 1}`);
       }
@@ -179,9 +182,13 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Get the dataset ID from the final run data
+    const datasetId = finalRunData?.defaultDatasetId || runId;
+    console.log(`Using dataset ID: ${datasetId}`);
+
     // Get the results
     const resultsResponse = await fetch(
-      `https://api.apify.com/v2/datasets/${runStatus.defaultDatasetId || runId}/items`,
+      `https://api.apify.com/v2/datasets/${datasetId}/items`,
       {
         headers: {
           'Authorization': `Bearer ${apifyApiKey}`,
