@@ -106,17 +106,17 @@ Deno.serve(async (req) => {
     console.log(`✅ Credits deducted successfully. New balance: ${creditResult.new_balance}`);
 
     try {
-      // Create the Apify run
-      const apifyResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs`, {
+      // Create the Apify run with new actor
+      const apifyResponse = await fetch(`https://api.apify.com/v2/acts/apidojo~instagram-scraper/runs`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apifyApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          hashtags: [hashtag],
-          resultsLimit: limit,
-          addParentData: false
+          customMapFunction: "(object) => { return {...object} }",
+          maxItems: 100,
+          startUrls: [`https://www.instagram.com/explore/tags/${hashtag}`]
         }),
       });
 
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
       while (attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 5000));
         
-        const statusResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs/${runId}`, {
+        const statusResponse = await fetch(`https://api.apify.com/v2/acts/apidojo~instagram-scraper/runs/${runId}`, {
           headers: {
             'Authorization': `Bearer ${apifyApiKey}`,
           },
@@ -182,9 +182,37 @@ Deno.serve(async (req) => {
           const results = await resultsResponse.json();
           console.log(`✅ Retrieved ${results.length} hashtag results`);
 
+          // Transform results to match expected format
+          const transformedResults = results.map((item: any) => ({
+            post_id: item.code || item.id,
+            shortcode: item.code,
+            url: item.url,
+            caption: item.caption || '',
+            hashtags: extractHashtags(item.caption || ''),
+            username: item['owner.username'],
+            display_name: item['owner.fullName'],
+            followers: 0, // Not available in this actor
+            verified: item['owner.isVerified'] || false,
+            likes: item.likeCount || 0,
+            comments: item.commentCount || 0,
+            video_view_count: 0, // Will be calculated based on likes
+            viral_score: calculateViralScore(item.likeCount || 0, item.commentCount || 0),
+            engagement_rate: calculateEngagementRate(item.likeCount || 0, item.commentCount || 0),
+            timestamp: item.createdAt,
+            scraped_at: new Date().toISOString(),
+            thumbnail_url: item['image.url'],
+            video_url: item['video.url'],
+            video_duration: null,
+            is_video: !!item['video.url'],
+            product_type: 'clips',
+            search_hashtag: hashtag,
+            search_requested_at: new Date().toISOString(),
+            processing_time_seconds: 0
+          }));
+
           return new Response(JSON.stringify({ 
             success: true, 
-            data: results,
+            data: transformedResults,
             credits_used: creditCost,
             remaining_credits: creditResult.new_balance
           }), {
@@ -240,3 +268,20 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+function extractHashtags(caption: string): string[] {
+  const hashtagRegex = /#[\w]+/g;
+  return caption.match(hashtagRegex) || [];
+}
+
+function calculateViralScore(likes: number, comments: number, views: number = 0): number {
+  // Enhanced viral score calculation for reels
+  const engagementScore = likes + (comments * 15) + (views * 0.1);
+  return Math.min(100, Math.floor(engagementScore / 2000));
+}
+
+function calculateEngagementRate(likes: number, comments: number): number {
+  // Simplified engagement rate calculation
+  const totalEngagement = likes + comments;
+  return Math.min(15, totalEngagement / 1000);
+}

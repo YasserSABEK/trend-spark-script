@@ -108,9 +108,9 @@ Deno.serve(async (req) => {
 
     console.log(`Starting Instagram scrape for username: ${username}`);
 
-    // Start Apify actor run
+    // Start Apify actor run with new actor
     const actorRunResponse = await fetch(
-      'https://api.apify.com/v2/acts/apify~instagram-scraper/runs',
+      'https://api.apify.com/v2/acts/apidojo~instagram-scraper/runs',
       {
         method: 'POST',
         headers: {
@@ -118,15 +118,9 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          directUrls: [`https://www.instagram.com/${username.replace('@', '')}`],
-          resultsType: 'posts',
-          resultsLimit: 50,
-          searchLimit: 1,
-          addParentData: false,
-          enhanceUserSearchWithFacebookPage: false,
-          isUserReelFeedURL: false,
-          isUserTaggedFeedURL: false,
-          onlyPostsNewerThan: "2024-07-01"
+          customMapFunction: "(object) => { return {...object} }",
+          maxItems: 100,
+          startUrls: [`https://www.instagram.com/${username.replace('@', '')}/`]
         }),
       }
     );
@@ -157,7 +151,7 @@ Deno.serve(async (req) => {
       await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
       
       const statusResponse = await fetch(
-        `https://api.apify.com/v2/actor-runs/${runId}`,
+        `https://api.apify.com/v2/acts/apidojo~instagram-scraper/runs/${runId}`,
         {
           headers: {
             'Authorization': `Bearer ${apifyApiKey}`,
@@ -187,7 +181,7 @@ Deno.serve(async (req) => {
 
     // Get the results
     const resultsResponse = await fetch(
-      `https://api.apify.com/v2/actor-runs/${runId}/dataset/items`,
+      `https://api.apify.com/v2/datasets/${runStatus.defaultDatasetId || runId}/items`,
       {
         headers: {
           'Authorization': `Bearer ${apifyApiKey}`,
@@ -206,14 +200,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    const results: ApifyInstagramPost[] = await resultsResponse.json();
+    const results: any[] = await resultsResponse.json();
     console.log(`Received ${results.length} posts from Apify`);
     
     // Debug: Log first result structure to understand available fields
     if (results.length > 0) {
       console.log('First result structure:', JSON.stringify(results[0], null, 2));
       console.log('Available profile photo fields:', {
-        ownerProfilePicUrl: results[0].ownerProfilePicUrl,
+        'owner.profilePicUrl': results[0]['owner.profilePicUrl'],
         profilePicUrl: results[0].profilePicUrl,
         profilePic: results[0].profilePic,
         avatar: results[0].avatar,
@@ -231,7 +225,7 @@ Deno.serve(async (req) => {
     if (results.length > 0) {
       const firstPost = results[0];
       // Try multiple possible field names for profile photo
-      profilePhotoUrl = firstPost.ownerProfilePicUrl || 
+      profilePhotoUrl = firstPost['owner.profilePicUrl'] || 
                        firstPost.profilePicUrl || 
                        firstPost.profilePic || 
                        firstPost.avatar || 
@@ -242,7 +236,7 @@ Deno.serve(async (req) => {
         username: username,
         profilePhotoUrl: profilePhotoUrl,
         originalFields: {
-          ownerProfilePicUrl: firstPost.ownerProfilePicUrl,
+          'owner.profilePicUrl': firstPost['owner.profilePicUrl'],
           profilePicUrl: firstPost.profilePicUrl,
           profilePic: firstPost.profilePic,
           avatar: firstPost.avatar,
@@ -266,24 +260,22 @@ Deno.serve(async (req) => {
       console.error('Error updating profile photo:', error);
     }
 
-    // Filter for REELS ONLY and sort by engagement
+    // Filter and transform results using new data structure
     const processedResults = results
       .filter(post => {
         // Skip error entries and profile info
-        if (post.error || !post.url || !post.id) return false;
-        // ONLY VIDEO CONTENT (REELS)
-        if (post.type !== 'Video') return false;
-        // Must have video URL or productType indicating it's a reel
-        if (!post.videoUrl && post.productType !== 'clips') return false;
+        if (!post.url || !post.id) return false;
+        // Only include posts with video content
+        if (!post['video.url']) return false;
         // Must have basic engagement metrics
-        return typeof post.likesCount === 'number' && 
-               typeof post.commentsCount === 'number';
+        return typeof post.likeCount === 'number' && 
+               typeof post.commentCount === 'number';
       })
-      .sort((a, b) => (b.videoViewCount || b.likesCount || 0) - (a.videoViewCount || a.likesCount || 0))
+      .sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0))
       .map(post => {
-        const postId = post.shortCode || post.url.split('/p/')[1]?.split('/')[0] || '';
-        const thumbnailUrl = post.displayUrl || (post.images && post.images[0]) || '';
-        const videoUrl = post.videoUrl;
+        const postId = post.code || post.id;
+        const thumbnailUrl = post['image.url'] || '';
+        const videoUrl = post['video.url'];
         
         return {
           id: `apify-${Date.now()}-${Math.random()}`,
@@ -291,21 +283,21 @@ Deno.serve(async (req) => {
           url: post.url,
           caption: post.caption || '',
           hashtags: extractHashtags(post.caption || ''),
-          username: post.ownerUsername,
-          display_name: post.ownerFullName,
+          username: post['owner.username'],
+          display_name: post['owner.fullName'],
           followers: 0, // Not available in this data
-          verified: false, // Not available in this data
-          likes: post.likesCount || 0,
-          comments: post.commentsCount || 0,
-          video_view_count: post.videoViewCount || post.videoPlayCount || (post.likesCount * 10) || 0,
-          viral_score: calculateViralScore(post.likesCount || 0, post.commentsCount || 0, post.videoViewCount || 0),
-          engagement_rate: calculateEngagementRate(post.likesCount || 0, post.commentsCount || 0),
-          timestamp: post.timestamp,
+          verified: post['owner.isVerified'] || false,
+          likes: post.likeCount || 0,
+          comments: post.commentCount || 0,
+          video_view_count: (post.likeCount * 10) || 0, // Estimate based on likes
+          viral_score: calculateViralScore(post.likeCount || 0, post.commentCount || 0, 0),
+          engagement_rate: calculateEngagementRate(post.likeCount || 0, post.commentCount || 0),
+          timestamp: post.createdAt,
           scraped_at: new Date().toISOString(),
           thumbnail_url: thumbnailUrl,
           video_url: videoUrl,
-          video_duration: post.videoDuration || null,
-          product_type: post.productType || 'clips',
+          video_duration: null,
+          product_type: 'clips',
           is_video: true,
           search_username: username,
           user_id: userId // Add user association for RLS
