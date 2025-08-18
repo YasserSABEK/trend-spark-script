@@ -136,7 +136,16 @@ Deno.serve(async (req) => {
       }
 
       const runData = await apifyResponse.json();
-      console.log('Apify run created:', runData.id);
+      console.log('Apify run response structure:', JSON.stringify(runData, null, 2));
+      
+      // Extract run ID from response
+      const runId = runData.data?.id || runData.id;
+      if (!runId) {
+        console.error('No run ID found in response:', runData);
+        throw new Error('Failed to get run ID from Apify response');
+      }
+      
+      console.log('Apify run created:', runId);
 
       // Wait for the run to complete
       let attempts = 0;
@@ -145,7 +154,7 @@ Deno.serve(async (req) => {
       while (attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 5000));
         
-        const statusResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs/${runData.id}`, {
+        const statusResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs/${runId}`, {
           headers: {
             'Authorization': `Bearer ${apifyApiKey}`,
           },
