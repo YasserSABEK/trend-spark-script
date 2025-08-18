@@ -12,11 +12,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let user: any = null;
+  let cleanUsername = '';
+  let shouldRefundCredits = false;
+  let supabase: any = null;
+
   try {
     const { username } = await req.json();
     if (!username) {
       throw new Error('Username is required');
     }
+
+    cleanUsername = username.replace(/^@/, '');
 
     // Auth
     const authHeader = req.headers.get('Authorization');
@@ -45,22 +52,28 @@ serve(async (req) => {
     
     console.log('✅ APIFY_API_KEY found, proceeding with TikTok user scraping...');
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    supabase = createClient(supabaseUrl, supabaseKey);
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !user) throw new Error('Authentication failed');
+    const { data: { user: authUser }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !authUser) throw new Error('Authentication failed');
+    user = authUser;
 
-    // Deduct credits securely
-    const { data: creditResult, error: creditError } = await supabase.rpc('safe_deduct_credits', {
+    // Deduct credits using new credit system
+    const { data: creditResult, error: creditError } = await supabase.rpc('spend_credits', {
       user_id_param: user.id,
-      credits_to_deduct: 1,
+      amount_param: 1,
+      reason_param: 'TikTok user scraping',
+      ref_type_param: 'tiktok_user_scrape',
+      ref_id_param: cleanUsername,
     });
     if (creditError) throw new Error('Failed to process credits: ' + creditError.message);
-    if (!creditResult.success) throw new Error(creditResult.message || 'Insufficient credits');
+    if (!creditResult.ok) throw new Error(creditResult.error || 'Insufficient credits');
 
-    const cleanUsername = username.replace(/^@/, '');
     console.log(`Starting TikTok user scrape for: ${cleanUsername}`);
+
+    // Track operation for potential refund
+    shouldRefundCredits = true;
 
     // Configure Apify run with new apidojo/tiktok-scraper
     const actorId = 'apidojo/tiktok-scraper';
@@ -188,12 +201,32 @@ serve(async (req) => {
     console.log(`Processed ${processedVideos.length} videos for immediate display`);
     // Note: Videos are not saved to database anymore, they're returned for frontend display
 
+    // Mark operation as successful - don't refund credits
+    shouldRefundCredits = false;
+
     return new Response(
       JSON.stringify({ success: true, data: processedVideos, username: cleanUsername, videosFound: processedVideos.length }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (error) {
     console.error('scrape-tiktok-user error:', error);
+    
+    // Refund credits if operation failed and we successfully deducted them
+    if (shouldRefundCredits && user?.id && supabase) {
+      try {
+        await supabase.rpc('spend_credits', {
+          user_id_param: user.id,
+          amount_param: -1, // Negative amount for refund
+          reason_param: 'TikTok scraping refund - operation failed',
+          ref_type_param: 'tiktok_user_scrape_refund',
+          ref_id_param: cleanUsername || 'unknown',
+        });
+        console.log('Refunded 1 credit due to operation failure');
+      } catch (refundError) {
+        console.error('Failed to refund credits:', refundError);
+      }
+    }
+    
     return new Response(
       JSON.stringify({ success: false, error: (error as Error).message }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
