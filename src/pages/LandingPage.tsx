@@ -203,12 +203,15 @@ export const LandingPage = () => {
               <div className="bg-card border rounded-2xl p-8 relative overflow-hidden shadow-lg">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5"></div>
                 <div className="relative">
-                  <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center border">
-                    <div className="text-center">
-                      <Play className="w-16 h-16 text-primary mx-auto mb-4" />
-                      <p className="text-muted-foreground">Demo Video</p>
-                      <p className="text-sm text-muted-foreground">See Viraltify in action</p>
-                    </div>
+                  <div className="aspect-video bg-muted rounded-lg mb-4 overflow-hidden border">
+                    <iframe
+                      className="w-full h-full"
+                      src="https://www.youtube.com/embed/BZUjDxJYaCg"
+                      title="Viraltify Demo Video"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
