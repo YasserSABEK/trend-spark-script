@@ -5,13 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Heart, 
   MessageSquare, 
-  Play, 
   Clock, 
   Bookmark,
   Eye,
   ExternalLink
 } from "lucide-react";
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { InstagramEmbed } from "@/components/media/InstagramEmbed";
@@ -43,9 +41,6 @@ interface ReelCardProps {
 }
 
 export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
-const [isPlaying, setIsPlaying] = useState(false);
-const [imageError, setImageError] = useState(false);
-const [imageLoading, setImageLoading] = useState(true);
   const formatNumber = (num: number | null | undefined) => {
     if (num === null || num === undefined || isNaN(num)) return '0';
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -72,40 +67,8 @@ const [imageLoading, setImageLoading] = useState(true);
     }
   };
 
-  const getThumbnailUrl = (url: string) => {
-    if (!url) return null;
-    // Use the direct URL without proxy
-    return url;
-  };
-
-  const handleImageLoad = () => {
-    setImageLoading(false);
-    setImageError(false);
-  };
-
-  const handleImageError = () => {
-    console.error('Thumbnail failed to load:', reel.thumbnail_url);
-    setImageLoading(false);
-    setImageError(true);
-    
-    // Try with proxy as fallback
-    const img = document.createElement('img');
-    img.onload = () => {
-      setImageError(false);
-      const currentImg = document.querySelector(`img[alt="Instagram reel by @${reel.username}"]`) as HTMLImageElement;
-      if (currentImg) {
-        currentImg.src = `https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(reel.thumbnail_url)}`;
-      }
-    };
-    img.src = `https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(reel.thumbnail_url)}`;
-  };
-
   const openInstagramPost = () => {
     window.open(reel.url, '_blank');
-  };
-
-  const handlePlayVideo = () => {
-  setIsPlaying(true);
   };
 
 
@@ -122,7 +85,7 @@ const [imageLoading, setImageLoading] = useState(true);
         platform: 'instagram',
         source_url: reel.url,
         source_post_id: reel.post_id,
-        thumbnail_url: reel.thumbnail_url || null,
+        thumbnail_url: null,
         caption: reel.caption || null,
         tags: reel.hashtags || [],
         status: 'saved'
@@ -140,62 +103,25 @@ const [imageLoading, setImageLoading] = useState(true);
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group">
       {/* Video Container */}
       <div className="aspect-[9/16] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden">
-        {/* Thumbnail Image */}
-        {!isPlaying && (
-          <div className="absolute inset-0 w-full h-full" onClick={handlePlayVideo}>
-            {reel.thumbnail_url && !imageError ? (
-              <>
-                {imageLoading && (
-                  <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center">
-                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  </div>
-                )}
-                <img 
-                  src={getThumbnailUrl(reel.thumbnail_url)}
-                  alt={`Instagram reel by @${reel.username}`}
-                  className={`w-full h-full object-cover group-hover:scale-110 transition-all duration-300 ${
-                    imageLoading ? 'opacity-0' : 'opacity-100'
-                  }`}
-                  onLoad={handleImageLoad}
-                  onError={handleImageError}
-                  loading="lazy"
-                />
-              </>
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 flex items-center justify-center">
-                <Play className="w-16 h-16 text-primary/60" />
-              </div>
-            )}
-            
-            {/* Thumbnail Overlays */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-            {reel.viral_score !== undefined && reel.viral_score > 0 && (
-              <div className="absolute top-3 right-3">
-                <Badge className="bg-gradient-to-r from-primary to-secondary text-primary-foreground">
-                  {reel.viral_score}
-                </Badge>
-              </div>
-            )}
-            {reel.timestamp && getTimeAgo(reel.timestamp) && (
-              <div className="absolute bottom-3 left-3">
-                <Badge variant="secondary" className="bg-black/60 text-white border-none">
-                  <Clock className="w-3 h-3 mr-1" />
-                  {getTimeAgo(reel.timestamp)}
-                </Badge>
-              </div>
-            )}
-            <div className="absolute center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Play className="w-8 h-8 text-white" />
-              </div>
-            </div>
+        {/* Instagram Embed */}
+        <div className="absolute inset-0">
+          <InstagramEmbed url={reel.url} className="w-full h-full" />
+        </div>
+        
+        {/* Overlays */}
+        {reel.viral_score !== undefined && reel.viral_score > 0 && (
+          <div className="absolute top-3 right-3 z-10">
+            <Badge className="bg-gradient-to-r from-primary to-secondary text-primary-foreground">
+              {reel.viral_score}
+            </Badge>
           </div>
         )}
-
-        {/* Inline Video Player */}
-        {isPlaying && (
-          <div className="absolute inset-0">
-            <InstagramEmbed url={reel.url} className="w-full h-full" />
+        {reel.timestamp && getTimeAgo(reel.timestamp) && (
+          <div className="absolute bottom-3 left-3 z-10">
+            <Badge variant="secondary" className="bg-black/60 text-white border-none">
+              <Clock className="w-3 h-3 mr-1" />
+              {getTimeAgo(reel.timestamp)}
+            </Badge>
           </div>
         )}
       </div>
