@@ -205,7 +205,7 @@ const [imageLoading, setImageLoading] = useState(true);
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center">
             <span className="text-white text-xs font-bold">
-              {reel.username.slice(0, 2).toUpperCase()}
+              {(reel.username || '').slice(0, 2).toUpperCase()}
             </span>
           </div>
           <div className="flex-1">
