@@ -105,7 +105,49 @@ Deno.serve(async (req) => {
 
     console.log(`✅ Credits deducted successfully. New balance: ${creditResult.new_balance}`);
 
+    // Create search_queue entry
+    const { data: searchEntry, error: searchError } = await supabase
+      .from('search_queue')
+      .insert({
+        user_id: user.id,
+        hashtag: hashtag,
+        search_type: 'hashtag',
+        platform: 'instagram',
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (searchError || !searchEntry) {
+      console.error('Failed to create search entry:', searchError);
+      // Refund credits
+      await supabase.rpc('spend_credits', {
+        user_id_param: user.id,
+        amount_param: -creditCost,
+        reason_param: 'instagram_hashtag_scraping_refund',
+        ref_type_param: 'hashtag',
+        ref_id_param: hashtag
+      });
+      
+      return new Response(JSON.stringify({
+        code: 'DATABASE_ERROR',
+        error: 'Failed to create search record'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const searchId = searchEntry.id;
+    const startTime = Date.now();
+
     try {
+      // Update status to running
+      await supabase
+        .from('search_queue')
+        .update({ status: 'running' })
+        .eq('id', searchId);
+
       // Create the Apify run with new actor
       const apifyResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs`, {
         method: 'POST',
@@ -122,6 +164,17 @@ Deno.serve(async (req) => {
 
       if (!apifyResponse.ok) {
         console.error('Apify API error:', apifyResponse.status, apifyResponse.statusText);
+        
+        // Update search status to failed
+        await supabase
+          .from('search_queue')
+          .update({ 
+            status: 'failed',
+            error_message: `Apify API error: ${apifyResponse.statusText}`,
+            completed_at: new Date().toISOString(),
+            processing_time_seconds: Math.floor((Date.now() - startTime) / 1000)
+          })
+          .eq('id', searchId);
         
         // Refund credits on API failure
         await supabase.rpc('spend_credits', {
@@ -207,8 +260,32 @@ Deno.serve(async (req) => {
             product_type: 'clips',
             search_hashtag: hashtag,
             search_requested_at: new Date().toISOString(),
-            processing_time_seconds: 0
+            processing_time_seconds: Math.floor((Date.now() - startTime) / 1000),
+            user_id: user.id,
+            search_id: searchId
           }));
+
+          // Insert results into instagram_reels table
+          if (transformedResults.length > 0) {
+            const { error: insertError } = await supabase
+              .from('instagram_reels')
+              .insert(transformedResults);
+
+            if (insertError) {
+              console.error('Failed to insert Instagram reels:', insertError);
+            }
+          }
+
+          // Update search status to completed
+          await supabase
+            .from('search_queue')
+            .update({ 
+              status: 'completed',
+              total_results: transformedResults.length,
+              completed_at: new Date().toISOString(),
+              processing_time_seconds: Math.floor((Date.now() - startTime) / 1000)
+            })
+            .eq('id', searchId);
 
           return new Response(JSON.stringify({ 
             success: true, 
@@ -219,6 +296,17 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         } else if (statusData.data.status === 'FAILED') {
+          // Update search status to failed
+          await supabase
+            .from('search_queue')
+            .update({ 
+              status: 'failed',
+              error_message: 'Apify scraping job failed',
+              completed_at: new Date().toISOString(),
+              processing_time_seconds: Math.floor((Date.now() - startTime) / 1000)
+            })
+            .eq('id', searchId);
+
           // Refund credits on scraping failure
           await supabase.rpc('spend_credits', {
             user_id_param: user.id,
@@ -234,7 +322,17 @@ Deno.serve(async (req) => {
         attempts++;
       }
 
-      // Timeout - refund credits
+      // Timeout - update search status and refund credits
+      await supabase
+        .from('search_queue')
+        .update({ 
+          status: 'failed',
+          error_message: 'Scraping job timed out',
+          completed_at: new Date().toISOString(),
+          processing_time_seconds: Math.floor((Date.now() - startTime) / 1000)
+        })
+        .eq('id', searchId);
+
       await supabase.rpc('spend_credits', {
         user_id_param: user.id,
         amount_param: -creditCost,
@@ -247,6 +345,21 @@ Deno.serve(async (req) => {
 
     } catch (scrapingError) {
       console.error('Scraping error:', scrapingError);
+      
+      // Update search status to failed if not already updated
+      try {
+        await supabase
+          .from('search_queue')
+          .update({ 
+            status: 'failed',
+            error_message: scrapingError.message || 'Failed to scrape Instagram hashtag',
+            completed_at: new Date().toISOString(),
+            processing_time_seconds: Math.floor((Date.now() - startTime) / 1000)
+          })
+          .eq('id', searchId);
+      } catch (updateError) {
+        console.error('Failed to update search status:', updateError);
+      }
       
       return new Response(JSON.stringify({
         code: 'SCRAPING_ERROR',
