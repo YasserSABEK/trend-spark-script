@@ -211,8 +211,19 @@ serve(async (req) => {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
+    // Deduplicate videos by video.id first
+    const videoMap = new Map();
+    videos.forEach((video: any) => {
+      if (video.id) {
+        videoMap.set(video.id, video);
+      }
+    });
+    
+    const deduplicatedVideos = Array.from(videoMap.values());
+    console.log(`Deduplicated ${videos.length} videos to ${deduplicatedVideos.length} unique videos`);
+
     // Filter videos from the last year using apidojo format
-    const recentVideos = videos.filter((video: any) => {
+    const recentVideos = deduplicatedVideos.filter((video: any) => {
       const uploadedAt = video.uploadedAt || video.uploadedAtFormatted || null;
       if (!uploadedAt) return false;
       // Handle both timestamp (seconds) and ISO string formats
@@ -222,7 +233,7 @@ serve(async (req) => {
     });
 
     // Process and insert videos using apidojo format
-    const processedVideos = recentVideos.map((video: any) => {
+    const processedVideos = recentVideos.map((video: any, index: number) => {
       // Extract hashtags from title (apidojo format)
       const hashtags = extractHashtags(video.title || '');
       
@@ -243,8 +254,11 @@ serve(async (req) => {
         video.views || 0
       );
 
+      // Generate unique post_id with better collision prevention
+      const uniquePostId = video.id || `tiktok_${Date.now()}_${index}_${Math.floor(Math.random() * 10000)}`;
+      
       return {
-        post_id: video.id || `tiktok_${Date.now()}_${Math.random()}`,
+        post_id: uniquePostId,
         url: video.postPage || video.url,
         web_video_url: video.postPage || video.url,
         caption: video.title || '',
@@ -287,21 +301,42 @@ serve(async (req) => {
       };
     });
 
-    // Insert videos into database using existing unique constraint
+    // Insert videos into database with improved batch processing
     if (processedVideos.length > 0) {
-      const { error: insertError } = await supabase
-        .from('tiktok_videos')
-        .upsert(processedVideos, { 
-          onConflict: 'user_id,post_id',
-          ignoreDuplicates: false 
-        });
+      console.log(`Processing ${processedVideos.length} videos for database insertion`);
+      
+      // Process in smaller batches to prevent timeout and conflicts
+      const batchSize = 20;
+      let totalInserted = 0;
+      
+      for (let i = 0; i < processedVideos.length; i += batchSize) {
+        const batch = processedVideos.slice(i, i + batchSize);
+        console.log(`Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(processedVideos.length/batchSize)} (${batch.length} videos)`);
+        
+        try {
+          const { error: insertError } = await supabase
+            .from('tiktok_videos')
+            .upsert(batch, { 
+              onConflict: 'user_id,post_id',
+              ignoreDuplicates: true // Ignore duplicates to prevent conflicts
+            });
 
-      if (insertError) {
-        console.error('Error inserting videos:', insertError);
-        throw new Error('Failed to save videos to database: ' + insertError.message);
+          if (insertError) {
+            console.error(`Error inserting batch ${Math.floor(i/batchSize) + 1}:`, insertError);
+            // Continue with next batch instead of throwing
+            continue;
+          }
+          
+          totalInserted += batch.length;
+          console.log(`✅ Successfully processed batch ${Math.floor(i/batchSize) + 1} (${batch.length} videos)`);
+        } catch (batchError) {
+          console.error(`Failed to process batch ${Math.floor(i/batchSize) + 1}:`, batchError);
+          // Continue with next batch
+          continue;
+        }
       }
       
-      console.log(`✅ Successfully processed ${processedVideos.length} videos (duplicates updated)`);
+      console.log(`✅ Successfully processed ${totalInserted}/${processedVideos.length} videos total`);
     }
 
     // Update search queue status - Always complete, even with 0 results
