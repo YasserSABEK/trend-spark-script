@@ -265,8 +265,6 @@ Deno.serve(async (req) => {
       .filter(post => {
         // Skip error entries and profile info
         if (!post.url || !post.id) return false;
-        // Only include posts with video content
-        if (!post['video.url']) return false;
         // Must have basic engagement metrics
         return typeof post.likeCount === 'number' && 
                typeof post.commentCount === 'number';
@@ -276,6 +274,10 @@ Deno.serve(async (req) => {
         const postId = post.code || post.id;
         const thumbnailUrl = post['image.url'] || '';
         const videoUrl = post['video.url'];
+        const hasVideo = !!videoUrl;
+        const contentType = hasVideo ? 'video' : 'image';
+        
+        console.log(`Processing post ${postId}: ${contentType} - likes: ${post.likeCount}, comments: ${post.commentCount}`);
         
         return {
           id: `apify-${Date.now()}-${Math.random()}`,
@@ -289,7 +291,7 @@ Deno.serve(async (req) => {
           verified: post['owner.isVerified'] || false,
           likes: post.likeCount || 0,
           comments: post.commentCount || 0,
-          video_view_count: (post.likeCount * 10) || 0, // Estimate based on likes
+          video_view_count: hasVideo ? (post.likeCount * 10) || 0 : 0, // Only estimate for videos
           viral_score: calculateViralScore(post.likeCount || 0, post.commentCount || 0, 0),
           engagement_rate: calculateEngagementRate(post.likeCount || 0, post.commentCount || 0),
           timestamp: post.createdAt,
@@ -298,13 +300,14 @@ Deno.serve(async (req) => {
           video_url: videoUrl,
           video_duration: null,
           product_type: 'clips',
-          is_video: true,
+          is_video: hasVideo,
+          content_type: contentType,
           search_username: username,
           user_id: userId // Add user association for RLS
         };
       });
 
-    console.log(`Processed ${processedResults.length} posts, sending response`);
+    console.log(`Processed ${processedResults.length} posts (${processedResults.filter(p => p.content_type === 'video').length} videos, ${processedResults.filter(p => p.content_type === 'image').length} images), sending response`);
 
     return new Response(
       JSON.stringify({ 

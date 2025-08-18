@@ -415,6 +415,7 @@ export type Database = {
           apify_run_id: string | null
           caption: string | null
           comments: number | null
+          content_type: string | null
           created_at: string
           dataset_id: string | null
           display_name: string | null
@@ -451,6 +452,7 @@ export type Database = {
           apify_run_id?: string | null
           caption?: string | null
           comments?: number | null
+          content_type?: string | null
           created_at?: string
           dataset_id?: string | null
           display_name?: string | null
@@ -487,6 +489,7 @@ export type Database = {
           apify_run_id?: string | null
           caption?: string | null
           comments?: number | null
+          content_type?: string | null
           created_at?: string
           dataset_id?: string | null
           display_name?: string | null
