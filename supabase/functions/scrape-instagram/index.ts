@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           customMapFunction: "(object) => { return {...object} }",
-          maxItems: 1000,
+          maxItems: 60,
           startUrls: [`https://www.instagram.com/${username.replace('@', '')}/reels`],
           until: "2023-12-31"
         }),
