@@ -285,12 +285,12 @@ serve(async (req) => {
       };
     });
 
-    // Insert videos into database with the unified constraint
+    // Insert videos into database using existing unique constraint
     if (processedVideos.length > 0) {
       const { error: insertError } = await supabase
         .from('tiktok_videos')
         .upsert(processedVideos, { 
-          onConflict: 'user_id,post_id,search_hashtag',
+          onConflict: 'user_id,post_id',
           ignoreDuplicates: false 
         });
 
