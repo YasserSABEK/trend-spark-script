@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -73,7 +74,7 @@ const [imageLoading, setImageLoading] = useState(true);
 
   const getThumbnailUrl = (url: string) => {
     if (!url) return null;
-    // Try the direct URL first, fallback to proxy if needed
+    // Use the direct URL without proxy
     return url;
   };
 
@@ -227,14 +228,14 @@ const [imageLoading, setImageLoading] = useState(true);
 
         {/* Hashtags */}
         <div className="flex flex-wrap gap-1 mb-3">
-          {reel.hashtags.slice(0, 3).map((tag, index) => (
+          {(reel.hashtags || []).slice(0, 3).map((tag, index) => (
             <Badge key={index} variant="secondary" className="text-xs">
               {tag}
             </Badge>
           ))}
-          {reel.hashtags.length > 3 && (
+          {(reel.hashtags || []).length > 3 && (
             <Badge variant="secondary" className="text-xs">
-              +{reel.hashtags.length - 3}
+              +{(reel.hashtags || []).length - 3}
             </Badge>
           )}
         </div>
