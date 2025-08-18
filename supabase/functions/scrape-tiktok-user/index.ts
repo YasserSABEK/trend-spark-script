@@ -76,7 +76,7 @@ serve(async (req) => {
     shouldRefundCredits = true;
 
     // Configure Apify run with new apidojo/tiktok-scraper
-    const actorId = 'apidojo/tiktok-scraper';
+    const actorId = 'HeKlzx1SPmubcOfmA';
     const input = {
       customMapFunction: "(object) => { return {...object} }",
       includeSearchKeywords: false,
