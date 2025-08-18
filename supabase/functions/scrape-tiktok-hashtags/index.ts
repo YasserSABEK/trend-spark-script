@@ -40,23 +40,26 @@ serve(async (req) => {
 
     console.log(`Starting TikTok hashtag scrape for: ${hashtag}`);
 
-    // Use secure credit deduction with proper validation
-    const { data: creditResult, error: creditError } = await supabase.rpc('safe_deduct_credits', {
+    // Use new credit system for consistency with frontend
+    const { data: creditResult, error: creditError } = await supabase.rpc('spend_credits', {
       user_id_param: user.id,
-      credits_to_deduct: 1
+      amount_param: 1,
+      reason_param: 'tiktok_hashtag_search',
+      ref_type_param: 'hashtag',
+      ref_id_param: hashtag
     });
 
     if (creditError) {
-      console.error('❌ Credit deduction error:', creditError);
+      console.error('❌ Credit spending error:', creditError);
       throw new Error('Failed to process credits: ' + creditError.message);
     }
 
-    if (!creditResult.success) {
-      console.log('❌ Insufficient credits for user:', user.id, creditResult.message);
-      throw new Error(creditResult.message);
+    if (!creditResult.ok) {
+      console.log('❌ Insufficient credits for user:', user.id, creditResult.error || 'Insufficient credits');
+      throw new Error('Insufficient credits');
     }
 
-    console.log('✅ Credits deducted successfully for user:', user.id, 'Remaining:', creditResult.remaining_credits);
+    console.log('✅ Credits spent successfully for user:', user.id, 'New balance:', creditResult.new_balance);
 
     // Clean hashtag (remove # if present)
     const cleanHashtag = hashtag.replace('#', '');
@@ -325,7 +328,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in scrape-tiktok-hashtags function:', error);
     
-    // Try to update search queue status to failed if we have the search entry
+    // Try to refund credits and update search queue status if operation failed
     try {
       const authHeader = req.headers.get('Authorization');
       if (authHeader) {
@@ -333,11 +336,27 @@ serve(async (req) => {
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         const supabase = createClient(supabaseUrl, supabaseKey);
         
-        // Get user and update their most recent pending hashtag search to failed
+        // Get user and refund credits for failed operation
         const token = authHeader.replace('Bearer ', '');
         const { data: { user } } = await supabase.auth.getUser(token);
         
         if (user) {
+          // Refund credit for failed operation (add 1 credit back)
+          const { error: refundError } = await supabase.rpc('spend_credits', {
+            user_id_param: user.id,
+            amount_param: -1, // Negative amount adds credits back
+            reason_param: 'refund_failed_tiktok_hashtag_search',
+            ref_type_param: 'refund',
+            ref_id_param: `hashtag_${Date.now()}`
+          });
+          
+          if (refundError) {
+            console.error('❌ Failed to refund credits:', refundError);
+          } else {
+            console.log('✅ Refunded 1 credit due to operation failure');
+          }
+          
+          // Update search queue status to failed
           await supabase
             .from('search_queue')
             .update({ 
