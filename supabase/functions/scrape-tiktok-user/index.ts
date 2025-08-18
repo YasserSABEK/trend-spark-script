@@ -62,15 +62,14 @@ serve(async (req) => {
     const cleanUsername = username.replace(/^@/, '');
     console.log(`Starting TikTok user scrape for: ${cleanUsername}`);
 
-    // Configure Apify run (same actor as hashtags, in user mode via profile URL)
-    const actorId = 'GdWCkxBtKWOsKjdch';
+    // Configure Apify run with new apidojo/tiktok-scraper
+    const actorId = 'apidojo/tiktok-scraper';
     const input = {
-      profiles: [`https://www.tiktok.com/@${cleanUsername}`],
-      resultsPerPage: 100,
-      shouldDownloadCovers: true,
-      shouldDownloadSlideshowImages: false,
-      shouldDownloadSubtitles: false,
-      shouldDownloadVideos: false,
+      customMapFunction: "(object) => { return {...object} }",
+      includeSearchKeywords: false,
+      maxItems: 100,
+      sortType: "RELEVANCE",
+      startUrls: [`https://www.tiktok.com/@${cleanUsername}`]
     } as Record<string, unknown>;
 
     // Start Apify run
@@ -122,59 +121,61 @@ serve(async (req) => {
     const items = await datasetResponse.json();
     console.log(`Retrieved ${items.length} items for user: ${cleanUsername}`);
 
-    // Filter to recent videos (last 1 year) and map
+    // Filter to recent videos (last 1 year) and map with new data structure
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
     const processedVideos = (items || [])
       .filter((video: any) => {
-        const iso = video.createTimeISO || video.createTime || null;
-        if (!iso) return false;
-        const d = new Date(iso);
+        const uploadedAt = video.uploadedAt || video.uploadedAtFormatted || null;
+        if (!uploadedAt) return false;
+        // Handle both timestamp (seconds) and ISO string formats
+        const timestamp = typeof uploadedAt === 'number' ? uploadedAt * 1000 : uploadedAt;
+        const d = new Date(timestamp);
         return d >= oneYearAgo;
       })
       .map((video: any) => {
-        const hashtags = extractHashtags(video.text || '');
+        const hashtags = extractHashtags(video.title || '');
         return {
-          post_id: video.webVideoUrl?.split('/').pop() || video.id || `tiktok_${Date.now()}_${Math.random()}`,
-          url: video.webVideoUrl || video.url,
-          web_video_url: video.webVideoUrl || video.url,
-          caption: video.text || '',
+          post_id: video.id || `tiktok_${Date.now()}_${Math.random()}`,
+          url: video.postPage || video.url,
+          web_video_url: video.postPage || video.url,
+          caption: video.title || '',
           hashtags,
-          username: video.authorMeta?.name || cleanUsername,
-          display_name: video.authorMeta?.nickname || null,
-          author_avatar: video.authorMeta?.avatar || null,
+          username: video['channel.username'] || cleanUsername,
+          display_name: video['channel.name'] || null,
+          author_avatar: video['channel.avatar'] || null,
 
-          digg_count: video.diggCount || 0,
-          share_count: video.shareCount || 0,
-          play_count: video.playCount || 0,
-          comment_count: video.commentCount || 0,
-          collect_count: video.collectCount || 0,
+          digg_count: video.likes || 0,
+          share_count: video.shares || 0,
+          play_count: video.views || 0,
+          comment_count: video.comments || 0,
+          collect_count: video.bookmarks || 0,
 
-          video_duration: video.videoMeta?.duration || video.duration || null,
+          video_duration: video['video.duration'] || null,
           is_video: true,
-          thumbnail_url: video.covers?.default || video.videoMeta?.coverUrl || video.videoMeta?.originalCoverUrl || video.covers?.[0] || video.thumbnail || video.thumbnailUrl || video.cover || null,
-          video_url: video.videoUrl || video.downloadUrl || null,
+          thumbnail_url: video['video.thumbnail'] || video['video.cover'] || null,
+          video_url: video['video.url'] || null,
 
-          music_name: video.musicMeta?.musicName || video.music?.title || null,
-          music_author: video.musicMeta?.musicAuthor || video.music?.authorName || null,
-          music_original: video.musicMeta?.musicOriginal || false,
+          music_name: video['song.title'] || null,
+          music_author: video['song.artist'] || null,
+          music_original: video['song.artist'] === video['channel.name'],
 
           viral_score: calculateViralScore(
-            video.diggCount || 0,
-            video.commentCount || 0,
-            video.playCount || 0,
-            video.shareCount || 0,
+            video.likes || 0,
+            video.comments || 0,
+            video.views || 0,
+            video.shares || 0,
           ),
           engagement_rate: calculateEngagementRate(
-            video.diggCount || 0,
-            video.commentCount || 0,
-            video.shareCount || 0,
-            video.collectCount || 0,
-            video.playCount || 0,
+            video.likes || 0,
+            video.comments || 0,
+            video.shares || 0,
+            video.bookmarks || 0,
+            video.views || 0,
           ),
 
-          timestamp: video.createTimeISO || null,
+          timestamp: video.uploadedAtFormatted || (video.uploadedAt ? new Date(video.uploadedAt * 1000).toISOString() : null),
           platform: 'tiktok',
           user_id: user.id,
           search_username: cleanUsername,
