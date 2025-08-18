@@ -41,8 +41,8 @@ export function InstagramHashtags() {
       return;
     }
 
-    if (!hasCredits(2)) {
-      toast.error("Insufficient credits. You need 2 credits for hashtag search.");
+    if (!hasCredits(5)) {
+      toast.error("Insufficient credits. You need 5 credits for Instagram hashtag search.");
       return;
     }
 
@@ -69,7 +69,20 @@ export function InstagramHashtags() {
 
       if (error) {
         console.error('Function invoke error:', error);
-        toast.error(`Network error: ${error.message}`);
+        
+        // Handle specific error cases
+        if (error.message?.includes('402') || error.message?.includes('insufficient')) {
+          toast.error("Insufficient credits. You need 5 credits for Instagram hashtag search.");
+        } else {
+          toast.error(`Error: ${error.message || 'Failed to search hashtag'}`);
+        }
+        
+        setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
+        return;
+      }
+
+      if (data?.code === 'INSUFFICIENT_CREDITS') {
+        toast.error("Insufficient credits. You need 5 credits for Instagram hashtag search.");
         setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
         return;
       }
@@ -180,11 +193,11 @@ export function InstagramHashtags() {
               Search Instagram Hashtags
             </CardTitle>
             <CardDescription>
-              Search for viral Instagram Reels by hashtag (2 credits per search)
+              Search for viral Instagram Reels by hashtag (5 credits per search)
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CreditGuard requiredCredits={2} action="hashtag search">
+            <CreditGuard requiredCredits={5} action="hashtag search">
               <ResponsiveSearch
                 placeholder="Enter hashtag (e.g., travel, fitness, food)"
                 value={searchTerm}
