@@ -58,6 +58,7 @@ export function HashtagSearch() {
   const { balance, hasCredits } = useCreditBalance();
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [videos, setVideos] = useState<TikTokVideo[]>([]);
   const [searches, setSearches] = useState<HashtagSearch[]>([]);
   const [filteredVideos, setFilteredVideos] = useState<TikTokVideo[]>([]);
@@ -70,6 +71,8 @@ export function HashtagSearch() {
   const [hashtagFilter, setHashtagFilter] = useState("all");
   const [visibleVideos, setVisibleVideos] = useState(8);
   const [showFilters, setShowFilters] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [currentOffset, setCurrentOffset] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -146,42 +149,62 @@ export function HashtagSearch() {
     setFilteredVideos(filtered);
   }, [videos, selectedHashtag, hashtagFilter, minViralScore, minViews, timeRange, sortBy]);
 
-  const scrapeHashtagPosts = async (hashtag: string) => {
+  const scrapeHashtagPosts = async (hashtag: string, offset = 0) => {
     if (!user) {
       toast.error("Please sign in to search hashtags");
       return;
     }
 
-    if (!hasCredits(1)) {
+    // Only check credits for first page (offset 0)
+    if (offset === 0 && !hasCredits(1)) {
       toast.error("Insufficient credits. You need 1 credit for hashtag search.");
       return;
     }
 
-    setLoading(true);
+    const isFirstPage = offset === 0;
+    if (isFirstPage) {
+      setLoading(true);
+      // Reset state for new search
+      setVideos([]);
+      setCurrentOffset(0);
+      setHasMore(false);
+    } else {
+      setLoadingMore(true);
+    }
     
-    // Create a pending search entry immediately for better UX
+    // Create a pending search entry immediately for better UX (only for first page)
     const cleanHashtag = hashtag.replace('#', '');
-    const tempSearchEntry: HashtagSearch = {
-      id: `temp-${Date.now()}`,
-      hashtag: cleanHashtag,
-      status: 'pending',
-      total_results: 0,
-      requested_at: new Date().toISOString()
-    };
+    let tempSearchEntry;
     
-    // Add temporary entry to show pending state
-    setSearches(prev => [tempSearchEntry, ...prev]);
+    if (isFirstPage) {
+      tempSearchEntry = {
+        id: `temp-${Date.now()}`,
+        hashtag: cleanHashtag,
+        status: 'pending',
+        total_results: 0,
+        requested_at: new Date().toISOString()
+      };
+      
+      // Add temporary entry to show pending state
+      setSearches(prev => [tempSearchEntry, ...prev]);
+    }
     
     try {
       const { data, error } = await supabase.functions.invoke('scrape-tiktok-hashtags', {
-        body: { hashtag: cleanHashtag }
+        body: { 
+          hashtag: cleanHashtag,
+          offset: offset,
+          limit: 20 // Fetch 20 videos per page
+        }
       });
 
       if (error) {
         console.error('Function invoke error:', error);
         toast.error(`Network error: ${error.message}`);
-        // Remove temporary entry on error
-        setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
+        // Remove temporary entry on error (only for first page)
+        if (isFirstPage && tempSearchEntry) {
+          setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
+        }
         return;
       }
 
@@ -189,31 +212,56 @@ export function HashtagSearch() {
       if (data?.success === false) {
         console.error('Function returned error:', data);
         toast.error(data.error || "Failed to search hashtag - please try again");
-        // Remove temporary entry on error
-        setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
+        // Remove temporary entry on error (only for first page)
+        if (isFirstPage && tempSearchEntry) {
+          setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
+        }
         return;
       }
 
       if (data?.success) {
-        toast.success(`Found ${data.videosFound} TikTok videos for #${cleanHashtag}`);
-        // Remove temporary entry and reload actual data
-        setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
+        if (isFirstPage) {
+          toast.success(`Found ${data.videosFound} TikTok videos for #${cleanHashtag}`);
+          // Remove temporary entry and reload search history
+          if (tempSearchEntry) {
+            setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
+          }
+          await loadSearchHistory();
+          
+          // Switch to results tab and select this hashtag
+          setActiveTab("results");
+          setSelectedHashtag(cleanHashtag);
+        } else {
+          toast.success(`Loaded ${data.videosFound} more videos`);
+        }
+        
+        // Update pagination state
+        setHasMore(data.hasMore || false);
+        setCurrentOffset(data.offset + data.videosFound);
+        
+        // Load videos from database
         await loadHashtagVideos();
-        await loadSearchHistory();
-      } else {
-        console.error('Unexpected response format:', data);
-        toast.error("Unexpected response from server - please try again");
-        // Remove temporary entry on error
+      }
+    } catch (error: any) {
+      console.error('Network error:', error);
+      toast.error("Network error - please check your connection and try again");
+      // Remove temporary entry on error (only for first page)
+      if (isFirstPage && tempSearchEntry) {
         setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
       }
-    } catch (error) {
-      console.error('Error during hashtag search:', error);
-      toast.error("Network error occurred while searching hashtag");
-      // Remove temporary entry on error
-      setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
     } finally {
-      setLoading(false);
+      if (isFirstPage) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
     }
+  };
+
+  const loadMoreVideos = async () => {
+    if (!selectedHashtag || loadingMore || !hasMore) return;
+    
+    await scrapeHashtagPosts(selectedHashtag, currentOffset);
   };
 
   const loadHashtagVideos = async () => {
@@ -500,19 +548,42 @@ export function HashtagSearch() {
               </div>
             )}
 
-            {/* Load More Button */}
-            {filteredVideos.length > visibleVideos && (
-              <div className="flex justify-center">
+            {/* Load More Section */}
+            <div className="flex flex-col items-center gap-4">
+              {/* Show more from current results */}
+              {filteredVideos.length > visibleVideos && (
                 <Button
                   variant="outline"
                   onClick={() => setVisibleVideos(prev => prev + 8)}
                   className="flex items-center gap-2"
                 >
-                  Load More Videos
+                  Show More Results ({filteredVideos.length - visibleVideos} remaining)
                   <ChevronDown className="w-4 h-4" />
                 </Button>
-              </div>
-            )}
+              )}
+              
+              {/* Load more from API */}
+              {hasMore && selectedHashtag && (
+                <Button
+                  onClick={loadMoreVideos}
+                  disabled={loadingMore}
+                  variant="default"
+                  className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Loading More Videos...
+                    </>
+                  ) : (
+                    <>
+                      <TrendingUp className="w-4 h-4" />
+                      Load More Videos from TikTok
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>

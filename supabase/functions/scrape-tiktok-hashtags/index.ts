@@ -13,11 +13,19 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = new Date();
+
   try {
-    const { hashtag } = await req.json();
-    
+    const { hashtag, offset = 0, limit = 20 } = await req.json();
+
     if (!hashtag) {
-      throw new Error('Hashtag is required');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Hashtag is required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Get user from request
@@ -38,48 +46,70 @@ serve(async (req) => {
       throw new Error('Authentication failed');
     }
 
-    console.log(`Starting TikTok hashtag scrape for: ${hashtag}`);
+    console.log(`Starting TikTok hashtag scrape for: ${hashtag} (offset: ${offset}, limit: ${limit})`);
 
-    // Use new credit system for consistency with frontend
-    const { data: creditResult, error: creditError } = await supabase.rpc('spend_credits', {
-      user_id_param: user.id,
-      amount_param: 1,
-      reason_param: 'tiktok_hashtag_search',
-      ref_type_param: 'hashtag',
-      ref_id_param: hashtag
-    });
+    // Only charge credits for the first page (offset 0)
+    if (offset === 0) {
+      // Use new credit system for consistency with frontend
+      const { data: creditResult, error: creditError } = await supabase.rpc('spend_credits', {
+        user_id_param: user.id,
+        amount_param: 1,
+        reason_param: 'tiktok_hashtag_search',
+        ref_type_param: 'hashtag',
+        ref_id_param: hashtag
+      });
 
-    if (creditError) {
-      console.error('❌ Credit spending error:', creditError);
-      throw new Error('Failed to process credits: ' + creditError.message);
+      if (creditError) {
+        console.error('❌ Credit spending error:', creditError);
+        throw new Error('Failed to process credits: ' + creditError.message);
+      }
+
+      if (!creditResult.ok) {
+        console.log('❌ Insufficient credits for user:', user.id, creditResult.error || 'Insufficient credits');
+        throw new Error('Insufficient credits');
+      }
+
+      console.log('✅ Credits spent successfully for user:', user.id, 'New balance:', creditResult.new_balance);
     }
-
-    if (!creditResult.ok) {
-      console.log('❌ Insufficient credits for user:', user.id, creditResult.error || 'Insufficient credits');
-      throw new Error('Insufficient credits');
-    }
-
-    console.log('✅ Credits spent successfully for user:', user.id, 'New balance:', creditResult.new_balance);
 
     // Clean hashtag (remove # if present)
     const cleanHashtag = hashtag.replace('#', '');
 
-    // Add to search queue
-    const { data: searchEntry, error: searchError } = await supabase
-      .from('search_queue')
-      .insert({
-        hashtag: cleanHashtag,
-        search_type: 'hashtag',
-        platform: 'tiktok',
-        status: 'pending',
-        user_id: user.id,
-        username: null // Explicitly set to null for hashtag searches
-      })
-      .select()
-      .single();
-
-    if (searchError) {
-      console.error('Error adding to search queue:', searchError);
+    // Create or update search queue entry
+    let searchEntry;
+    if (offset === 0) {
+      // First page - create new search entry
+      const { data, error: searchError } = await supabase
+        .from('search_queue')
+        .insert({
+          hashtag: cleanHashtag,
+          search_type: 'hashtag',
+          platform: 'tiktok',
+          status: 'pending',
+          user_id: user.id,
+          username: null // Explicitly set to null for hashtag searches
+        })
+        .select()
+        .single();
+      
+      searchEntry = data;
+      if (searchError) {
+        console.error('Error adding to search queue:', searchError);
+      }
+    } else {
+      // Subsequent pages - find existing search entry
+      const { data } = await supabase
+        .from('search_queue')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('hashtag', cleanHashtag)
+        .eq('search_type', 'hashtag')
+        .eq('platform', 'tiktok')
+        .order('requested_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      searchEntry = data;
     }
 
     // Enhanced API key validation and logging
@@ -121,10 +151,14 @@ serve(async (req) => {
     console.log('✅ APIFY_API_KEY found, proceeding with TikTok hashtag scraping...');
 
     const actorId = '5K30i8aFccKNF5ICs'; // Official apidojo/tiktok-scraper actor ID
+    
+    // Calculate pagination parameters for Apify
+    const maxItems = Math.min(limit, 50); // Cap at 50 to prevent timeouts
+    
     const input = {
       customMapFunction: "(object) => { return {...object} }",
       includeSearchKeywords: false,
-      maxItems: 100,
+      maxItems: offset + maxItems, // Total items to fetch including offset
       sortType: "RELEVANCE",
       startUrls: [`https://www.tiktok.com/tag/${cleanHashtag}`]
     };
@@ -188,8 +222,12 @@ serve(async (req) => {
       headers: { 'Authorization': `Bearer ${apifyToken}` },
     });
 
-    const videos = await datasetResponse.json();
-    console.log(`Retrieved ${videos.length} videos for hashtag: ${cleanHashtag}`);
+    const allVideos = await datasetResponse.json();
+    console.log(`Retrieved ${allVideos.length} videos for hashtag: ${cleanHashtag}`);
+    
+    // Apply pagination to the results
+    const videos = allVideos.slice(offset, offset + limit);
+    console.log(`Paginated to ${videos.length} videos (offset: ${offset}, limit: ${limit})`);
     
     // Log sample video structure for debugging
     if (videos.length > 0) {
@@ -255,7 +293,7 @@ serve(async (req) => {
       );
 
       // Generate unique post_id with better collision prevention
-      const uniquePostId = video.id || `tiktok_${Date.now()}_${index}_${Math.floor(Math.random() * 10000)}`;
+      const uniquePostId = video.id || `tiktok_${Date.now()}_${offset}_${index}_${Math.floor(Math.random() * 10000)}`;
       
       return {
         post_id: uniquePostId,
@@ -339,28 +377,45 @@ serve(async (req) => {
       console.log(`✅ Successfully processed ${totalInserted}/${processedVideos.length} videos total`);
     }
 
-    // Update search queue status - Always complete, even with 0 results
-    if (searchEntry) {
-      const processingTime = Math.floor((Date.now() - new Date(searchEntry.requested_at).getTime()) / 1000);
-      await supabase
+    // Update search queue status - Only for first page
+    const endTime = new Date();
+    const processingTime = Math.round((endTime.getTime() - startTime.getTime()) / 1000);
+
+    if (searchEntry?.id && offset === 0) {
+      // Only update search queue status for the first page
+      const { error: updateError } = await supabase
         .from('search_queue')
         .update({ 
           status: 'completed',
           total_results: processedVideos.length,
           processing_time_seconds: processingTime,
-          completed_at: new Date().toISOString()
+          completed_at: endTime.toISOString()
         })
         .eq('id', searchEntry.id);
+
+      if (updateError) {
+        console.error('Error updating search queue:', updateError);
+      }
     }
 
-    return new Response(JSON.stringify({
-      success: true,
-      videosFound: processedVideos.length,
-      hashtag: cleanHashtag,
-      runId
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        message: `Successfully scraped ${processedVideos.length} TikTok videos for hashtag: ${cleanHashtag}`,
+        hashtag: cleanHashtag,
+        videosFound: processedVideos.length,
+        processingTimeSeconds: processingTime,
+        offset: offset,
+        limit: limit,
+        hasMore: allVideos.length > offset + limit, // Check if there are more videos available
+        totalFetched: offset + processedVideos.length,
+        totalAvailable: allVideos.length
+      }),
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
 
   } catch (error) {
     console.error('Error in scrape-tiktok-hashtags function:', error);
@@ -373,24 +428,30 @@ serve(async (req) => {
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         const supabase = createClient(supabaseUrl, supabaseKey);
         
-        // Get user and refund credits for failed operation
+        // Get user and refund credits for failed operation (only for first page)
         const token = authHeader.replace('Bearer ', '');
         const { data: { user } } = await supabase.auth.getUser(token);
         
         if (user) {
-          // Refund credit for failed operation (add 1 credit back)
-          const { error: refundError } = await supabase.rpc('spend_credits', {
-            user_id_param: user.id,
-            amount_param: -1, // Negative amount adds credits back
-            reason_param: 'refund_failed_tiktok_hashtag_search',
-            ref_type_param: 'refund',
-            ref_id_param: `hashtag_${Date.now()}`
-          });
+          const requestBody = await req.json().catch(() => ({}));
+          const offset = requestBody.offset || 0;
           
-          if (refundError) {
-            console.error('❌ Failed to refund credits:', refundError);
-          } else {
-            console.log('✅ Refunded 1 credit due to operation failure');
+          // Only refund for first page failures
+          if (offset === 0) {
+            // Refund credit for failed operation (add 1 credit back)
+            const { error: refundError } = await supabase.rpc('spend_credits', {
+              user_id_param: user.id,
+              amount_param: -1, // Negative amount adds credits back
+              reason_param: 'refund_failed_tiktok_hashtag_search',
+              ref_type_param: 'refund',
+              ref_id_param: `hashtag_${Date.now()}`
+            });
+            
+            if (refundError) {
+              console.error('❌ Failed to refund credits:', refundError);
+            } else {
+              console.log('✅ Refunded 1 credit due to operation failure');
+            }
           }
           
           // Update search queue status to failed
