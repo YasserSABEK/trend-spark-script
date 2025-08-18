@@ -118,7 +118,7 @@ export const HashtagVideos = () => {
 
       setTotal(count || 0);
       setVideos(prev => append ? [...prev, ...(data || [])] : (data || []));
-      setHasMore(((from + (data?.length || 0)) < (count || 0)));
+      setHasMore((data?.length || 0) >= pageSize && (from + (data?.length || 0)) < (count || 0));
       setPage(pageIndex);
     } catch (error) {
       console.error('Error loading hashtag videos:', error);
