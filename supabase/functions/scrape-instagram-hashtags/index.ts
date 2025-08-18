@@ -107,16 +107,16 @@ Deno.serve(async (req) => {
 
     try {
       // Create the Apify run with new actor
-      const apifyResponse = await fetch(`https://api.apify.com/v2/acts/apidojo~instagram-scraper/runs`, {
+      const apifyResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apifyApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          customMapFunction: "(object) => { return {...object} }",
-          maxItems: 100,
-          startUrls: [`https://www.instagram.com/explore/tags/${hashtag}`]
+          hashtags: [hashtag],
+          resultsLimit: limit,
+          resultsType: "stories"
         }),
       });
 
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
       while (attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 5000));
         
-        const statusResponse = await fetch(`https://api.apify.com/v2/acts/apidojo~instagram-scraper/runs/${runId}`, {
+        const statusResponse = await fetch(`https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/runs/${runId}`, {
           headers: {
             'Authorization': `Bearer ${apifyApiKey}`,
           },
