@@ -108,37 +108,126 @@ serve(async (req) => {
     let creditsNeeded = 1; // Default for ≤90s
     if (deeperAnalysis) creditsNeeded += 1;
 
-    // Check and deduct credits
-    const { data: creditResult, error: creditError } = await supabase.rpc('safe_deduct_credits', {
-      user_id_param: user.id,
-      credits_to_deduct: creditsNeeded
-    });
+    console.log('Credit deduction - Function version: 2025-08-20-v3, timestamp:', new Date().toISOString());
+    console.log('Credit deduction - User ID:', user.id);
+    console.log('Credit deduction - Credits needed:', creditsNeeded);
 
-    if (creditError || !creditResult?.success) {
-      throw new Error('Insufficient credits');
-    }
-
-    // Create analysis record
-    const { data: analysis, error: analysisError } = await supabase
-      .from('content_analysis')
-      .insert({
-        content_item_id: contentItemId,
-        user_id: user.id,
-        video_url: finalVideoUrl,
-        status: 'queued',
-        deeper_analysis: deeperAnalysis,
-        credits_used: creditsNeeded
-      })
-      .select()
+    // Get current user credits for debugging
+    const { data: currentCredits, error: creditsCheckError } = await supabase
+      .from('credit_balances')
+      .select('balance')
+      .eq('user_id', user.id)
       .single();
 
-    if (analysisError) {
-      console.error('Error creating analysis:', analysisError);
-      throw new Error('Failed to create analysis');
+    console.log('Credit deduction - Current balance query result:', { currentCredits, creditsCheckError });
+
+    // Check and deduct credits with retry logic
+    let creditResult = null;
+    let creditError = null;
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      console.log(`Credit deduction - Attempt ${attempts}/${maxAttempts}`);
+
+      const result = await supabase.rpc('safe_deduct_credits', {
+        user_id_param: user.id,
+        credits_to_deduct: creditsNeeded
+      });
+
+      creditResult = result.data;
+      creditError = result.error;
+
+      console.log(`Credit deduction - Attempt ${attempts} result:`, { creditResult, creditError });
+
+      // If successful, break out of retry loop
+      if (!creditError && creditResult?.success) {
+        console.log('Credit deduction - Success on attempt', attempts);
+        break;
+      }
+
+      // If it's a genuine insufficient credits error, don't retry
+      if (creditResult && !creditResult.success && creditResult.message === 'Insufficient credits') {
+        console.log('Credit deduction - Genuine insufficient credits, not retrying');
+        break;
+      }
+
+      // Wait a bit before retrying (exponential backoff)
+      if (attempts < maxAttempts) {
+        const delay = Math.pow(2, attempts - 1) * 1000; // 1s, 2s, 4s
+        console.log(`Credit deduction - Waiting ${delay}ms before retry`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
 
-    // Start AssemblyAI transcription
+    // Enhanced error handling with detailed messages
+    if (creditError) {
+      console.error('Credit deduction - Database error:', creditError);
+      throw new Error(`Credit system error: ${creditError.message || 'Database connection failed'}`);
+    }
+
+    if (!creditResult?.success) {
+      const errorMsg = creditResult?.message || 'Unknown credit error';
+      const remainingCredits = creditResult?.remaining_credits || 'unknown';
+      console.error('Credit deduction - Deduction failed:', { errorMsg, remainingCredits, creditResult });
+      
+      if (errorMsg === 'Insufficient credits') {
+        throw new Error(`Insufficient credits. You have ${remainingCredits} credits but need ${creditsNeeded} credits for this analysis.`);
+      } else {
+        throw new Error(`Credit deduction failed: ${errorMsg}`);
+      }
+    }
+
+    console.log('Credit deduction - Successful deduction. Remaining credits:', creditResult.remaining_credits);
+
+    // Create analysis record with rollback capability
+    let analysis = null;
+    try {
+      const { data: analysisData, error: analysisError } = await supabase
+        .from('content_analysis')
+        .insert({
+          content_item_id: contentItemId,
+          user_id: user.id,
+          video_url: finalVideoUrl,
+          status: 'queued',
+          deeper_analysis: deeperAnalysis,
+          credits_used: creditsNeeded
+        })
+        .select()
+        .single();
+
+      if (analysisError) {
+        console.error('Error creating analysis:', analysisError);
+        throw new Error('Failed to create analysis record');
+      }
+
+      analysis = analysisData;
+      console.log('Analysis record created:', analysis.id);
+
+    } catch (error) {
+      console.error('Analysis creation failed, attempting credit rollback:', error);
+      // Attempt to refund credits
+      try {
+        await supabase.rpc('add_credits', {
+          user_id_param: user.id,
+          credits_to_add: creditsNeeded
+        });
+        console.log('Credits refunded due to analysis creation failure');
+      } catch (refundError) {
+        console.error('Failed to refund credits:', refundError);
+      }
+      throw error;
+    }
+
+    // Start AssemblyAI transcription with rollback capability
     if (!assemblyAIKey) {
+      // Rollback analysis and credits before throwing error
+      await supabase.from('content_analysis').delete().eq('id', analysis.id);
+      await supabase.rpc('add_credits', {
+        user_id_param: user.id,
+        credits_to_add: creditsNeeded
+      });
       throw new Error('AssemblyAI API key not configured');
     }
 
@@ -154,35 +243,68 @@ serve(async (req) => {
 
     console.log('Starting AssemblyAI transcription for URL:', finalVideoUrl);
     
-    const transcriptResponse = await fetch('https://api.assemblyai.com/v2/transcript', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${assemblyAIKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(transcriptRequest),
-    });
+    let transcriptData = null;
+    try {
+      const transcriptResponse = await fetch('https://api.assemblyai.com/v2/transcript', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${assemblyAIKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(transcriptRequest),
+      });
 
-    if (!transcriptResponse.ok) {
-      const errorText = await transcriptResponse.text();
-      console.error('AssemblyAI API error:', errorText);
-      throw new Error(`AssemblyAI error: ${errorText}`);
+      if (!transcriptResponse.ok) {
+        const errorText = await transcriptResponse.text();
+        console.error('AssemblyAI API error:', errorText);
+        throw new Error(`AssemblyAI error: ${errorText}`);
+      }
+
+      transcriptData = await transcriptResponse.json();
+      console.log('AssemblyAI transcript created:', transcriptData.id);
+
+    } catch (error) {
+      console.error('AssemblyAI transcription failed, attempting rollback:', error);
+      
+      // Update analysis status to failed
+      await supabase
+        .from('content_analysis')
+        .update({
+          status: 'failed',
+          error_message: `Transcription failed: ${error.message}`
+        })
+        .eq('id', analysis.id);
+
+      // Refund credits
+      try {
+        await supabase.rpc('add_credits', {
+          user_id_param: user.id,
+          credits_to_add: creditsNeeded
+        });
+        console.log('Credits refunded due to transcription failure');
+      } catch (refundError) {
+        console.error('Failed to refund credits:', refundError);
+      }
+
+      throw new Error(`Transcription service failed: ${error.message}`);
     }
 
-    const transcriptData = await transcriptResponse.json();
-    console.log('AssemblyAI transcript created:', transcriptData.id);
-
     // Update analysis with transcript ID and status
-    await supabase
-      .from('content_analysis')
-      .update({
-        status: 'transcribing',
-        video_url: finalVideoUrl,
-        analysis_result: { transcript_id: transcriptData.id }
-      })
-      .eq('id', analysis.id);
+    try {
+      await supabase
+        .from('content_analysis')
+        .update({
+          status: 'transcribing',
+          video_url: finalVideoUrl,
+          analysis_result: { transcript_id: transcriptData.id }
+        })
+        .eq('id', analysis.id);
 
-    console.log('Analysis record updated with transcript ID:', transcriptData.id);
+      console.log('Analysis record updated with transcript ID:', transcriptData.id);
+    } catch (error) {
+      console.error('Failed to update analysis record:', error);
+      // Log but don't fail the entire process since transcription is already started
+    }
 
     return new Response(JSON.stringify({
       success: true,
