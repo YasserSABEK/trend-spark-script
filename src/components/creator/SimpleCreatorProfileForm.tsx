@@ -20,6 +20,7 @@ interface SimpleCreatorProfileFormProps {
   onComplete: () => void;
   existingProfile?: any;
   isEditing?: boolean;
+  onCreationStarted?: () => void;
 }
 
 interface VideoItem {
@@ -32,7 +33,8 @@ interface VideoItem {
 const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({ 
   onComplete, 
   existingProfile, 
-  isEditing = false 
+  isEditing = false,
+  onCreationStarted 
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [enableVideoAnalysis, setEnableVideoAnalysis] = useState(false);
@@ -187,6 +189,12 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
     }
 
     setIsLoading(true);
+    
+    // Notify parent that creation has started
+    if (!isEditing && onCreationStarted) {
+      onCreationStarted();
+    }
+    
     try {
       let profileId = existingProfile?.id;
 

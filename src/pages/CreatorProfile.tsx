@@ -14,19 +14,22 @@ const CreatorProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   // Debug logging
   console.log('CreatorProfile component rendered:', { user: !!user, loading, hasProfile, isLoading });
 
   useEffect(() => {
-    console.log('CreatorProfile useEffect triggered:', { user: !!user, loading });
-    if (user && !loading) {
+    console.log('CreatorProfile useEffect triggered:', { user: !!user, loading, hasCheckedProfile, isCreating });
+    // Only check for profile on initial load, not on subsequent auth state changes
+    if (user && !loading && !hasCheckedProfile && !isCreating) {
       checkForProfile();
     } else if (!loading && !user) {
       console.log('No user found, stopping loading');
       setIsLoading(false);
     }
-  }, [user, loading]);
+  }, [user, loading, hasCheckedProfile, isCreating]);
 
   const checkForProfile = async () => {
     console.log('Checking for profile...');
@@ -54,16 +57,23 @@ const CreatorProfile: React.FC = () => {
       setHasProfile(false);
     } finally {
       setIsLoading(false);
+      setHasCheckedProfile(true);
     }
   };
 
   const handleProfileCreated = () => {
     setHasProfile(true);
     setShowWizard(false);
+    setIsCreating(false);
   };
 
   const handleEditProfile = () => {
     setShowWizard(true);
+    setIsCreating(true);
+  };
+
+  const handleCreationStarted = () => {
+    setIsCreating(true);
   };
 
   // Don't redirect immediately, wait for auth to complete
@@ -129,7 +139,10 @@ const CreatorProfile: React.FC = () => {
     <PageContainer>
       <div className="max-w-4xl mx-auto">
         {!hasProfile || showWizard ? (
-          <SimpleCreatorProfileForm onComplete={handleProfileCreated} />
+          <SimpleCreatorProfileForm 
+            onComplete={handleProfileCreated} 
+            onCreationStarted={handleCreationStarted}
+          />
         ) : (
           <div className="space-y-6">
             <div>
