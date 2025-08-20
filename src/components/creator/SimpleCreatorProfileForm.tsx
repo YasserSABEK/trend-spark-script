@@ -47,36 +47,63 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Form data state - declared early to avoid dependency issues
+  const [formData, setFormData] = useState({
+    brand_name: existingProfile?.brand_name || '',
+    niche: existingProfile?.niche || '',
+    target_audience: existingProfile?.target_audience || '',
+    content_goals: existingProfile?.content_goals || [] as string[],
+    on_camera: existingProfile?.on_camera || false,
+    content_format: existingProfile?.content_format || '',
+    personality_traits: existingProfile?.personality_traits || [] as string[],
+    instagram_handle: existingProfile?.instagram_handle || ''
+  });
+
   // localStorage keys
   const STORAGE_KEYS = {
+    formData: 'creator-profile-form-data',
     videos: 'creator-profile-videos',
     enableVideoAnalysis: 'creator-profile-enable-video-analysis',
     currentUrl: 'creator-profile-current-url'
   };
 
-  // Save video state to localStorage
-  const saveVideoState = useCallback(() => {
+  // Save form and video state to localStorage
+  const saveFormState = useCallback(() => {
     if (!isEditing) { // Only persist for new profiles, not when editing
-      localStorage.setItem(STORAGE_KEYS.videos, JSON.stringify(videos));
-      localStorage.setItem(STORAGE_KEYS.enableVideoAnalysis, JSON.stringify(enableVideoAnalysis));
-      localStorage.setItem(STORAGE_KEYS.currentUrl, currentUrl);
+      try {
+        localStorage.setItem(STORAGE_KEYS.formData, JSON.stringify(formData));
+        localStorage.setItem(STORAGE_KEYS.videos, JSON.stringify(videos));
+        localStorage.setItem(STORAGE_KEYS.enableVideoAnalysis, JSON.stringify(enableVideoAnalysis));
+        localStorage.setItem(STORAGE_KEYS.currentUrl, currentUrl);
+      } catch (error) {
+        console.error('Error saving form state to localStorage:', error);
+      }
     }
-  }, [videos, enableVideoAnalysis, currentUrl, isEditing, STORAGE_KEYS]);
+  }, [formData, videos, enableVideoAnalysis, currentUrl, isEditing, STORAGE_KEYS]);
 
-  // Clear video state from localStorage
-  const clearVideoState = useCallback(() => {
+  // Clear all form state from localStorage
+  const clearFormState = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEYS.formData);
     localStorage.removeItem(STORAGE_KEYS.videos);
     localStorage.removeItem(STORAGE_KEYS.enableVideoAnalysis);
     localStorage.removeItem(STORAGE_KEYS.currentUrl);
   }, [STORAGE_KEYS]);
 
-  // Restore video state from localStorage on component mount
+  // Restore form state from localStorage on component mount
   useEffect(() => {
     if (!isEditing) { // Only restore for new profiles, not when editing
       try {
+        const savedFormData = localStorage.getItem(STORAGE_KEYS.formData);
         const savedVideos = localStorage.getItem(STORAGE_KEYS.videos);
         const savedEnableVideoAnalysis = localStorage.getItem(STORAGE_KEYS.enableVideoAnalysis);
         const savedCurrentUrl = localStorage.getItem(STORAGE_KEYS.currentUrl);
+
+        if (savedFormData) {
+          const parsedFormData = JSON.parse(savedFormData);
+          if (parsedFormData && typeof parsedFormData === 'object') {
+            setFormData(parsedFormData);
+          }
+        }
 
         if (savedVideos) {
           const parsedVideos = JSON.parse(savedVideos);
@@ -96,29 +123,18 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
           setCurrentUrl(savedCurrentUrl);
         }
       } catch (error) {
-        console.error('Error restoring video state from localStorage:', error);
+        console.error('Error restoring form state from localStorage:', error);
         // Clear corrupted data
-        clearVideoState();
+        clearFormState();
       }
     }
-  }, [isEditing, STORAGE_KEYS, clearVideoState]);
+  }, [isEditing, STORAGE_KEYS, clearFormState]);
 
-  // Save video state whenever it changes
+  // Save form state whenever it changes (debounced via useCallback dependencies)
   useEffect(() => {
-    saveVideoState();
-  }, [saveVideoState]);
-
-  // Form data state
-  const [formData, setFormData] = useState({
-    brand_name: existingProfile?.brand_name || '',
-    niche: existingProfile?.niche || '',
-    target_audience: existingProfile?.target_audience || '',
-    content_goals: existingProfile?.content_goals || [] as string[],
-    on_camera: existingProfile?.on_camera || false,
-    content_format: existingProfile?.content_format || '',
-    personality_traits: existingProfile?.personality_traits || [] as string[],
-    instagram_handle: existingProfile?.instagram_handle || ''
-  });
+    const timeoutId = setTimeout(saveFormState, 500); // Debounce saves
+    return () => clearTimeout(timeoutId);
+  }, [saveFormState]);
 
   const niches = [
     'Fitness & Health', 'Business & Entrepreneurship', 'Technology', 'Lifestyle', 
@@ -320,7 +336,7 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
 
       // Clear localStorage on successful profile creation
       if (!isEditing) {
-        clearVideoState();
+        clearFormState();
       }
 
       onComplete();
