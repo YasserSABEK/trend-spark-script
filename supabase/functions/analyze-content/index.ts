@@ -104,9 +104,8 @@ serve(async (req) => {
       throw new Error('Video URL is not accessible to external services');
     }
 
-    // Calculate credits needed based on video duration (we'll estimate for now)
-    let creditsNeeded = 1; // Default for ≤90s
-    if (deeperAnalysis) creditsNeeded += 1;
+    // Calculate credits needed - always 1 credit for any analysis
+    let creditsNeeded = 1;
 
     console.log('Credit deduction - Function version: 2025-08-20-v3, timestamp:', new Date().toISOString());
     console.log('Credit deduction - User ID:', user.id);
@@ -131,9 +130,12 @@ serve(async (req) => {
       attempts++;
       console.log(`Credit deduction - Attempt ${attempts}/${maxAttempts}`);
 
-      const result = await supabase.rpc('safe_deduct_credits', {
+      const result = await supabase.rpc('spend_credits', {
         user_id_param: user.id,
-        credits_to_deduct: creditsNeeded
+        amount_param: creditsNeeded,
+        reason_param: 'Content analysis',
+        ref_type_param: 'content_analysis',
+        ref_id_param: contentItemId
       });
 
       creditResult = result.data;
@@ -142,13 +144,13 @@ serve(async (req) => {
       console.log(`Credit deduction - Attempt ${attempts} result:`, { creditResult, creditError });
 
       // If successful, break out of retry loop
-      if (!creditError && creditResult?.success) {
+      if (!creditError && creditResult?.ok) {
         console.log('Credit deduction - Success on attempt', attempts);
         break;
       }
 
       // If it's a genuine insufficient credits error, don't retry
-      if (creditResult && !creditResult.success && creditResult.message === 'Insufficient credits') {
+      if (creditResult && !creditResult.ok && creditResult.error === 'INSUFFICIENT_CREDITS') {
         console.log('Credit deduction - Genuine insufficient credits, not retrying');
         break;
       }
@@ -167,19 +169,19 @@ serve(async (req) => {
       throw new Error(`Credit system error: ${creditError.message || 'Database connection failed'}`);
     }
 
-    if (!creditResult?.success) {
-      const errorMsg = creditResult?.message || 'Unknown credit error';
-      const remainingCredits = creditResult?.remaining_credits || 'unknown';
+    if (!creditResult?.ok) {
+      const errorMsg = creditResult?.error || 'Unknown credit error';
+      const remainingCredits = creditResult?.new_balance || 'unknown';
       console.error('Credit deduction - Deduction failed:', { errorMsg, remainingCredits, creditResult });
       
-      if (errorMsg === 'Insufficient credits') {
-        throw new Error(`Insufficient credits. You have ${remainingCredits} credits but need ${creditsNeeded} credits for this analysis.`);
+      if (errorMsg === 'INSUFFICIENT_CREDITS') {
+        throw new Error(`Insufficient credits. You have ${creditResult?.current_balance || 'unknown'} credits but need ${creditsNeeded} credits for this analysis.`);
       } else {
         throw new Error(`Credit deduction failed: ${errorMsg}`);
       }
     }
 
-    console.log('Credit deduction - Successful deduction. Remaining credits:', creditResult.remaining_credits);
+    console.log('Credit deduction - Successful deduction. New balance:', creditResult.new_balance);
 
     // Create analysis record with rollback capability
     let analysis = null;
@@ -207,11 +209,14 @@ serve(async (req) => {
 
     } catch (error) {
       console.error('Analysis creation failed, attempting credit rollback:', error);
-      // Attempt to refund credits
+      // Attempt to refund credits using the new credit system
       try {
-        await supabase.rpc('add_credits', {
+        await supabase.rpc('spend_credits', {
           user_id_param: user.id,
-          credits_to_add: creditsNeeded
+          amount_param: -creditsNeeded, // Negative amount for refund
+          reason_param: 'Refund - Analysis creation failed',
+          ref_type_param: 'refund',
+          ref_id_param: contentItemId
         });
         console.log('Credits refunded due to analysis creation failure');
       } catch (refundError) {
@@ -224,9 +229,12 @@ serve(async (req) => {
     if (!assemblyAIKey) {
       // Rollback analysis and credits before throwing error
       await supabase.from('content_analysis').delete().eq('id', analysis.id);
-      await supabase.rpc('add_credits', {
+      await supabase.rpc('spend_credits', {
         user_id_param: user.id,
-        credits_to_add: creditsNeeded
+        amount_param: -creditsNeeded, // Negative amount for refund
+        reason_param: 'Refund - AssemblyAI not configured',
+        ref_type_param: 'refund',
+        ref_id_param: contentItemId
       });
       throw new Error('AssemblyAI API key not configured');
     }
@@ -275,11 +283,14 @@ serve(async (req) => {
         })
         .eq('id', analysis.id);
 
-      // Refund credits
+      // Refund credits using the new credit system
       try {
-        await supabase.rpc('add_credits', {
+        await supabase.rpc('spend_credits', {
           user_id_param: user.id,
-          credits_to_add: creditsNeeded
+          amount_param: -creditsNeeded, // Negative amount for refund
+          reason_param: 'Refund - Transcription failed',
+          ref_type_param: 'refund',
+          ref_id_param: contentItemId
         });
         console.log('Credits refunded due to transcription failure');
       } catch (refundError) {
