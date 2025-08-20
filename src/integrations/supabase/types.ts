@@ -222,6 +222,57 @@ export type Database = {
           },
         ]
       }
+      creator_profiles: {
+        Row: {
+          brand_name: string
+          content_format: string | null
+          content_goals: string[] | null
+          created_at: string | null
+          id: string
+          instagram_handle: string | null
+          niche: string
+          on_camera: boolean | null
+          personality_traits: string[] | null
+          profile_status: string | null
+          sample_count: number | null
+          target_audience: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          brand_name: string
+          content_format?: string | null
+          content_goals?: string[] | null
+          created_at?: string | null
+          id?: string
+          instagram_handle?: string | null
+          niche: string
+          on_camera?: boolean | null
+          personality_traits?: string[] | null
+          profile_status?: string | null
+          sample_count?: number | null
+          target_audience: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          brand_name?: string
+          content_format?: string | null
+          content_goals?: string[] | null
+          created_at?: string | null
+          id?: string
+          instagram_handle?: string | null
+          niche?: string
+          on_camera?: boolean | null
+          personality_traits?: string[] | null
+          profile_status?: string | null
+          sample_count?: number | null
+          target_audience?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       credit_balances: {
         Row: {
           balance: number
@@ -340,8 +391,10 @@ export type Database = {
         Row: {
           brand_voice: string | null
           call_to_action: string
+          conditioning_data: Json | null
           created_at: string
           format_type: string | null
+          generation_goal: string | null
           hook: string
           hook_style: string | null
           id: string
@@ -350,7 +403,11 @@ export type Database = {
           niche: string | null
           optimal_posting_time: string | null
           performance_score: number | null
+          platform_optimized: string | null
+          profile_id: string | null
+          quality_score: number | null
           reel_id: string | null
+          style_profile_id: string | null
           suggested_hashtags: string[] | null
           target_audience: string | null
           title: string
@@ -361,8 +418,10 @@ export type Database = {
         Insert: {
           brand_voice?: string | null
           call_to_action: string
+          conditioning_data?: Json | null
           created_at?: string
           format_type?: string | null
+          generation_goal?: string | null
           hook: string
           hook_style?: string | null
           id?: string
@@ -371,7 +430,11 @@ export type Database = {
           niche?: string | null
           optimal_posting_time?: string | null
           performance_score?: number | null
+          platform_optimized?: string | null
+          profile_id?: string | null
+          quality_score?: number | null
           reel_id?: string | null
+          style_profile_id?: string | null
           suggested_hashtags?: string[] | null
           target_audience?: string | null
           title: string
@@ -382,8 +445,10 @@ export type Database = {
         Update: {
           brand_voice?: string | null
           call_to_action?: string
+          conditioning_data?: Json | null
           created_at?: string
           format_type?: string | null
+          generation_goal?: string | null
           hook?: string
           hook_style?: string | null
           id?: string
@@ -392,7 +457,11 @@ export type Database = {
           niche?: string | null
           optimal_posting_time?: string | null
           performance_score?: number | null
+          platform_optimized?: string | null
+          profile_id?: string | null
+          quality_score?: number | null
           reel_id?: string | null
+          style_profile_id?: string | null
           suggested_hashtags?: string[] | null
           target_audience?: string | null
           title?: string
@@ -402,10 +471,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "generated_scripts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "generated_scripts_reel_id_fkey"
             columns: ["reel_id"]
             isOneToOne: false
             referencedRelation: "instagram_reels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_scripts_style_profile_id_fkey"
+            columns: ["style_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_style_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -909,6 +992,105 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_content_samples: {
+        Row: {
+          analysis_id: string
+          content_item_id: string
+          created_at: string | null
+          id: string
+          is_style_reference: boolean | null
+          profile_id: string
+          style_tags: string[] | null
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          content_item_id: string
+          created_at?: string | null
+          id?: string
+          is_style_reference?: boolean | null
+          profile_id: string
+          style_tags?: string[] | null
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          content_item_id?: string
+          created_at?: string | null
+          id?: string
+          is_style_reference?: boolean | null
+          profile_id?: string
+          style_tags?: string[] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_content_samples_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "content_analysis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_content_samples_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_content_samples_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_style_profiles: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          last_updated: string | null
+          profile_id: string
+          sample_count: number
+          style_traits: Json
+          summary_text: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          profile_id: string
+          sample_count: number
+          style_traits: Json
+          summary_text: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          profile_id?: string
+          sample_count?: number
+          style_traits?: Json
+          summary_text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_style_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_subscriptions: {
         Row: {
