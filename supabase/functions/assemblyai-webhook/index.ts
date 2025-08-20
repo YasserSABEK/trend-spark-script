@@ -32,16 +32,33 @@ serve(async (req) => {
       .eq('analysis_result->>transcript_id', transcriptId)
       .single();
 
+    let analysisRecord = analysis;
+
     if (analysisError || !analysis) {
       console.error('Analysis not found:', analysisError);
-      return new Response('Analysis not found', { status: 404 });
+      console.log('Searched for transcript_id:', transcriptId);
+      
+      // Try alternative query method
+      const { data: altAnalysis, error: altError } = await supabase
+        .from('content_analysis')
+        .select('*')
+        .contains('analysis_result', { transcript_id: transcriptId })
+        .single();
+      
+      if (altError || !altAnalysis) {
+        console.error('Alternative query also failed:', altError);
+        return new Response('Analysis not found', { status: 404 });
+      }
+      
+      // Use the alternative result
+      analysisRecord = altAnalysis;
     }
 
     if (status === 'completed') {
       // Get transcript data from AssemblyAI
       const transcriptResponse = await fetch(`https://api.assemblyai.com/v2/transcript/${transcriptId}`, {
         headers: {
-          'Authorization': assemblyAIKey!,
+          'Authorization': `Bearer ${assemblyAIKey}`,
         },
       });
 
@@ -71,7 +88,7 @@ serve(async (req) => {
         const lemurResponse = await fetch('https://api.assemblyai.com/lemur/v3/generate/task', {
           method: 'POST',
           headers: {
-            'Authorization': assemblyAIKey!,
+            'Authorization': `Bearer ${assemblyAIKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -162,15 +179,15 @@ Return as structured JSON with these exact keys: hook, sections, ctas, claims, e
       if (updateData.video_duration > 90 && updateData.video_duration <= 180) {
         finalCredits = 2;
       }
-      if (analysis.deeper_analysis) {
+      if (analysisRecord.deeper_analysis) {
         finalCredits += 1;
       }
 
       // If we charged too much, refund the difference
-      if (analysis.credits_used > finalCredits) {
-        const refund = analysis.credits_used - finalCredits;
+      if (analysisRecord.credits_used > finalCredits) {
+        const refund = analysisRecord.credits_used - finalCredits;
         await supabase.rpc('add_credits', {
-          user_id_param: analysis.user_id,
+          user_id_param: analysisRecord.user_id,
           credits_to_add: refund
         });
         updateData.credits_used = finalCredits;
@@ -179,7 +196,7 @@ Return as structured JSON with these exact keys: hook, sections, ctas, claims, e
       await supabase
         .from('content_analysis')
         .update(updateData)
-        .eq('id', analysis.id);
+        .eq('id', analysisRecord.id);
 
       console.log('Analysis completed successfully');
 
@@ -192,12 +209,12 @@ Return as structured JSON with these exact keys: hook, sections, ctas, claims, e
           error_message: webhook.error || 'Transcription failed',
           completed_at: new Date().toISOString()
         })
-        .eq('id', analysis.id);
+        .eq('id', analysisRecord.id);
 
       // Refund credits on failure
       await supabase.rpc('add_credits', {
-        user_id_param: analysis.user_id,
-        credits_to_add: analysis.credits_used
+        user_id_param: analysisRecord.user_id,
+        credits_to_add: analysisRecord.credits_used
       });
 
       console.log('Analysis failed, credits refunded');

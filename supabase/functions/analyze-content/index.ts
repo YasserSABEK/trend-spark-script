@@ -92,6 +92,18 @@ serve(async (req) => {
       throw new Error('No video URL available for analysis');
     }
 
+    // Test if video URL is accessible
+    try {
+      const testResponse = await fetch(finalVideoUrl, { method: 'HEAD' });
+      if (!testResponse.ok) {
+        throw new Error(`Video URL not accessible: ${testResponse.status}`);
+      }
+      console.log('Video URL accessibility confirmed');
+    } catch (error) {
+      console.error('Video URL test failed:', error);
+      throw new Error('Video URL is not accessible to external services');
+    }
+
     // Calculate credits needed based on video duration (we'll estimate for now)
     let creditsNeeded = 1; // Default for ≤90s
     if (deeperAnalysis) creditsNeeded += 1;
@@ -140,20 +152,25 @@ serve(async (req) => {
       webhook_auth_header_value: `Bearer ${supabaseServiceKey}`
     };
 
+    console.log('Starting AssemblyAI transcription for URL:', finalVideoUrl);
+    
     const transcriptResponse = await fetch('https://api.assemblyai.com/v2/transcript', {
       method: 'POST',
       headers: {
-        'Authorization': assemblyAIKey,
+        'Authorization': `Bearer ${assemblyAIKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(transcriptRequest),
     });
 
     if (!transcriptResponse.ok) {
-      throw new Error(`AssemblyAI error: ${await transcriptResponse.text()}`);
+      const errorText = await transcriptResponse.text();
+      console.error('AssemblyAI API error:', errorText);
+      throw new Error(`AssemblyAI error: ${errorText}`);
     }
 
     const transcriptData = await transcriptResponse.json();
+    console.log('AssemblyAI transcript created:', transcriptData.id);
 
     // Update analysis with transcript ID and status
     await supabase
@@ -164,6 +181,8 @@ serve(async (req) => {
         analysis_result: { transcript_id: transcriptData.id }
       })
       .eq('id', analysis.id);
+
+    console.log('Analysis record updated with transcript ID:', transcriptData.id);
 
     return new Response(JSON.stringify({
       success: true,
