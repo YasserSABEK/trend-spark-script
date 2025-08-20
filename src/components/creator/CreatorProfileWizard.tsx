@@ -118,8 +118,8 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
       } else {
         // Create new profile
         const { data, error } = await supabase.functions.invoke('creator-profile', {
-          method: 'POST',
           body: {
+            action: 'create',
             ...formData,
             profile_status: 'setup' // Mark as setup in progress
           }
@@ -178,8 +178,8 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
       // Update profile to complete status
       if (createdProfileId) {
         const { error } = await supabase.functions.invoke('creator-profile', {
-          method: 'PATCH',
           body: {
+            action: 'update',
             profile_status: 'complete',
             sample_count: processingResults?.completedVideos || 0
           }

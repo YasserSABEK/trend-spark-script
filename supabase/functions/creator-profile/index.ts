@@ -36,10 +36,19 @@ serve(async (req) => {
     if (!user) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id });
 
-    const method = req.method;
-    const url = new URL(req.url);
+    // Parse request body to determine action
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (error) {
+      logStep("Error parsing JSON", { error: error.message });
+      throw new Error("Invalid JSON in request body");
+    }
+
+    const action = requestBody.action || 'get';
+    logStep("Action determined", { action });
     
-    if (method === 'GET') {
+    if (action === 'get') {
       // Get creator profile
       const { data: profile, error } = await supabaseClient
         .from('creator_profiles')
@@ -60,15 +69,9 @@ serve(async (req) => {
       });
     }
 
-    if (method === 'POST') {
+    if (action === 'create') {
       // Create creator profile
-      let profileData;
-      try {
-        profileData = await req.json();
-      } catch (error) {
-        logStep("Error parsing JSON", { error: error.message });
-        throw new Error("Invalid JSON in request body");
-      }
+      const profileData = requestBody;
       
       const { data: profile, error } = await supabaseClient
         .from('creator_profiles')
@@ -100,15 +103,9 @@ serve(async (req) => {
       });
     }
 
-    if (method === 'PATCH') {
+    if (action === 'update') {
       // Update creator profile
-      let profileData;
-      try {
-        profileData = await req.json();
-      } catch (error) {
-        logStep("Error parsing JSON", { error: error.message });
-        throw new Error("Invalid JSON in request body");
-      }
+      const profileData = requestBody;
       
       const { data: profile, error } = await supabaseClient
         .from('creator_profiles')
@@ -141,9 +138,9 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+    return new Response(JSON.stringify({ error: `Action '${action}' not allowed` }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 405,
+      status: 400,
     });
 
   } catch (error) {

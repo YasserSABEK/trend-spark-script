@@ -35,7 +35,7 @@ const CreatorProfile: React.FC = () => {
       setError(null);
       
       const { data, error } = await supabase.functions.invoke('creator-profile', {
-        method: 'GET'
+        body: { action: 'get' }
       });
       console.log('Profile check result:', { data, error });
       
