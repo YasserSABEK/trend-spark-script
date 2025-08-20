@@ -168,7 +168,7 @@ export const CreatorProfiles = () => {
           <p className="text-muted-foreground">Manage your brand personas and content styles</p>
         </div>
         <Button 
-          onClick={() => navigate('/creator-profile/new')} 
+          onClick={() => navigate('/creator-profiles/new')} 
           className="flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
@@ -184,7 +184,7 @@ export const CreatorProfiles = () => {
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               Create your first creator profile to get personalized script generation and content analysis.
             </p>
-            <Button onClick={() => navigate('/creator-profile/new')}>
+            <Button onClick={() => navigate('/creator-profiles/new')}>
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Profile
             </Button>
@@ -254,7 +254,7 @@ export const CreatorProfiles = () => {
                     className="flex-1"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/creator-profile/${profile.id}`);
+                      navigate(`/creator-profiles/${profile.id}`);
                     }}
                   >
                     <Eye className="h-3 w-3 mr-1" />
@@ -265,7 +265,7 @@ export const CreatorProfiles = () => {
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/creator-profile/${profile.id}/edit`);
+                      navigate(`/creator-profiles/${profile.id}/edit`);
                     }}
                   >
                     <Edit className="h-3 w-3" />
