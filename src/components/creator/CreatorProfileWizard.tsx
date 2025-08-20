@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, ArrowRight, Check, User, Target, Palette, Upload } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, User, Target, Palette, Video, Mic, MicOff, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import VideoUploadStep from './VideoUploadStep';
 
 interface CreatorProfileWizardProps {
   onComplete: () => void;
@@ -31,13 +33,18 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
     on_camera: false,
     content_format: '',
     personality_traits: [] as string[],
-    instagram_handle: ''
+    instagram_handle: '',
+    video_processing_complete: false
   });
+
+  const [processingResults, setProcessingResults] = useState<any>(null);
+  const [isProcessingVideos, setIsProcessingVideos] = useState(false);
+  const [createdProfileId, setCreatedProfileId] = useState<string | null>(null);
 
   const steps = [
     { id: 1, title: 'Brand Identity', icon: User, description: 'Tell us about your brand' },
     { id: 2, title: 'Content Style', icon: Palette, description: 'Define your content approach' },
-    { id: 3, title: 'Content Sources', icon: Upload, description: 'Add your existing content' },
+    { id: 3, title: 'Content Analysis', icon: Video, description: 'Add your existing content' },
     { id: 4, title: 'Review & Complete', icon: Check, description: 'Review and finalize your profile' }
   ];
 
@@ -48,10 +55,11 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
   ];
 
   const contentFormats = [
-    { value: 'educational', label: 'Educational - Teach and inform' },
-    { value: 'entertainment', label: 'Entertainment - Entertain and amuse' },
-    { value: 'motivational', label: 'Motivational - Inspire and motivate' },
-    { value: 'mixed', label: 'Mixed - Combination of styles' }
+    { value: 'educational', label: 'Educational' },
+    { value: 'entertainment', label: 'Entertainment' },
+    { value: 'motivational', label: 'Motivational' },
+    { value: 'lifestyle', label: 'Lifestyle' },
+    { value: 'business', label: 'Business' }
   ];
 
   const personalityTraits = [
@@ -64,9 +72,45 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
     'Build community', 'Establish authority', 'Entertain followers', 'Share knowledge'
   ];
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    if (currentStep === 2 && !createdProfileId) {
+      // Create profile after step 2 to get profile ID for video processing
+      await createProfile();
+    }
+    
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const createProfile = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('creator-profile', {
+        body: {
+          ...formData,
+          profile_status: 'setup' // Mark as setup in progress
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to create creator profile",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      setCreatedProfileId(data.profile.id);
+      return data.profile.id;
+    } catch (error) {
+      console.error('Error creating profile:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+      return null;
     }
   };
 
@@ -97,20 +141,23 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('creator-profile', {
-        body: {
-          ...formData,
-          profile_status: 'complete'
-        }
-      });
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to create creator profile",
-          variant: "destructive",
+      // Update profile to complete status
+      if (createdProfileId) {
+        const { error } = await supabase.functions.invoke('creator-profile', {
+          body: {
+            profile_status: 'complete',
+            sample_count: processingResults?.completedVideos || 0
+          }
         });
-        return;
+
+        if (error) {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to complete creator profile",
+            variant: "destructive",
+          });
+          return;
+        }
       }
 
       toast({
@@ -120,7 +167,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
 
       onComplete();
     } catch (error) {
-      console.error('Error creating profile:', error);
+      console.error('Error completing profile:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -131,6 +178,16 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
     }
   };
 
+  const handleVideoProcessingStart = () => {
+    setIsProcessingVideos(true);
+  };
+
+  const handleVideoProcessingComplete = (results: any) => {
+    setIsProcessingVideos(false);
+    setProcessingResults(results);
+    setFormData(prev => ({ ...prev, video_processing_complete: true }));
+  };
+
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
@@ -138,7 +195,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
       case 2:
         return formData.content_format && formData.personality_traits.length > 0;
       case 3:
-        return true; // Optional step
+        return !isProcessingVideos; // Can proceed when not processing
       case 4:
         return true;
       default:
@@ -212,48 +269,56 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
       case 2:
         return (
           <div className="space-y-6">
-            <div className="space-y-3">
-              <Label>Content Format *</Label>
-              {contentFormats.map((format) => (
-                <div key={format.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={format.value}
-                    checked={formData.content_format === format.value}
-                    onCheckedChange={() => setFormData(prev => ({ 
-                      ...prev, 
-                      content_format: prev.content_format === format.value ? '' : format.value 
-                    }))}
-                  />
-                  <Label htmlFor={format.value} className="text-sm">
-                    <span className="font-medium">{format.label.split(' - ')[0]}</span>
-                    <span className="text-muted-foreground"> - {format.label.split(' - ')[1]}</span>
-                  </Label>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-3">
-              <Label>On-Camera Presence</Label>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="on_camera"
-                  checked={formData.on_camera}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, on_camera: !!checked }))}
-                />
-                <Label htmlFor="on_camera" className="text-sm">
-                  I appear on camera in my content
-                </Label>
+            <div className="space-y-4">
+              <Label className="text-base font-medium">On-Camera Presence *</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  type="button"
+                  variant={formData.on_camera ? "default" : "outline"}
+                  className="h-20 flex-col space-y-2"
+                  onClick={() => setFormData(prev => ({ ...prev, on_camera: true }))}
+                >
+                  <Mic className="h-6 w-6" />
+                  <span>Yes, I speak on camera</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={!formData.on_camera ? "default" : "outline"}
+                  className="h-20 flex-col space-y-2"
+                  onClick={() => setFormData(prev => ({ ...prev, on_camera: false }))}
+                >
+                  <MicOff className="h-6 w-6" />
+                  <span>I use AI voiceover</span>
+                </Button>
               </div>
             </div>
 
             <div className="space-y-3">
-              <Label>Personality Traits * (Select 3-5 that best describe you)</Label>
+              <Label className="text-base font-medium">Content Format *</Label>
+              <RadioGroup
+                value={formData.content_format}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, content_format: value }))}
+                className="space-y-3"
+              >
+                {contentFormats.map((format) => (
+                  <div key={format.value} className="flex items-center space-x-3">
+                    <RadioGroupItem value={format.value} id={format.value} />
+                    <Label htmlFor={format.value} className="text-sm font-medium cursor-pointer">
+                      {format.label}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Personality Traits * (Select 3-5 that best describe you)</Label>
               <div className="grid grid-cols-3 gap-2">
                 {personalityTraits.map((trait) => (
                   <Badge
                     key={trait}
                     variant={formData.personality_traits.includes(trait) ? "default" : "outline"}
-                    className="cursor-pointer justify-center"
+                    className="cursor-pointer justify-center py-2 hover:bg-primary/90 transition-colors"
                     onClick={() => handleTraitToggle(trait)}
                   >
                     {trait}
@@ -270,34 +335,34 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
       case 3:
         return (
           <div className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="instagram_handle">Instagram Handle (Optional)</Label>
-              <Input
-                id="instagram_handle"
-                value={formData.instagram_handle}
-                onChange={(e) => setFormData(prev => ({ ...prev, instagram_handle: e.target.value }))}
-                placeholder="@yourusername"
+            {createdProfileId ? (
+              <VideoUploadStep
+                profileId={createdProfileId}
+                onProcessingStart={handleVideoProcessingStart}
+                onProcessingComplete={handleVideoProcessingComplete}
               />
-              <p className="text-sm text-muted-foreground">
-                We can analyze your existing Instagram content to better understand your style
-              </p>
-            </div>
+            ) : (
+              <div className="text-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                <p className="text-muted-foreground">Setting up your profile...</p>
+              </div>
+            )}
 
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-              <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Upload Sample Content</h3>
-              <p className="text-muted-foreground mb-4">
-                Upload videos or scripts to help us understand your style better
-              </p>
-              <Button variant="outline" disabled>
-                Upload Files (Coming Soon)
-              </Button>
-            </div>
+            {processingResults && (
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-2">✅ Processing Complete!</h4>
+                <p className="text-sm text-muted-foreground">
+                  Successfully transcribed {processingResults.completedVideos} video(s). 
+                  {processingResults.errors > 0 && ` ${processingResults.errors} video(s) failed to process.`}
+                </p>
+              </div>
+            )}
 
-            <div className="bg-muted/50 rounded-lg p-4">
-              <h4 className="font-medium mb-2">💡 Pro Tip</h4>
+            <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+              <h4 className="font-medium mb-2 text-primary">💡 Why We Analyze Your Content</h4>
               <p className="text-sm text-muted-foreground">
-                You can always add content samples later by using our "Analyze Content" feature and saving them as style references.
+                By analyzing your existing videos, we learn your unique style, tone, and content patterns. 
+                This helps us generate scripts that sound authentically like you.
               </p>
             </div>
           </div>
@@ -359,10 +424,12 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
                 </div>
               )}
 
-              {formData.instagram_handle && (
+              {processingResults && (
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Instagram</Label>
-                  <p className="font-medium">{formData.instagram_handle}</p>
+                  <Label className="text-sm font-medium text-muted-foreground">Content Analysis</Label>
+                  <p className="font-medium">
+                    {processingResults.completedVideos} video(s) analyzed successfully
+                  </p>
                 </div>
               )}
             </div>
@@ -429,7 +496,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
             <Button
               variant="outline"
               onClick={handlePrevious}
-              disabled={currentStep === 1}
+              disabled={currentStep === 1 || isProcessingVideos}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Previous
@@ -438,10 +505,19 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
             {currentStep < 4 ? (
               <Button
                 onClick={handleNext}
-                disabled={!isStepValid()}
+                disabled={!isStepValid() || isProcessingVideos}
               >
-                Next
-                <ArrowRight className="h-4 w-4 ml-2" />
+                {currentStep === 3 && isProcessingVideos ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Processing Videos...
+                  </>
+                ) : (
+                  <>
+                    Next
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </>
+                )}
               </Button>
             ) : (
               <Button
