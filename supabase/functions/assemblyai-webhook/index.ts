@@ -25,33 +25,73 @@ serve(async (req) => {
 
     console.log('Webhook received:', { transcriptId, status });
 
-    // Find the analysis record
+    // Find the analysis record with multiple strategies
+    console.log('Searching for transcript_id:', transcriptId);
+    
+    let analysisRecord = null;
+    
+    // Strategy 1: Direct JSON operator search
     const { data: analysis, error: analysisError } = await supabase
       .from('content_analysis')
       .select('*')
       .eq('analysis_result->>transcript_id', transcriptId)
-      .single();
+      .maybeSingle();
 
-    let analysisRecord = analysis;
-
-    if (analysisError || !analysis) {
-      console.error('Analysis not found:', analysisError);
-      console.log('Searched for transcript_id:', transcriptId);
+    if (analysis) {
+      console.log('Found analysis using strategy 1 (JSON operator)');
+      analysisRecord = analysis;
+    } else {
+      console.log('Strategy 1 failed, trying alternative approaches...');
       
-      // Try alternative query method
+      // Strategy 2: Contains search
       const { data: altAnalysis, error: altError } = await supabase
         .from('content_analysis')
         .select('*')
         .contains('analysis_result', { transcript_id: transcriptId })
-        .single();
+        .maybeSingle();
       
-      if (altError || !altAnalysis) {
-        console.error('Alternative query also failed:', altError);
-        return new Response('Analysis not found', { status: 404 });
+      if (altAnalysis) {
+        console.log('Found analysis using strategy 2 (contains)');
+        analysisRecord = altAnalysis;
+      } else {
+        console.log('Strategy 2 failed, trying manual search...');
+        
+        // Strategy 3: Manual search through recent records
+        const { data: recentAnalysis, error: recentError } = await supabase
+          .from('content_analysis')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        
+        if (recentAnalysis) {
+          const matchingRecord = recentAnalysis.find(record => {
+            try {
+              const result = record.analysis_result;
+              return result && 
+                     typeof result === 'object' && 
+                     result.transcript_id === transcriptId;
+            } catch (error) {
+              return false;
+            }
+          });
+          
+          if (matchingRecord) {
+            console.log('Found analysis using strategy 3 (manual search)');
+            analysisRecord = matchingRecord;
+          }
+        }
       }
-      
-      // Use the alternative result
-      analysisRecord = altAnalysis;
+    }
+    
+    if (!analysisRecord) {
+      console.error('Analysis record not found with any strategy');
+      console.log('Available recent analysis records:', await supabase
+        .from('content_analysis')
+        .select('id, created_at, analysis_result')
+        .order('created_at', { ascending: false })
+        .limit(10)
+      );
+      return new Response('Analysis not found', { status: 404 });
     }
 
     if (status === 'completed') {

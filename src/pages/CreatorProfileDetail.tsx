@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { VideoSampleDisplay } from '@/components/creator/VideoSampleDisplay';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
-import { ArrowLeft, Edit, Target, User, Video, Mic, MicOff, Calendar, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Edit, Target, User, Video, Mic, MicOff, Calendar, ExternalLink, Trash2 } from 'lucide-react';
 
 interface CreatorProfile {
   id: string;
@@ -83,7 +84,10 @@ export const CreatorProfileDetail = () => {
             status
           ),
           content_analysis (
-            transcript
+            transcript,
+            hook_text,
+            status,
+            video_duration
           )
         `)
         .eq('profile_id', profileId)
@@ -98,9 +102,14 @@ export const CreatorProfileDetail = () => {
         thumbnail_url: sample.content_items?.thumbnail_url,
         caption: sample.content_items?.caption,
         platform: sample.content_items?.platform || 'instagram',
+        status: sample.content_items?.status || 'saved',
         created_at: sample.content_items?.created_at || sample.created_at,
-        transcript: sample.content_analysis?.transcript,
-        status: sample.content_items?.status || 'completed'
+        analysis: sample.content_analysis ? {
+          transcript: sample.content_analysis.transcript,
+          hook_text: sample.content_analysis.hook_text,
+          status: sample.content_analysis.status,
+          video_duration: sample.content_analysis.video_duration
+        } : undefined
       })) || [];
 
       setContentSamples(transformedSamples);
@@ -321,66 +330,11 @@ export const CreatorProfileDetail = () => {
         </Card>
 
         {/* Content Samples */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Video className="h-5 w-5" />
-              Video Samples
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {contentSamples.length === 0 ? (
-              <div className="text-center py-8">
-                <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-sm text-muted-foreground">No video samples yet</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {contentSamples.map((sample) => (
-                  <div key={sample.id} className="border rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-xs">
-                        {sample.platform}
-                      </Badge>
-                      <Badge variant={sample.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
-                        {sample.status}
-                      </Badge>
-                    </div>
-                    
-                    {sample.thumbnail_url && (
-                      <img 
-                        src={sample.thumbnail_url} 
-                        alt="Video thumbnail"
-                        className="w-full h-24 object-cover rounded"
-                      />
-                    )}
-                    
-                    {sample.caption && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {sample.caption}
-                      </p>
-                    )}
-                    
-                    {sample.transcript && (
-                      <details className="text-xs">
-                        <summary className="cursor-pointer text-primary">
-                          View transcript
-                        </summary>
-                        <p className="mt-2 text-muted-foreground">
-                          {sample.transcript.slice(0, 200)}...
-                        </p>
-                      </details>
-                    )}
-                    
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(sample.created_at)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <VideoSampleDisplay 
+          samples={contentSamples}
+          title="Video Samples"
+          showTranscripts={true}
+        />
       </div>
     </div>
   );

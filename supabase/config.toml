@@ -3,6 +3,9 @@ project_id = "siafgzfpzowztfhlajtn"
 [functions.process-profile-videos]
 verify_jwt = true
 
+[functions.recover-profile-videos]
+verify_jwt = true
+
 [functions.test-apify-access]
 verify_jwt = false
 

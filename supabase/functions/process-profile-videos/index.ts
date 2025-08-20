@@ -192,9 +192,19 @@ serve(async (req) => {
         style_tags: ['profile_setup']
       }));
 
-      await supabase
-        .from('user_content_samples')
-        .insert(sampleInserts);
+      try {
+        const { error: samplesError } = await supabase
+          .from('user_content_samples')
+          .insert(sampleInserts);
+        
+        if (samplesError) {
+          console.error('Error creating user content samples:', samplesError);
+        } else {
+          console.log(`Created ${sampleInserts.length} user content samples`);
+        }
+      } catch (error) {
+        console.error('Failed to create user content samples:', error);
+      }
     }
 
     return new Response(JSON.stringify({
