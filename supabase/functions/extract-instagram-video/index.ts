@@ -37,20 +37,19 @@ serve(async (req) => {
     console.log('Extracting video URL for:', instagramUrl);
 
     try {
-      // Call Apify Instagram Reel Downloader with timeout
+      // Call Apify Instagram Video Downloader with timeout
       const apifyResponse = await Promise.race([
-        fetch(`https://api.apify.com/v2/acts/presetshubham~instagram-reel-downloader/run-sync-get-dataset-items?token=${apifyApiKey}`, {
+        fetch(`https://api.apify.com/v2/acts/epctex~instagram-video-downloader/run-sync-get-dataset-items?token=${apifyApiKey}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            proxyConfiguration: {
+            startUrls: [instagramUrl],
+            quality: "highest",
+            proxy: {
               useApifyProxy: true
-            },
-            reelLinks: [instagramUrl],
-            verboseLog: false,
-            maxItems: 1
+            }
           }),
         }),
         new Promise((_, reject) => 
@@ -80,35 +79,20 @@ serve(async (req) => {
         throw new Error('Invalid video data received from Instagram');
       }
 
-      // Check for video URL in different possible fields
-      const videoUrl = videoData.video_url || videoData.videoUrl || videoData.video;
+      // Check for downloadUrl from epctex actor
+      const videoUrl = videoData.downloadUrl;
       if (!videoUrl) {
-        console.error('No video URL found in data:', videoData);
-        
-        // Try to use display URL as fallback for photos
-        if (videoData.display_url || videoData.displayUrl) {
-          return new Response(JSON.stringify({
-            success: false,
-            error: 'This appears to be an image post, not a video. Please use video content for analysis.'
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-        
-        throw new Error('No video URL found in the Instagram data');
+        console.error('No downloadUrl found in data:', videoData);
+        throw new Error('No video download URL found in the response');
       }
 
       return new Response(JSON.stringify({
         success: true,
         videoUrl: videoUrl,
-        caption: videoData.caption || videoData.text || '',
+        caption: videoData.caption || '',
         metadata: {
-          likes: videoData.likes || videoData.like_count || 0,
-          comments: videoData.comments || videoData.comment_count || 0,
-          owner_username: videoData.owner_username || videoData.username || '',
-          thumbnail_url: videoData.thumbnail_url || videoData.display_url,
-          duration: videoData.video_duration || videoData.duration
+          sourceUrl: videoData.sourceUrl || instagramUrl,
+          videoPosition: videoData.videoPosition || 1
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
