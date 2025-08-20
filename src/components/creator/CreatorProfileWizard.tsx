@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,9 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, ArrowRight, Check, User, Target, Palette, Video, Mic, MicOff, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, User, Target, Palette, Video, Mic, MicOff, Loader2, Save } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useAuth } from '@/components/auth/AuthContext';
+import { useWizardPersistence } from '@/hooks/useWizardPersistence';
 import VideoUploadStep from './VideoUploadStep';
+import WizardResumeModal from './WizardResumeModal';
 
 interface CreatorProfileWizardProps {
   onComplete: () => void;
@@ -26,28 +29,73 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
   existingProfile, 
   isEditing = false 
 }) => {
-  const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [formData, setFormData] = useState({
-    brand_name: existingProfile?.brand_name || '',
-    niche: existingProfile?.niche || '',
-    target_audience: existingProfile?.target_audience || '',
-    content_goals: existingProfile?.content_goals || [] as string[],
-    on_camera: existingProfile?.on_camera || false,
-    content_format: existingProfile?.content_format || '',
-    personality_traits: existingProfile?.personality_traits || [] as string[],
-    instagram_handle: existingProfile?.instagram_handle || '',
-    video_processing_complete: false
+  const initialState = {
+    currentStep: 1,
+    formData: {
+      brand_name: existingProfile?.brand_name || '',
+      niche: existingProfile?.niche || '',
+      target_audience: existingProfile?.target_audience || '',
+      content_goals: existingProfile?.content_goals || [] as string[],
+      on_camera: existingProfile?.on_camera || false,
+      content_format: existingProfile?.content_format || '',
+      personality_traits: existingProfile?.personality_traits || [] as string[],
+      instagram_handle: existingProfile?.instagram_handle || '',
+      video_processing_complete: false
+    },
+    processingResults: null,
+    createdProfileId: isEditing ? existingProfile?.id : null
+  };
+
+  const { state, saveState, clearState, hasUnsavedChanges, hasSavedState } = useWizardPersistence({
+    userId: user?.id,
+    storageKey: 'creator_profile_wizard',
+    initialState
   });
 
-  const [processingResults, setProcessingResults] = useState<any>(null);
+  const [currentStep, setCurrentStep] = useState(state.currentStep);
+  const [formData, setFormData] = useState(state.formData);
+  const [processingResults, setProcessingResults] = useState(state.processingResults);
+  const [createdProfileId, setCreatedProfileId] = useState(state.createdProfileId);
   const [isProcessingVideos, setIsProcessingVideos] = useState(false);
-  const [createdProfileId, setCreatedProfileId] = useState<string | null>(
-    isEditing ? existingProfile?.id : null
-  );
+
+  // Check for saved state on mount (only for new profiles)
+  useEffect(() => {
+    if (!isEditing && hasSavedState() && !existingProfile) {
+      setShowResumeModal(true);
+    }
+  }, [isEditing, hasSavedState, existingProfile]);
+
+  // Save state whenever it changes (except when editing existing profile)
+  useEffect(() => {
+    if (!isEditing && !existingProfile) {
+      const newState = {
+        currentStep,
+        formData,
+        processingResults,
+        createdProfileId
+      };
+      saveState(newState);
+    }
+  }, [currentStep, formData, processingResults, createdProfileId, isEditing, existingProfile, saveState]);
+
+  // Add beforeunload warning for unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges && currentStep > 1) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges, currentStep]);
 
   const steps = [
     { id: 1, title: 'Brand Identity', icon: User, description: 'Tell us about your brand' },
@@ -195,6 +243,9 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
         }
       }
 
+      // Clear saved state on successful completion
+      clearState();
+
       toast({
         title: "Success!",
         description: "Your creator profile has been created successfully.",
@@ -211,6 +262,38 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleResumeFromSaved = () => {
+    setShowResumeModal(false);
+    toast({
+      title: "Resumed",
+      description: "Continuing from where you left off",
+    });
+  };
+
+  const handleStartFresh = () => {
+    clearState();
+    setCurrentStep(1);
+    setFormData(initialState.formData);
+    setProcessingResults(null);
+    setCreatedProfileId(null);
+    setShowResumeModal(false);
+    toast({
+      title: "Starting Fresh",
+      description: "Previous progress has been cleared",
+    });
+  };
+
+  const handleSaveDraft = async () => {
+    if (!createdProfileId) {
+      await createProfile();
+    }
+    
+    toast({
+      title: "Draft Saved",
+      description: "Your progress has been saved",
+    });
   };
 
   const handleVideoProcessingStart = () => {
@@ -480,98 +563,129 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <CardTitle>
-                {isEditing ? 'Edit Creator Profile' : 'Create Your Creator Profile'}
-              </CardTitle>
-              <CardDescription>
-                Step {currentStep} of {steps.length}: {steps[currentStep - 1].description}
-              </CardDescription>
+    <>
+      <WizardResumeModal
+        isOpen={showResumeModal}
+        onResume={handleResumeFromSaved}
+        onStartFresh={handleStartFresh}
+        currentStep={currentStep}
+        totalSteps={4}
+        brandName={state.formData.brand_name}
+      />
+      
+      <div className="max-w-2xl mx-auto p-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <CardTitle>
+                  {isEditing ? 'Edit Creator Profile' : 'Create Your Creator Profile'}
+                </CardTitle>
+                <CardDescription>
+                  Step {currentStep} of {steps.length}: {steps[currentStep - 1].description}
+                </CardDescription>
+              </div>
+              <div className="text-right">
+                <Progress value={(currentStep / steps.length) * 100} className="w-32" />
+              </div>
             </div>
-            <div className="text-right">
-              <Progress value={(currentStep / steps.length) * 100} className="w-32" />
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {steps.map((step) => {
-              const Icon = step.icon;
-              return (
-                <div
-                  key={step.id}
-                  className={`flex items-center space-x-2 ${
-                    step.id === currentStep
-                      ? 'text-primary'
-                      : step.id < currentStep
-                      ? 'text-success'
-                      : 'text-muted-foreground'
-                  }`}
-                >
+            
+            <div className="flex items-center space-x-4">
+              {steps.map((step) => {
+                const Icon = step.icon;
+                return (
                   <div
-                    className={`rounded-full p-2 ${
+                    key={step.id}
+                    className={`flex items-center space-x-2 ${
                       step.id === currentStep
-                        ? 'bg-primary text-primary-foreground'
+                        ? 'text-primary'
                         : step.id < currentStep
-                        ? 'bg-success text-success-foreground'
-                        : 'bg-muted'
+                        ? 'text-success'
+                        : 'text-muted-foreground'
                     }`}
                   >
-                    <Icon className="h-4 w-4" />
+                    <div
+                      className={`rounded-full p-2 ${
+                        step.id === currentStep
+                          ? 'bg-primary text-primary-foreground'
+                          : step.id < currentStep
+                          ? 'bg-success text-success-foreground'
+                          : 'bg-muted'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <span className="hidden md:block text-sm font-medium">{step.title}</span>
                   </div>
-                  <span className="hidden md:block text-sm font-medium">{step.title}</span>
-                </div>
-              );
-            })}
-          </div>
-        </CardHeader>
+                );
+              })}
+            </div>
+          </CardHeader>
 
-        <CardContent>
-          {renderStep()}
+          <CardContent>
+            {renderStep()}
 
-          <div className="flex justify-between pt-6 mt-6 border-t">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 1 || isProcessingVideos}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Previous
-            </Button>
-
-            {currentStep < 4 ? (
+            <div className="flex justify-between pt-6 mt-6 border-t">
               <Button
-                onClick={handleNext}
-                disabled={!isStepValid() || isProcessingVideos}
+                type="button"
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+                className="flex items-center gap-2"
               >
-                {currentStep === 3 && isProcessingVideos ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Processing Videos...
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </>
+                <ArrowLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              
+              <div className="flex gap-2">
+                {!isEditing && currentStep > 1 && currentStep < 4 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleSaveDraft}
+                    className="flex items-center gap-2"
+                  >
+                    <Save className="h-4 w-4" />
+                    Save Draft
+                  </Button>
                 )}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Creating Profile...' : 'Complete Profile'}
-                <Check className="h-4 w-4 ml-2" />
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                
+                {currentStep < 4 ? (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={!isStepValid()}
+                    className="flex items-center gap-2"
+                  >
+                    Next
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isLoading}
+                    className="flex items-center gap-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Completing...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Complete Setup
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 };
 
