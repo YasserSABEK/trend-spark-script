@@ -37,23 +37,29 @@ serve(async (req) => {
     console.log('Extracting video URL for:', instagramUrl);
 
     try {
-      // Call Apify Instagram Video Downloader with timeout
+      console.log('Starting Apify request with epctex~instagram-video-downloader actor');
+      
+      const requestBody = {
+        startUrls: [instagramUrl],
+        quality: "highest",
+        proxy: {
+          useApifyProxy: true
+        }
+      };
+      
+      console.log('Request body:', JSON.stringify(requestBody));
+      
+      // Call Apify Instagram Video Downloader with extended timeout (60 seconds)
       const apifyResponse = await Promise.race([
         fetch(`https://api.apify.com/v2/acts/epctex~instagram-video-downloader/run-sync-get-dataset-items?token=${apifyApiKey}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            startUrls: [instagramUrl],
-            quality: "highest",
-            proxy: {
-              useApifyProxy: true
-            }
-          }),
+          body: JSON.stringify(requestBody),
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout after 30 seconds')), 30000)
+          setTimeout(() => reject(new Error('Request timeout after 60 seconds')), 60000)
         )
       ]) as Response;
 
@@ -64,27 +70,55 @@ serve(async (req) => {
       }
 
       const apifyData = await apifyResponse.json();
-      console.log('Apify response:', apifyData);
+      console.log('Apify response structure:', JSON.stringify(apifyData, null, 2));
+      console.log('Response type:', typeof apifyData, 'Is array:', Array.isArray(apifyData));
 
-      if (!apifyData || apifyData.length === 0) {
+      // Validate response is an array and has data
+      if (!Array.isArray(apifyData)) {
+        console.error('Apify response is not an array:', apifyData);
+        throw new Error('Invalid response format from video extraction service');
+      }
+
+      if (apifyData.length === 0) {
         console.error('No video data returned from Apify for URL:', instagramUrl);
         throw new Error('No video data found. The Instagram post may be private, deleted, or not accessible.');
       }
 
       const videoData = apifyData[0];
+      console.log('First video data item:', JSON.stringify(videoData, null, 2));
       
-      // Validate that we have essential video data
-      if (!videoData) {
-        console.error('Empty video data structure:', videoData);
+      // Validate that we have essential video data structure
+      if (!videoData || typeof videoData !== 'object') {
+        console.error('Invalid video data structure:', videoData);
         throw new Error('Invalid video data received from Instagram');
       }
 
       // Check for downloadUrl from epctex actor
       const videoUrl = videoData.downloadUrl;
-      if (!videoUrl) {
-        console.error('No downloadUrl found in data:', videoData);
+      console.log('Extracted downloadUrl:', videoUrl);
+      
+      if (!videoUrl || typeof videoUrl !== 'string') {
+        console.error('No valid downloadUrl found in data:', videoData);
+        console.error('Available fields:', Object.keys(videoData));
         throw new Error('No video download URL found in the response');
       }
+
+      // Test if the download URL is accessible
+      console.log('Testing downloadUrl accessibility...');
+      try {
+        const testResponse = await fetch(videoUrl, { method: 'HEAD' });
+        console.log('Download URL test status:', testResponse.status);
+        if (!testResponse.ok) {
+          console.error('Download URL is not accessible:', testResponse.status);
+          throw new Error(`Video URL is not accessible (status: ${testResponse.status})`);
+        }
+      } catch (urlError) {
+        console.error('Error testing download URL:', urlError);
+        // Don't fail completely, just warn - URL might still work
+        console.warn('Could not test download URL, proceeding anyway');
+      }
+
+      console.log('Successfully extracted video data, preparing response...');
 
       return new Response(JSON.stringify({
         success: true,
