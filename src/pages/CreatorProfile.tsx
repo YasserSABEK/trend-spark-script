@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { PageContainer } from '@/components/layout/PageContainer';
-import CreatorProfileWizard from '@/components/creator/CreatorProfileWizard';
+import SimpleCreatorProfileForm from '@/components/creator/SimpleCreatorProfileForm';
 import CreatorProfileCard from '@/components/creator/CreatorProfileCard';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -129,7 +129,7 @@ const CreatorProfile: React.FC = () => {
     <PageContainer>
       <div className="max-w-4xl mx-auto">
         {!hasProfile || showWizard ? (
-          <CreatorProfileWizard onComplete={handleProfileCreated} />
+          <SimpleCreatorProfileForm onComplete={handleProfileCreated} />
         ) : (
           <div className="space-y-6">
             <div>

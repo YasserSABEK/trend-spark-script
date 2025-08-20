@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthContext';
 import { PageContainer } from '@/components/layout/PageContainer';
-import CreatorProfileWizard from '@/components/creator/CreatorProfileWizard';
+import SimpleCreatorProfileForm from '@/components/creator/SimpleCreatorProfileForm';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -173,7 +173,7 @@ const CreatorProfileEdit: React.FC = () => {
             </div>
           </div>
           
-          <CreatorProfileWizard 
+          <SimpleCreatorProfileForm 
             onComplete={handleProfileUpdated}
             existingProfile={profile}
             isEditing={true}
