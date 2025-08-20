@@ -12,7 +12,8 @@ import {
   Calendar,
   Users,
   FileText,
-  Settings
+  Settings,
+  UserCog
 } from "lucide-react";
 import {
   Sidebar,
@@ -187,6 +188,25 @@ export function AppSidebar() {
                   open={openFlyouts.saved || false}
                   onOpenChange={(open) => handleFlyoutChange("saved", open)}
                 />
+              </SidebarMenuItem>
+
+              {/* Creator Profile */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/creator-profile"
+                    className={({ isActive }) =>
+                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                      }`
+                    }
+                  >
+                    <UserCog className="w-5 h-5 flex-shrink-0" />
+                    {!collapsed && <span>Creator Profile</span>}
+                  </NavLink>
+                </SidebarMenuButton>
               </SidebarMenuItem>
 
               {/* Script Generator */}
