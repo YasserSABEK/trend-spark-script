@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,6 +46,67 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // localStorage keys
+  const STORAGE_KEYS = {
+    videos: 'creator-profile-videos',
+    enableVideoAnalysis: 'creator-profile-enable-video-analysis',
+    currentUrl: 'creator-profile-current-url'
+  };
+
+  // Save video state to localStorage
+  const saveVideoState = useCallback(() => {
+    if (!isEditing) { // Only persist for new profiles, not when editing
+      localStorage.setItem(STORAGE_KEYS.videos, JSON.stringify(videos));
+      localStorage.setItem(STORAGE_KEYS.enableVideoAnalysis, JSON.stringify(enableVideoAnalysis));
+      localStorage.setItem(STORAGE_KEYS.currentUrl, currentUrl);
+    }
+  }, [videos, enableVideoAnalysis, currentUrl, isEditing, STORAGE_KEYS]);
+
+  // Clear video state from localStorage
+  const clearVideoState = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEYS.videos);
+    localStorage.removeItem(STORAGE_KEYS.enableVideoAnalysis);
+    localStorage.removeItem(STORAGE_KEYS.currentUrl);
+  }, [STORAGE_KEYS]);
+
+  // Restore video state from localStorage on component mount
+  useEffect(() => {
+    if (!isEditing) { // Only restore for new profiles, not when editing
+      try {
+        const savedVideos = localStorage.getItem(STORAGE_KEYS.videos);
+        const savedEnableVideoAnalysis = localStorage.getItem(STORAGE_KEYS.enableVideoAnalysis);
+        const savedCurrentUrl = localStorage.getItem(STORAGE_KEYS.currentUrl);
+
+        if (savedVideos) {
+          const parsedVideos = JSON.parse(savedVideos);
+          if (Array.isArray(parsedVideos)) {
+            setVideos(parsedVideos);
+          }
+        }
+
+        if (savedEnableVideoAnalysis) {
+          const parsedEnableVideoAnalysis = JSON.parse(savedEnableVideoAnalysis);
+          if (typeof parsedEnableVideoAnalysis === 'boolean') {
+            setEnableVideoAnalysis(parsedEnableVideoAnalysis);
+          }
+        }
+
+        if (savedCurrentUrl && typeof savedCurrentUrl === 'string') {
+          setCurrentUrl(savedCurrentUrl);
+        }
+      } catch (error) {
+        console.error('Error restoring video state from localStorage:', error);
+        // Clear corrupted data
+        clearVideoState();
+      }
+    }
+  }, [isEditing, STORAGE_KEYS, clearVideoState]);
+
+  // Save video state whenever it changes
+  useEffect(() => {
+    saveVideoState();
+  }, [saveVideoState]);
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -256,6 +317,11 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
         title: "Success!",
         description: isEditing ? "Profile updated successfully!" : "Creator profile created successfully!",
       });
+
+      // Clear localStorage on successful profile creation
+      if (!isEditing) {
+        clearVideoState();
+      }
 
       onComplete();
     } catch (error) {
