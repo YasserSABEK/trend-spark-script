@@ -103,16 +103,33 @@ export const ScriptGenerator = () => {
     setIsGenerating(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('generate-script', {
-        body: formData
+      const { data, error } = await supabase.functions.invoke('enhanced-script-generation', {
+        body: {
+          ...formData,
+          format: 'reel',
+          highAccuracy: false,
+          post_id: `script_${Date.now()}`
+        }
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.error === 'INSUFFICIENT_CREDITS') {
+          toast({
+            title: "Insufficient Credits",
+            description: `You need ${error.required_credits} credits. Current balance: ${error.current_balance}`,
+            variant: "destructive",
+          });
+          return;
+        }
+        throw error;
+      }
 
-      setGeneratedScript(data.generated);
+      setGeneratedScript(data.script);
       toast({
         title: "Script Generated!",
-        description: "Your viral script has been created and saved.",
+        description: data.script.conditioning_data?.personalization_level === 'high' 
+          ? "Personalized script ready with your style!"
+          : "Your viral script has been created and saved.",
       });
 
     } catch (error) {
