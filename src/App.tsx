@@ -32,7 +32,7 @@ import CreatorProfile from "./pages/CreatorProfile";
 import CreatorProfileEdit from "./pages/CreatorProfileEdit";
 import { CreatorProfiles } from "./pages/CreatorProfiles";
 import { CreatorProfileDetail } from "./pages/CreatorProfileDetail";
-import ErrorBoundary from "./components/ErrorBoundary";
+import ErrorBoundary from "./components/ui/ErrorBoundary";
 import { ScriptGenerator } from "./pages/ScriptGenerator";
 import { MyScripts } from "./pages/MyScripts";
 import { Content } from "./pages/Content";
@@ -242,11 +242,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
+        <ErrorBoundary>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </ErrorBoundary>
       </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>

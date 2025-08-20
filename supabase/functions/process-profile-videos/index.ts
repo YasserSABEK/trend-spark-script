@@ -67,8 +67,15 @@ serve(async (req) => {
           body: { instagramUrl: videoUrl }
         });
 
-        if (extractError || !extractData?.success) {
-          throw new Error(`Failed to extract video: ${extractData?.error || 'Unknown error'}`);
+        if (extractError) {
+          console.error('Extract function error:', extractError);
+          throw new Error(`Video extraction failed: ${extractError.message || 'Unknown error'}`);
+        }
+
+        if (!extractData || !extractData.success) {
+          const errorMsg = extractData?.error || 'Failed to extract video data';
+          console.error('Extract data error:', errorMsg);
+          throw new Error(`Video extraction failed: ${errorMsg}`);
         }
 
         const actualVideoUrl = extractData.videoUrl;

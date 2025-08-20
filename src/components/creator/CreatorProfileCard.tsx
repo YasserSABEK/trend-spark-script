@@ -62,7 +62,9 @@ const CreatorProfileCard: React.FC<CreatorProfileCardProps> = ({ onEdit }) => {
       setIsLoading(true);
       
       // Load creator profile
-      const { data: profileData, error: profileError } = await supabase.functions.invoke('creator-profile');
+      const { data: profileData, error: profileError } = await supabase.functions.invoke('creator-profile', {
+        body: { action: 'get' }
+      });
       
       if (profileError) {
         console.error('Error loading profile:', profileError);

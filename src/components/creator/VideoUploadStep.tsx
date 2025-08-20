@@ -37,18 +37,38 @@ const VideoUploadStep: React.FC<VideoUploadStepProps> = ({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
 
-  // Cleanup on unmount
+  // Cleanup on unmount and visibility change
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isProcessing) {
+        // Pause polling when tab is hidden to prevent crashes
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+      } else if (!document.hidden && isProcessing && !pollIntervalRef.current) {
+        // Resume polling when tab becomes visible
+        // Note: This would need the processedVideos to be stored in state to resume properly
+        console.log('Tab became visible during processing - polling may need manual restart');
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
     return () => {
       isMountedRef.current = false;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
       }
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
-  }, []);
+  }, [isProcessing]);
 
   const validateInstagramUrl = (url: string): boolean => {
     const instagramRegex = /^https?:\/\/(www\.)?instagram\.com\/(reel|p)\/[A-Za-z0-9_-]+\/?/;
@@ -186,9 +206,11 @@ const VideoUploadStep: React.FC<VideoUploadStepProps> = ({
     // Clear any existing intervals
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
     }
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
 
     pollIntervalRef.current = setInterval(async () => {

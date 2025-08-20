@@ -37,15 +37,20 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id });
 
     // Parse request body to determine action
-    let requestBody;
+    let requestBody = {};
+    let action = 'get';
+    
     try {
-      requestBody = await req.json();
+      const body = await req.text();
+      if (body && body.trim()) {
+        requestBody = JSON.parse(body);
+        action = requestBody.action || 'get';
+      }
     } catch (error) {
-      logStep("Error parsing JSON", { error: error.message });
-      throw new Error("Invalid JSON in request body");
+      // For GET requests without body, default to 'get' action
+      logStep("Request body parsing - using default GET action", { method: req.method });
     }
 
-    const action = requestBody.action || 'get';
     logStep("Action determined", { action });
     
     if (action === 'get') {
