@@ -62,7 +62,13 @@ serve(async (req) => {
 
     if (method === 'POST') {
       // Create creator profile
-      const profileData = await req.json();
+      let profileData;
+      try {
+        profileData = await req.json();
+      } catch (error) {
+        logStep("Error parsing JSON", { error: error.message });
+        throw new Error("Invalid JSON in request body");
+      }
       
       const { data: profile, error } = await supabaseClient
         .from('creator_profiles')
@@ -96,7 +102,13 @@ serve(async (req) => {
 
     if (method === 'PATCH') {
       // Update creator profile
-      const profileData = await req.json();
+      let profileData;
+      try {
+        profileData = await req.json();
+      } catch (error) {
+        logStep("Error parsing JSON", { error: error.message });
+        throw new Error("Invalid JSON in request body");
+      }
       
       const { data: profile, error } = await supabaseClient
         .from('creator_profiles')
