@@ -58,10 +58,6 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
     initialState
   });
 
-  const [currentStep, setCurrentStep] = useState(state.currentStep);
-  const [formData, setFormData] = useState(state.formData);
-  const [processingResults, setProcessingResults] = useState(state.processingResults);
-  const [createdProfileId, setCreatedProfileId] = useState(state.createdProfileId);
   const [isProcessingVideos, setIsProcessingVideos] = useState(false);
 
   // Check for saved state on mount (only for new profiles)
@@ -71,23 +67,10 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
     }
   }, [isEditing, hasSavedState, existingProfile]);
 
-  // Save state whenever it changes (except when editing existing profile)
-  useEffect(() => {
-    if (!isEditing && !existingProfile) {
-      const newState = {
-        currentStep,
-        formData,
-        processingResults,
-        createdProfileId
-      };
-      saveState(newState);
-    }
-  }, [currentStep, formData, processingResults, createdProfileId, isEditing, existingProfile, saveState]);
-
   // Add beforeunload warning for unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges && currentStep > 1) {
+      if (hasUnsavedChanges && state.currentStep > 1) {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -95,7 +78,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges, currentStep]);
+  }, [hasUnsavedChanges, state.currentStep]);
 
   const steps = [
     { id: 1, title: 'Brand Identity', icon: User, description: 'Tell us about your brand' },
@@ -129,13 +112,16 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
   ];
 
   const handleNext = async () => {
-    if (currentStep === 2 && !createdProfileId) {
+    if (state.currentStep === 2 && !state.createdProfileId) {
       // Create profile after step 2 to get profile ID for video processing
       await createProfile();
     }
     
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
+    if (state.currentStep < 4) {
+      saveState({
+        ...state,
+        currentStep: state.currentStep + 1
+      });
     }
   };
 
@@ -146,7 +132,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
         const { data, error } = await supabase
           .from('creator_profiles')
           .update({
-            ...formData,
+            ...state.formData,
             profile_status: 'setup'
           })
           .eq('id', existingProfile.id)
@@ -168,7 +154,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
         const { data, error } = await supabase.functions.invoke('creator-profile', {
           body: {
             action: 'create',
-            ...formData,
+            ...state.formData,
             profile_status: 'setup' // Mark as setup in progress
           }
         });
@@ -182,7 +168,10 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
           return null;
         }
 
-        setCreatedProfileId(data.profile.id);
+        saveState({
+          ...state,
+          createdProfileId: data.profile.id
+        });
         return data.profile.id;
       }
     } catch (error) {
@@ -197,39 +186,52 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+    if (state.currentStep > 1) {
+      saveState({
+        ...state,
+        currentStep: state.currentStep - 1
+      });
     }
   };
 
   const handleTraitToggle = (trait: string) => {
-    setFormData(prev => ({
-      ...prev,
-      personality_traits: prev.personality_traits.includes(trait)
-        ? prev.personality_traits.filter(t => t !== trait)
-        : [...prev.personality_traits, trait]
-    }));
+    const newTraits = state.formData.personality_traits.includes(trait)
+      ? state.formData.personality_traits.filter(t => t !== trait)
+      : [...state.formData.personality_traits, trait];
+    
+    saveState({
+      ...state,
+      formData: {
+        ...state.formData,
+        personality_traits: newTraits
+      }
+    });
   };
 
   const handleGoalToggle = (goal: string) => {
-    setFormData(prev => ({
-      ...prev,
-      content_goals: prev.content_goals.includes(goal)
-        ? prev.content_goals.filter(g => g !== goal)
-        : [...prev.content_goals, goal]
-    }));
+    const newGoals = state.formData.content_goals.includes(goal)
+      ? state.formData.content_goals.filter(g => g !== goal)
+      : [...state.formData.content_goals, goal];
+    
+    saveState({
+      ...state,
+      formData: {
+        ...state.formData,
+        content_goals: newGoals
+      }
+    });
   };
 
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
       // Update profile to complete status
-      if (createdProfileId) {
+      if (state.createdProfileId) {
         const { error } = await supabase.functions.invoke('creator-profile', {
           body: {
             action: 'update',
             profile_status: 'complete',
-            sample_count: processingResults?.completedVideos || 0
+            sample_count: state.processingResults?.completedVideos || 0
           }
         });
 
@@ -274,10 +276,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
 
   const handleStartFresh = () => {
     clearState();
-    setCurrentStep(1);
-    setFormData(initialState.formData);
-    setProcessingResults(null);
-    setCreatedProfileId(null);
+    saveState(initialState);
     setShowResumeModal(false);
     toast({
       title: "Starting Fresh",
@@ -286,7 +285,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
   };
 
   const handleSaveDraft = async () => {
-    if (!createdProfileId) {
+    if (!state.createdProfileId) {
       await createProfile();
     }
     
@@ -302,16 +301,22 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
 
   const handleVideoProcessingComplete = (results: any) => {
     setIsProcessingVideos(false);
-    setProcessingResults(results);
-    setFormData(prev => ({ ...prev, video_processing_complete: true }));
+    saveState({
+      ...state,
+      processingResults: results,
+      formData: {
+        ...state.formData,
+        video_processing_complete: true
+      }
+    });
   };
 
   const isStepValid = () => {
-    switch (currentStep) {
+    switch (state.currentStep) {
       case 1:
-        return formData.brand_name && formData.niche && formData.target_audience;
+        return state.formData.brand_name && state.formData.niche && state.formData.target_audience;
       case 2:
-        return formData.content_format && formData.personality_traits.length > 0;
+        return state.formData.content_format && state.formData.personality_traits.length > 0;
       case 3:
         return !isProcessingVideos; // Can proceed when not processing
       case 4:
@@ -322,7 +327,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
   };
 
   const renderStep = () => {
-    switch (currentStep) {
+    switch (state.currentStep) {
       case 1:
         return (
           <div className="space-y-6">
@@ -330,8 +335,11 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
               <Label htmlFor="brand_name">Brand/Creator Name *</Label>
               <Input
                 id="brand_name"
-                value={formData.brand_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, brand_name: e.target.value }))}
+                value={state.formData.brand_name}
+                onChange={(e) => saveState({
+                  ...state,
+                  formData: { ...state.formData, brand_name: e.target.value }
+                })}
                 placeholder="Your brand or personal name"
               />
             </div>
@@ -339,8 +347,11 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
             <div className="space-y-2">
               <Label htmlFor="niche">Content Niche *</Label>
               <Select 
-                value={formData.niche}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, niche: value }))}
+                value={state.formData.niche}
+                onValueChange={(value) => saveState({
+                  ...state,
+                  formData: { ...state.formData, niche: value }
+                })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select your content niche" />
@@ -359,8 +370,11 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
               <Label htmlFor="target_audience">Target Audience *</Label>
               <Textarea
                 id="target_audience"
-                value={formData.target_audience}
-                onChange={(e) => setFormData(prev => ({ ...prev, target_audience: e.target.value }))}
+                value={state.formData.target_audience}
+                onChange={(e) => saveState({
+                  ...state,
+                  formData: { ...state.formData, target_audience: e.target.value }
+                })}
                 placeholder="Describe your ideal audience (e.g., young professionals, fitness enthusiasts, small business owners)"
                 className="resize-none"
                 rows={3}
@@ -374,7 +388,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
                   <div key={goal} className="flex items-center space-x-2">
                     <Checkbox
                       id={goal}
-                      checked={formData.content_goals.includes(goal)}
+                      checked={state.formData.content_goals.includes(goal)}
                       onCheckedChange={() => handleGoalToggle(goal)}
                     />
                     <Label htmlFor={goal} className="text-sm">
@@ -395,18 +409,24 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <Button
                   type="button"
-                  variant={formData.on_camera ? "default" : "outline"}
+                  variant={state.formData.on_camera ? "default" : "outline"}
                   className="h-20 flex-col space-y-2"
-                  onClick={() => setFormData(prev => ({ ...prev, on_camera: true }))}
+                  onClick={() => saveState({
+                    ...state,
+                    formData: { ...state.formData, on_camera: true }
+                  })}
                 >
                   <Mic className="h-6 w-6" />
                   <span>Yes, I speak on camera</span>
                 </Button>
                 <Button
                   type="button"
-                  variant={!formData.on_camera ? "default" : "outline"}
+                  variant={!state.formData.on_camera ? "default" : "outline"}
                   className="h-20 flex-col space-y-2"
-                  onClick={() => setFormData(prev => ({ ...prev, on_camera: false }))}
+                  onClick={() => saveState({
+                    ...state,
+                    formData: { ...state.formData, on_camera: false }
+                  })}
                 >
                   <MicOff className="h-6 w-6" />
                   <span>I use AI voiceover</span>
@@ -417,8 +437,11 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
             <div className="space-y-3">
               <Label className="text-base font-medium">Content Format *</Label>
               <RadioGroup
-                value={formData.content_format}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, content_format: value }))}
+                value={state.formData.content_format}
+                onValueChange={(value) => saveState({
+                  ...state,
+                  formData: { ...state.formData, content_format: value }
+                })}
                 className="space-y-3"
               >
                 {contentFormats.map((format) => (
@@ -438,7 +461,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
                 {personalityTraits.map((trait) => (
                   <Badge
                     key={trait}
-                    variant={formData.personality_traits.includes(trait) ? "default" : "outline"}
+                    variant={state.formData.personality_traits.includes(trait) ? "default" : "outline"}
                     className="cursor-pointer justify-center py-2 hover:bg-primary/90 transition-colors"
                     onClick={() => handleTraitToggle(trait)}
                   >
@@ -447,7 +470,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
                 ))}
               </div>
               <p className="text-sm text-muted-foreground">
-                Selected: {formData.personality_traits.length}/5
+                Selected: {state.formData.personality_traits.length}/5
               </p>
             </div>
           </div>
@@ -456,9 +479,9 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
       case 3:
         return (
           <div className="space-y-6">
-            {createdProfileId ? (
+            {state.createdProfileId ? (
               <VideoUploadStep
-                profileId={createdProfileId}
+                profileId={state.createdProfileId}
                 onProcessingStart={handleVideoProcessingStart}
                 onProcessingComplete={handleVideoProcessingComplete}
               />
@@ -469,12 +492,12 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
               </div>
             )}
 
-            {processingResults && (
+            {state.processingResults && (
               <div className="bg-muted/50 rounded-lg p-4">
                 <h4 className="font-medium mb-2">✅ Processing Complete!</h4>
                 <p className="text-sm text-muted-foreground">
-                  Successfully transcribed {processingResults.completedVideos} video(s). 
-                  {processingResults.errors > 0 && ` ${processingResults.errors} video(s) failed to process.`}
+                  Successfully transcribed {state.processingResults.completedVideos} video(s). 
+                  {state.processingResults.errors > 0 && ` ${state.processingResults.errors} video(s) failed to process.`}
                 </p>
               </div>
             )}
@@ -503,28 +526,28 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Brand Name</Label>
-                  <p className="font-medium">{formData.brand_name}</p>
+                  <p className="font-medium">{state.formData.brand_name}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Niche</Label>
-                  <p className="font-medium">{formData.niche}</p>
+                  <p className="font-medium">{state.formData.niche}</p>
                 </div>
               </div>
 
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Target Audience</Label>
-                <p className="font-medium">{formData.target_audience}</p>
+                <p className="font-medium">{state.formData.target_audience}</p>
               </div>
 
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Content Format</Label>
-                <p className="font-medium capitalize">{formData.content_format}</p>
+                <p className="font-medium capitalize">{state.formData.content_format}</p>
               </div>
 
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Personality Traits</Label>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {formData.personality_traits.map((trait) => (
+                  {state.formData.personality_traits.map((trait) => (
                     <Badge key={trait} variant="secondary">
                       {trait}
                     </Badge>
@@ -532,11 +555,11 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
                 </div>
               </div>
 
-              {formData.content_goals.length > 0 && (
+              {state.formData.content_goals.length > 0 && (
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Content Goals</Label>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {formData.content_goals.map((goal) => (
+                    {state.formData.content_goals.map((goal) => (
                       <Badge key={goal} variant="outline">
                         {goal}
                       </Badge>
@@ -545,11 +568,11 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
                 </div>
               )}
 
-              {processingResults && (
+              {state.processingResults && (
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Content Analysis</Label>
                   <p className="font-medium">
-                    {processingResults.completedVideos} video(s) analyzed successfully
+                    {state.processingResults.completedVideos} video(s) analyzed successfully
                   </p>
                 </div>
               )}
@@ -568,7 +591,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
         isOpen={showResumeModal}
         onResume={handleResumeFromSaved}
         onStartFresh={handleStartFresh}
-        currentStep={currentStep}
+        currentStep={state.currentStep}
         totalSteps={4}
         brandName={state.formData.brand_name}
       />
@@ -582,11 +605,11 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
                   {isEditing ? 'Edit Creator Profile' : 'Create Your Creator Profile'}
                 </CardTitle>
                 <CardDescription>
-                  Step {currentStep} of {steps.length}: {steps[currentStep - 1].description}
+                  Step {state.currentStep} of {steps.length}: {steps[state.currentStep - 1].description}
                 </CardDescription>
               </div>
               <div className="text-right">
-                <Progress value={(currentStep / steps.length) * 100} className="w-32" />
+                <Progress value={(state.currentStep / steps.length) * 100} className="w-32" />
               </div>
             </div>
             
@@ -597,18 +620,18 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
                   <div
                     key={step.id}
                     className={`flex items-center space-x-2 ${
-                      step.id === currentStep
+                      step.id === state.currentStep
                         ? 'text-primary'
-                        : step.id < currentStep
+                        : step.id < state.currentStep
                         ? 'text-success'
                         : 'text-muted-foreground'
                     }`}
                   >
                     <div
                       className={`rounded-full p-2 ${
-                        step.id === currentStep
+                        step.id === state.currentStep
                           ? 'bg-primary text-primary-foreground'
-                          : step.id < currentStep
+                          : step.id < state.currentStep
                           ? 'bg-success text-success-foreground'
                           : 'bg-muted'
                       }`}
@@ -630,7 +653,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
                 type="button"
                 variant="outline"
                 onClick={handlePrevious}
-                disabled={currentStep === 1}
+                disabled={state.currentStep === 1}
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -638,7 +661,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
               </Button>
               
               <div className="flex gap-2">
-                {!isEditing && currentStep > 1 && currentStep < 4 && (
+                {!isEditing && state.currentStep > 1 && state.currentStep < 4 && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -650,7 +673,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
                   </Button>
                 )}
                 
-                {currentStep < 4 ? (
+                {state.currentStep < 4 ? (
                   <Button
                     type="button"
                     onClick={handleNext}
