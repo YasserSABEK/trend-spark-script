@@ -13,6 +13,7 @@ interface VideoUploadStepProps {
   profileId: string;
   onProcessingComplete: (results: any) => void;
   onProcessingStart: () => void;
+  onProcessingError?: (error: any) => void;
 }
 
 interface VideoItem {
@@ -26,7 +27,8 @@ interface VideoItem {
 const VideoUploadStep: React.FC<VideoUploadStepProps> = ({
   profileId,
   onProcessingComplete,
-  onProcessingStart
+  onProcessingStart,
+  onProcessingError
 }) => {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [currentUrl, setCurrentUrl] = useState('');
@@ -194,11 +196,19 @@ const VideoUploadStep: React.FC<VideoUploadStepProps> = ({
     } catch (error) {
       console.error('Transcription error:', error);
       setIsProcessing(false);
+      
+      const errorMessage = error.message || "Failed to start transcription";
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to start transcription",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      // Call the error handler if provided
+      if (onProcessingError) {
+        onProcessingError({ message: errorMessage, error });
+      }
     }
   };
 

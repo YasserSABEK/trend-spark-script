@@ -296,18 +296,46 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
   };
 
   const handleVideoProcessingStart = () => {
+    console.log('Video processing started');
     setIsProcessingVideos(true);
   };
 
   const handleVideoProcessingComplete = (results: any) => {
+    console.log('Video processing completed:', results);
     setIsProcessingVideos(false);
-    saveState({
-      ...state,
-      processingResults: results,
-      formData: {
-        ...state.formData,
-        video_processing_complete: true
-      }
+    
+    try {
+      saveState({
+        ...state,
+        processingResults: results,
+        formData: {
+          ...state.formData,
+          video_processing_complete: true
+        }
+      });
+      
+      toast({
+        title: "Video Processing Complete",
+        description: `Successfully processed ${results.completedVideos || 0} video(s)`,
+      });
+    } catch (error) {
+      console.error('Error saving processing results:', error);
+      toast({
+        title: "Error Saving Progress",
+        description: "Videos processed but failed to save progress. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleVideoProcessingError = (error: any) => {
+    console.error('Video processing error:', error);
+    setIsProcessingVideos(false);
+    
+    toast({
+      title: "Video Processing Failed",
+      description: error?.message || "Failed to process videos. Please try again.",
+      variant: "destructive",
     });
   };
 
@@ -484,6 +512,7 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({
                 profileId={state.createdProfileId}
                 onProcessingStart={handleVideoProcessingStart}
                 onProcessingComplete={handleVideoProcessingComplete}
+                onProcessingError={handleVideoProcessingError}
               />
             ) : (
               <div className="text-center py-8">
