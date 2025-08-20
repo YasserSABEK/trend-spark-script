@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,6 +33,22 @@ const VideoUploadStep: React.FC<VideoUploadStepProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
   const { toast } = useToast();
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const validateInstagramUrl = (url: string): boolean => {
     const instagramRegex = /^https?:\/\/(www\.)?instagram\.com\/(reel|p)\/[A-Za-z0-9_-]+\/?/;
@@ -167,7 +183,23 @@ const VideoUploadStep: React.FC<VideoUploadStepProps> = ({
   };
 
   const pollForCompletion = async (processedVideos: any[]) => {
-    const pollInterval = setInterval(async () => {
+    // Clear any existing intervals
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    pollIntervalRef.current = setInterval(async () => {
+      // Check if component is still mounted
+      if (!isMountedRef.current) {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
+        return;
+      }
+
       try {
         let completedCount = 0;
         let totalCount = processedVideos.length;
@@ -183,67 +215,94 @@ const VideoUploadStep: React.FC<VideoUploadStepProps> = ({
           if (data) {
             if (data.status === 'completed') {
               completedCount++;
-              setVideos(prev => prev.map(video => 
-                video.url === processedVideo.videoUrl 
-                  ? { ...video, status: 'completed' as const }
-                  : video
-              ));
+              if (isMountedRef.current) {
+                setVideos(prev => prev.map(video => 
+                  video.url === processedVideo.videoUrl 
+                    ? { ...video, status: 'completed' as const }
+                    : video
+                ));
+              }
             } else if (data.status === 'failed') {
-              setVideos(prev => prev.map(video => 
-                video.url === processedVideo.videoUrl 
-                  ? { 
-                      ...video, 
-                      status: 'error' as const, 
-                      error: data.error_message || 'Transcription failed'
-                    }
-                  : video
-              ));
+              if (isMountedRef.current) {
+                setVideos(prev => prev.map(video => 
+                  video.url === processedVideo.videoUrl 
+                    ? { 
+                        ...video, 
+                        status: 'error' as const, 
+                        error: data.error_message || 'Transcription failed'
+                      }
+                    : video
+                ));
+              }
             }
           }
         }
 
         const progress = (completedCount / totalCount) * 100;
-        setProcessingProgress(progress);
+        if (isMountedRef.current) {
+          setProcessingProgress(progress);
+        }
 
         // Check if all are completed or failed
-        const allProcessed = videos.every(video => 
-          video.status === 'completed' || video.status === 'error'
-        );
-
-        if (allProcessed || completedCount === totalCount) {
-          clearInterval(pollInterval);
-          setIsProcessing(false);
-          setProcessingProgress(100);
+        if (completedCount === totalCount) {
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
           
-          const completedVideos = videos.filter(video => video.status === 'completed');
-          
-          if (completedVideos.length > 0) {
-            toast({
-              title: "Processing Complete!",
-              description: `Successfully transcribed ${completedVideos.length} video(s)`,
-            });
-            onProcessingComplete({
-              totalVideos: totalCount,
-              completedVideos: completedVideos.length,
-              errors: totalCount - completedVideos.length
-            });
-          } else {
-            toast({
-              title: "Processing Failed",
-              description: "No videos could be transcribed successfully",
-              variant: "destructive",
-            });
+          if (isMountedRef.current) {
+            setIsProcessing(false);
+            setProcessingProgress(100);
+            
+            if (completedCount > 0) {
+              toast({
+                title: "Processing Complete!",
+                description: `Successfully transcribed ${completedCount} video(s)`,
+              });
+              onProcessingComplete({
+                totalVideos: totalCount,
+                completedVideos: completedCount,
+                errors: totalCount - completedCount
+              });
+            } else {
+              toast({
+                title: "Processing Failed",
+                description: "No videos could be transcribed successfully",
+                variant: "destructive",
+              });
+            }
           }
         }
       } catch (error) {
         console.error('Polling error:', error);
+        if (isMountedRef.current) {
+          toast({
+            title: "Processing Error",
+            description: "Error checking video processing status",
+            variant: "destructive",
+          });
+        }
       }
     }, 3000); // Poll every 3 seconds
 
     // Cleanup after 5 minutes
-    setTimeout(() => {
-      clearInterval(pollInterval);
-      setIsProcessing(false);
+    timeoutRef.current = setTimeout(() => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+      if (isMountedRef.current) {
+        setIsProcessing(false);
+        toast({
+          title: "Processing Timeout",
+          description: "Video processing took longer than expected. Please check back later.",
+          variant: "destructive",
+        });
+      }
     }, 300000);
   };
 

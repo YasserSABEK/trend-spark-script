@@ -29,6 +29,7 @@ import InstagramCreators from "./pages/InstagramCreators";
 import InstagramCreatorResults from "./pages/InstagramCreatorResults";
 import { Profile } from "./pages/Profile";
 import CreatorProfile from "./pages/CreatorProfile";
+import CreatorProfileEdit from "./pages/CreatorProfileEdit";
 import { CreatorProfiles } from "./pages/CreatorProfiles";
 import { CreatorProfileDetail } from "./pages/CreatorProfileDetail";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -133,7 +134,7 @@ function AppContent() {
             <Route path="/creator-profiles/:profileId/edit" element={
               <ProtectedRoute>
                 <ErrorBoundary>
-                  <CreatorProfile />
+                  <CreatorProfileEdit />
                 </ErrorBoundary>
               </ProtectedRoute>
             } />
@@ -202,7 +203,7 @@ function AppContent() {
               <Route path="/creator-profiles/:profileId/edit" element={
                 <ProtectedRoute>
                   <ErrorBoundary>
-                    <CreatorProfile />
+                    <CreatorProfileEdit />
                   </ErrorBoundary>
                 </ProtectedRoute>
               } />

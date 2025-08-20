@@ -49,10 +49,17 @@ serve(async (req) => {
     const apifyData = await apifyResponse.json();
 
     if (!apifyData || apifyData.length === 0) {
+      console.error('No video data returned from Apify for URL:', instagramUrl);
       throw new Error('No video data found for this Instagram URL');
     }
 
     const videoData = apifyData[0];
+    
+    // Validate that we have essential video data
+    if (!videoData || !videoData.video_url) {
+      console.error('Invalid video data structure:', videoData);
+      throw new Error('Invalid video data received');
+    }
 
     return new Response(JSON.stringify({
       success: true,
