@@ -190,21 +190,21 @@ export function AppSidebar() {
                 />
               </SidebarMenuItem>
 
-              {/* Creator Profile */}
+              {/* Creator Profiles */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink
-                    to="/creator-profile"
+                    to="/creator-profiles"
                     className={({ isActive }) =>
                       `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
-                        isActive
+                        isActive || currentPath.startsWith('/creator-profile')
                           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                           : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
                       }`
                     }
                   >
                     <UserCog className="w-5 h-5 flex-shrink-0" />
-                    {!collapsed && <span>Creator Profile</span>}
+                    {!collapsed && <span>Creator Profiles</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

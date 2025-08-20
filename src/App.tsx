@@ -28,6 +28,8 @@ import InstagramCreators from "./pages/InstagramCreators";
 import InstagramCreatorResults from "./pages/InstagramCreatorResults";
 import { Profile } from "./pages/Profile";
 import CreatorProfile from "./pages/CreatorProfile";
+import { CreatorProfiles } from "./pages/CreatorProfiles";
+import { CreatorProfileDetail } from "./pages/CreatorProfileDetail";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ScriptGenerator } from "./pages/ScriptGenerator";
 import { MyScripts } from "./pages/MyScripts";
@@ -125,6 +127,18 @@ function AppContent() {
             <Route path="/instagram/hashtags/:hashtagId/reels" element={<InstagramHashtagReels />} />
             <Route path="/reels/:username" element={<ReelResults />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/creator-profiles" element={<CreatorProfiles />} />
+            <Route path="/creator-profiles/:profileId" element={<CreatorProfileDetail />} />
+            <Route path="/creator-profiles/:profileId/edit" element={
+              <ErrorBoundary>
+                <CreatorProfile />
+              </ErrorBoundary>
+            } />
+            <Route path="/creator-profiles/new" element={
+              <ErrorBoundary>
+                <CreatorProfile />
+              </ErrorBoundary>
+            } />
             <Route path="/creator-profile" element={
               <ErrorBoundary>
                 <CreatorProfile />
@@ -176,6 +190,18 @@ function AppContent() {
               <Route path="/instagram/hashtags/:hashtagId/reels" element={<InstagramHashtagReels />} />
               <Route path="/reels/:username" element={<ReelResults />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/creator-profiles" element={<CreatorProfiles />} />
+              <Route path="/creator-profiles/:profileId" element={<CreatorProfileDetail />} />
+              <Route path="/creator-profiles/:profileId/edit" element={
+                <ErrorBoundary>
+                  <CreatorProfile />
+                </ErrorBoundary>
+              } />
+              <Route path="/creator-profiles/new" element={
+                <ErrorBoundary>
+                  <CreatorProfile />
+                </ErrorBoundary>
+              } />
               <Route path="/creator-profile" element={
                 <ErrorBoundary>
                   <CreatorProfile />

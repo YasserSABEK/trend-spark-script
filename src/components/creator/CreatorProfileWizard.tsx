@@ -17,29 +17,37 @@ import VideoUploadStep from './VideoUploadStep';
 
 interface CreatorProfileWizardProps {
   onComplete: () => void;
+  existingProfile?: any;
+  isEditing?: boolean;
 }
 
-const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete }) => {
+const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ 
+  onComplete, 
+  existingProfile, 
+  isEditing = false 
+}) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    brand_name: '',
-    niche: '',
-    target_audience: '',
-    content_goals: [] as string[],
-    on_camera: false,
-    content_format: '',
-    personality_traits: [] as string[],
-    instagram_handle: '',
+    brand_name: existingProfile?.brand_name || '',
+    niche: existingProfile?.niche || '',
+    target_audience: existingProfile?.target_audience || '',
+    content_goals: existingProfile?.content_goals || [] as string[],
+    on_camera: existingProfile?.on_camera || false,
+    content_format: existingProfile?.content_format || '',
+    personality_traits: existingProfile?.personality_traits || [] as string[],
+    instagram_handle: existingProfile?.instagram_handle || '',
     video_processing_complete: false
   });
 
   const [processingResults, setProcessingResults] = useState<any>(null);
   const [isProcessingVideos, setIsProcessingVideos] = useState(false);
-  const [createdProfileId, setCreatedProfileId] = useState<string | null>(null);
+  const [createdProfileId, setCreatedProfileId] = useState<string | null>(
+    isEditing ? existingProfile?.id : null
+  );
 
   const steps = [
     { id: 1, title: 'Brand Identity', icon: User, description: 'Tell us about your brand' },
@@ -85,26 +93,51 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
 
   const createProfile = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('creator-profile', {
-        body: {
-          ...formData,
-          profile_status: 'setup' // Mark as setup in progress
+      if (isEditing) {
+        // Update existing profile
+        const { data, error } = await supabase
+          .from('creator_profiles')
+          .update({
+            ...formData,
+            profile_status: 'setup'
+          })
+          .eq('id', existingProfile.id)
+          .select()
+          .single();
+
+        if (error) {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to update creator profile",
+            variant: "destructive",
+          });
+          return null;
         }
-      });
 
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to create creator profile",
-          variant: "destructive",
+        return existingProfile.id;
+      } else {
+        // Create new profile
+        const { data, error } = await supabase.functions.invoke('creator-profile', {
+          body: {
+            ...formData,
+            profile_status: 'setup' // Mark as setup in progress
+          }
         });
-        return null;
-      }
 
-      setCreatedProfileId(data.profile.id);
-      return data.profile.id;
+        if (error) {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to create creator profile",
+            variant: "destructive",
+          });
+          return null;
+        }
+
+        setCreatedProfileId(data.profile.id);
+        return data.profile.id;
+      }
     } catch (error) {
-      console.error('Error creating profile:', error);
+      console.error('Error creating/updating profile:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -220,7 +253,10 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
             
             <div className="space-y-2">
               <Label htmlFor="niche">Content Niche *</Label>
-              <Select onValueChange={(value) => setFormData(prev => ({ ...prev, niche: value }))}>
+              <Select 
+                value={formData.niche}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, niche: value }))}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select your content niche" />
                 </SelectTrigger>
@@ -447,7 +483,9 @@ const CreatorProfileWizard: React.FC<CreatorProfileWizardProps> = ({ onComplete 
         <CardHeader>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <CardTitle>Create Your Creator Profile</CardTitle>
+              <CardTitle>
+                {isEditing ? 'Edit Creator Profile' : 'Create Your Creator Profile'}
+              </CardTitle>
               <CardDescription>
                 Step {currentStep} of {steps.length}: {steps[currentStep - 1].description}
               </CardDescription>

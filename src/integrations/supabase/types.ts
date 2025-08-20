@@ -224,10 +224,12 @@ export type Database = {
       }
       creator_profiles: {
         Row: {
+          avatar_url: string | null
           brand_name: string
           content_format: string | null
           content_goals: string[] | null
           created_at: string | null
+          description: string | null
           id: string
           instagram_handle: string | null
           niche: string
@@ -240,10 +242,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_url?: string | null
           brand_name: string
           content_format?: string | null
           content_goals?: string[] | null
           created_at?: string | null
+          description?: string | null
           id?: string
           instagram_handle?: string | null
           niche: string
@@ -256,10 +260,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_url?: string | null
           brand_name?: string
           content_format?: string | null
           content_goals?: string[] | null
           created_at?: string | null
+          description?: string | null
           id?: string
           instagram_handle?: string | null
           niche?: string

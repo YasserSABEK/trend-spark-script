@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Sparkles, Copy, Heart, Star } from 'lucide-react';
 import { CreditGuard } from '@/components/credits/CreditGuard';
 import { DroppableArea } from '@/components/dnd/DroppableArea';
+import { ProfileSelector } from '@/components/creator/ProfileSelector';
 
 interface GeneratedScript {
   hook: string;
@@ -26,11 +27,10 @@ export const ScriptGenerator = () => {
   const [generatedScript, setGeneratedScript] = useState<GeneratedScript | null>(null);
   const [formData, setFormData] = useState({
     prompt: '',
-    niche: '',
-    toneOfVoice: '',
-    targetAudience: '',
+    profileId: '',
     hookStyle: ''
   });
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const { toast } = useToast();
 
   // Pre-fill form from URL params
@@ -58,8 +58,7 @@ export const ScriptGenerator = () => {
     
     setFormData(prev => ({
       ...prev,
-      prompt: autoPrompt,
-      niche: item.tags?.[0] ? item.tags[0].replace(/([A-Z])/g, ' $1').trim() : prev.niche
+      prompt: autoPrompt
     }));
     
     toast({
@@ -68,22 +67,6 @@ export const ScriptGenerator = () => {
     });
   };
 
-  const niches = [
-    'Fitness & Health', 'Food & Cooking', 'Travel & Adventure', 'Fashion & Beauty',
-    'Business & Entrepreneurship', 'Technology', 'Education', 'Entertainment',
-    'Lifestyle', 'DIY & Crafts', 'Motivation & Self-Help', 'Pets & Animals'
-  ];
-
-  const tones = [
-    'Professional', 'Casual & Friendly', 'Energetic & Upbeat', 'Inspiring & Motivational',
-    'Humorous & Fun', 'Educational & Informative', 'Trendy & Hip', 'Authentic & Personal'
-  ];
-
-  const audiences = [
-    'Gen Z (18-24)', 'Millennials (25-40)', 'Gen X (41-56)', 'All Ages',
-    'Beginners', 'Experts', 'Small Business Owners', 'Students',
-    'Parents', 'Professionals', 'Creators', 'Entrepreneurs'
-  ];
 
   const hookStyles = [
     'Question', 'Bold Statement', 'Number/Statistic', 'Controversial Opinion',
@@ -105,7 +88,12 @@ export const ScriptGenerator = () => {
     try {
       const { data, error } = await supabase.functions.invoke('enhanced-script-generation', {
         body: {
-          ...formData,
+          prompt: formData.prompt,
+          hookStyle: formData.hookStyle,
+          profileId: formData.profileId || null,
+          niche: selectedProfile?.niche || '',
+          toneOfVoice: selectedProfile?.personality_traits?.[0] || '',
+          targetAudience: selectedProfile?.target_audience || '',
           format: 'reel',
           highAccuracy: false,
           post_id: `script_${Date.now()}`
@@ -186,6 +174,32 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
+              <Label htmlFor="profile">Creator Profile (Optional)</Label>
+              <ProfileSelector
+                value={formData.profileId}
+                onValueChange={(value) => setFormData({ ...formData, profileId: value })}
+                onProfileSelect={setSelectedProfile}
+                className="mb-4"
+              />
+              {selectedProfile && (
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
+                  <h4 className="font-medium text-primary">Using Profile: {selectedProfile.brand_name}</h4>
+                  <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                    <span>Niche: {selectedProfile.niche}</span>
+                    <span>•</span>
+                    <span>Audience: {selectedProfile.target_audience}</span>
+                    {selectedProfile.personality_traits?.[0] && (
+                      <>
+                        <span>•</span>
+                        <span>Style: {selectedProfile.personality_traits[0]}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
               <Label htmlFor="prompt">What's your script about? *</Label>
               <div className="space-y-3">
                 <Textarea
@@ -203,62 +217,18 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="niche">Niche</Label>
-                <Select value={formData.niche} onValueChange={(value) => setFormData({ ...formData, niche: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your niche" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {niches.map((niche) => (
-                      <SelectItem key={niche} value={niche}>{niche}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="tone">Tone of Voice</Label>
-                <Select value={formData.toneOfVoice} onValueChange={(value) => setFormData({ ...formData, toneOfVoice: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select tone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tones.map((tone) => (
-                      <SelectItem key={tone} value={tone}>{tone}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="audience">Target Audience</Label>
-                <Select value={formData.targetAudience} onValueChange={(value) => setFormData({ ...formData, targetAudience: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select audience" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {audiences.map((audience) => (
-                      <SelectItem key={audience} value={audience}>{audience}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="hook">Hook Style</Label>
-                <Select value={formData.hookStyle} onValueChange={(value) => setFormData({ ...formData, hookStyle: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select hook style" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {hookStyles.map((style) => (
-                      <SelectItem key={style} value={style}>{style}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label htmlFor="hook">Hook Style (Optional)</Label>
+              <Select value={formData.hookStyle} onValueChange={(value) => setFormData({ ...formData, hookStyle: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select hook style" />
+                </SelectTrigger>
+                <SelectContent>
+                  {hookStyles.map((style) => (
+                    <SelectItem key={style} value={style}>{style}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <CreditGuard
