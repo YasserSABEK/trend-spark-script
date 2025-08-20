@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/components/auth/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Navbar } from "@/components/layout/Navbar";
@@ -113,45 +114,51 @@ function AppContent() {
           {/* Main Content with proper top padding */}
           <main className="pt-16 px-4 pb-6">
             <Routes>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/tiktok-creators" element={<TikTokCreators />} />
-            <Route path="/tiktok-creators/:searchId" element={<TikTokCreatorResults />} />
-            <Route path="/instagram-creators" element={<InstagramCreators />} />
-            <Route path="/instagram-creators/:searchId" element={<InstagramCreatorResults />} />
-            <Route path="/viral-reels" element={<ViralReels />} />
-            <Route path="/viral-tiktoks" element={<ViralTikToks />} />
-            <Route path="/tiktoks/:username" element={<TikTokUserResults />} />
-            <Route path="/hashtag-search" element={<HashtagSearch />} />
-            <Route path="/hashtags/:hashtagId/videos" element={<HashtagVideos />} />
-            <Route path="/instagram-hashtags" element={<InstagramHashtags />} />
-            <Route path="/instagram/hashtags/:hashtagId/reels" element={<InstagramHashtagReels />} />
-            <Route path="/reels/:username" element={<ReelResults />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/creator-profiles" element={<CreatorProfiles />} />
-            <Route path="/creator-profiles/:profileId" element={<CreatorProfileDetail />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/tiktok-creators" element={<ProtectedRoute><TikTokCreators /></ProtectedRoute>} />
+            <Route path="/tiktok-creators/:searchId" element={<ProtectedRoute><TikTokCreatorResults /></ProtectedRoute>} />
+            <Route path="/instagram-creators" element={<ProtectedRoute><InstagramCreators /></ProtectedRoute>} />
+            <Route path="/instagram-creators/:searchId" element={<ProtectedRoute><InstagramCreatorResults /></ProtectedRoute>} />
+            <Route path="/viral-reels" element={<ProtectedRoute><ViralReels /></ProtectedRoute>} />
+            <Route path="/viral-tiktoks" element={<ProtectedRoute><ViralTikToks /></ProtectedRoute>} />
+            <Route path="/tiktoks/:username" element={<ProtectedRoute><TikTokUserResults /></ProtectedRoute>} />
+            <Route path="/hashtag-search" element={<ProtectedRoute><HashtagSearch /></ProtectedRoute>} />
+            <Route path="/hashtags/:hashtagId/videos" element={<ProtectedRoute><HashtagVideos /></ProtectedRoute>} />
+            <Route path="/instagram-hashtags" element={<ProtectedRoute><InstagramHashtags /></ProtectedRoute>} />
+            <Route path="/instagram/hashtags/:hashtagId/reels" element={<ProtectedRoute><InstagramHashtagReels /></ProtectedRoute>} />
+            <Route path="/reels/:username" element={<ProtectedRoute><ReelResults /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/creator-profiles" element={<ProtectedRoute><CreatorProfiles /></ProtectedRoute>} />
+            <Route path="/creator-profiles/:profileId" element={<ProtectedRoute><CreatorProfileDetail /></ProtectedRoute>} />
             <Route path="/creator-profiles/:profileId/edit" element={
-              <ErrorBoundary>
-                <CreatorProfile />
-              </ErrorBoundary>
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <CreatorProfile />
+                </ErrorBoundary>
+              </ProtectedRoute>
             } />
             <Route path="/creator-profiles/new" element={
-              <ErrorBoundary>
-                <CreatorProfile />
-              </ErrorBoundary>
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <CreatorProfile />
+                </ErrorBoundary>
+              </ProtectedRoute>
             } />
             <Route path="/creator-profile" element={
-              <ErrorBoundary>
-                <CreatorProfile />
-              </ErrorBoundary>
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <CreatorProfile />
+                </ErrorBoundary>
+              </ProtectedRoute>
             } />
-            <Route path="/script-generator" element={<ScriptGenerator />} />
-            <Route path="/my-scripts" element={<MyScripts />} />
-            <Route path="/content" element={<Content />} />
-            <Route path="/saved-creators" element={<SavedCreators />} />
-            <Route path="/content-calendar" element={<ContentCalendar />} />
-            <Route path="/billing" element={<Billing />} />
-            <Route path="/test-apify-access" element={<TestApifyAccess />} />
-            <Route path="/system-status" element={<SystemStatus />} />
+            <Route path="/script-generator" element={<ProtectedRoute><ScriptGenerator /></ProtectedRoute>} />
+            <Route path="/my-scripts" element={<ProtectedRoute><MyScripts /></ProtectedRoute>} />
+            <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
+            <Route path="/saved-creators" element={<ProtectedRoute><SavedCreators /></ProtectedRoute>} />
+            <Route path="/content-calendar" element={<ProtectedRoute><ContentCalendar /></ProtectedRoute>} />
+            <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+            <Route path="/test-apify-access" element={<ProtectedRoute><TestApifyAccess /></ProtectedRoute>} />
+            <Route path="/system-status" element={<ProtectedRoute><SystemStatus /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
@@ -176,45 +183,51 @@ function AppContent() {
           
           <main className="flex-1 p-6">
             <Routes>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/tiktok-creators" element={<TikTokCreators />} />
-              <Route path="/tiktok-creators/:searchId" element={<TikTokCreatorResults />} />
-              <Route path="/instagram-creators" element={<InstagramCreators />} />
-              <Route path="/instagram-creators/:searchId" element={<InstagramCreatorResults />} />
-              <Route path="/viral-reels" element={<ViralReels />} />
-              <Route path="/viral-tiktoks" element={<ViralTikToks />} />
-              <Route path="/tiktoks/:username" element={<TikTokUserResults />} />
-              <Route path="/hashtag-search" element={<HashtagSearch />} />
-              <Route path="/hashtags/:hashtagId/videos" element={<HashtagVideos />} />
-              <Route path="/instagram-hashtags" element={<InstagramHashtags />} />
-              <Route path="/instagram/hashtags/:hashtagId/reels" element={<InstagramHashtagReels />} />
-              <Route path="/reels/:username" element={<ReelResults />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/creator-profiles" element={<CreatorProfiles />} />
-              <Route path="/creator-profiles/:profileId" element={<CreatorProfileDetail />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/tiktok-creators" element={<ProtectedRoute><TikTokCreators /></ProtectedRoute>} />
+              <Route path="/tiktok-creators/:searchId" element={<ProtectedRoute><TikTokCreatorResults /></ProtectedRoute>} />
+              <Route path="/instagram-creators" element={<ProtectedRoute><InstagramCreators /></ProtectedRoute>} />
+              <Route path="/instagram-creators/:searchId" element={<ProtectedRoute><InstagramCreatorResults /></ProtectedRoute>} />
+              <Route path="/viral-reels" element={<ProtectedRoute><ViralReels /></ProtectedRoute>} />
+              <Route path="/viral-tiktoks" element={<ProtectedRoute><ViralTikToks /></ProtectedRoute>} />
+              <Route path="/tiktoks/:username" element={<ProtectedRoute><TikTokUserResults /></ProtectedRoute>} />
+              <Route path="/hashtag-search" element={<ProtectedRoute><HashtagSearch /></ProtectedRoute>} />
+              <Route path="/hashtags/:hashtagId/videos" element={<ProtectedRoute><HashtagVideos /></ProtectedRoute>} />
+              <Route path="/instagram-hashtags" element={<ProtectedRoute><InstagramHashtags /></ProtectedRoute>} />
+              <Route path="/instagram/hashtags/:hashtagId/reels" element={<ProtectedRoute><InstagramHashtagReels /></ProtectedRoute>} />
+              <Route path="/reels/:username" element={<ProtectedRoute><ReelResults /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/creator-profiles" element={<ProtectedRoute><CreatorProfiles /></ProtectedRoute>} />
+              <Route path="/creator-profiles/:profileId" element={<ProtectedRoute><CreatorProfileDetail /></ProtectedRoute>} />
               <Route path="/creator-profiles/:profileId/edit" element={
-                <ErrorBoundary>
-                  <CreatorProfile />
-                </ErrorBoundary>
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <CreatorProfile />
+                  </ErrorBoundary>
+                </ProtectedRoute>
               } />
               <Route path="/creator-profiles/new" element={
-                <ErrorBoundary>
-                  <CreatorProfile />
-                </ErrorBoundary>
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <CreatorProfile />
+                  </ErrorBoundary>
+                </ProtectedRoute>
               } />
               <Route path="/creator-profile" element={
-                <ErrorBoundary>
-                  <CreatorProfile />
-                </ErrorBoundary>
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <CreatorProfile />
+                  </ErrorBoundary>
+                </ProtectedRoute>
               } />
-              <Route path="/script-generator" element={<ScriptGenerator />} />
-              <Route path="/my-scripts" element={<MyScripts />} />
-              <Route path="/content" element={<Content />} />
-              <Route path="/saved-creators" element={<SavedCreators />} />
-              <Route path="/content-calendar" element={<ContentCalendar />} />
-              <Route path="/billing" element={<Billing />} />
-              <Route path="/test-apify-access" element={<TestApifyAccess />} />
-              <Route path="/system-status" element={<SystemStatus />} />
+              <Route path="/script-generator" element={<ProtectedRoute><ScriptGenerator /></ProtectedRoute>} />
+              <Route path="/my-scripts" element={<ProtectedRoute><MyScripts /></ProtectedRoute>} />
+              <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
+              <Route path="/saved-creators" element={<ProtectedRoute><SavedCreators /></ProtectedRoute>} />
+              <Route path="/content-calendar" element={<ProtectedRoute><ContentCalendar /></ProtectedRoute>} />
+              <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+              <Route path="/test-apify-access" element={<ProtectedRoute><TestApifyAccess /></ProtectedRoute>} />
+              <Route path="/system-status" element={<ProtectedRoute><SystemStatus /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

@@ -33,25 +33,38 @@ export const CreatorProfiles = () => {
   const [profiles, setProfiles] = useState<CreatorProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
+    if (user && !authLoading) {
+      console.log('CreatorProfiles: Fetching profiles for user:', user.id);
       fetchProfiles();
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchProfiles = async () => {
+    if (!user?.id) {
+      console.log('CreatorProfiles: No user ID available');
+      setIsLoading(false);
+      return;
+    }
+
     try {
+      console.log('CreatorProfiles: Fetching profiles for user:', user.id);
       const { data, error } = await supabase
         .from('creator_profiles')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('CreatorProfiles: Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('CreatorProfiles: Fetched profiles:', data?.length || 0);
       setProfiles(data || []);
     } catch (error) {
       console.error('Error fetching profiles:', error);
@@ -109,7 +122,7 @@ export const CreatorProfiles = () => {
     });
   };
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex items-center justify-between">
