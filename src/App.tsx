@@ -28,6 +28,7 @@ import InstagramCreators from "./pages/InstagramCreators";
 import InstagramCreatorResults from "./pages/InstagramCreatorResults";
 import { Profile } from "./pages/Profile";
 import CreatorProfile from "./pages/CreatorProfile";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { ScriptGenerator } from "./pages/ScriptGenerator";
 import { MyScripts } from "./pages/MyScripts";
 import { Content } from "./pages/Content";
@@ -124,7 +125,11 @@ function AppContent() {
             <Route path="/instagram/hashtags/:hashtagId/reels" element={<InstagramHashtagReels />} />
             <Route path="/reels/:username" element={<ReelResults />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/creator-profile" element={<CreatorProfile />} />
+            <Route path="/creator-profile" element={
+              <ErrorBoundary>
+                <CreatorProfile />
+              </ErrorBoundary>
+            } />
             <Route path="/script-generator" element={<ScriptGenerator />} />
             <Route path="/my-scripts" element={<MyScripts />} />
             <Route path="/content" element={<Content />} />
@@ -171,7 +176,11 @@ function AppContent() {
               <Route path="/instagram/hashtags/:hashtagId/reels" element={<InstagramHashtagReels />} />
               <Route path="/reels/:username" element={<ReelResults />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/creator-profile" element={<CreatorProfile />} />
+              <Route path="/creator-profile" element={
+                <ErrorBoundary>
+                  <CreatorProfile />
+                </ErrorBoundary>
+              } />
               <Route path="/script-generator" element={<ScriptGenerator />} />
               <Route path="/my-scripts" element={<MyScripts />} />
               <Route path="/content" element={<Content />} />
