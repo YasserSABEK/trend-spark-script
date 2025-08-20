@@ -35,6 +35,7 @@ serve(async (req) => {
     }
 
     console.log('Extracting video URL for:', instagramUrl);
+    console.log('Edge function version: 2025-08-20-v2, timestamp:', new Date().toISOString());
 
     try {
       console.log('Starting Apify request with epctex~instagram-video-downloader actor');
@@ -49,7 +50,7 @@ serve(async (req) => {
       
       console.log('Request body:', JSON.stringify(requestBody));
       
-      // Call Apify Instagram Video Downloader with extended timeout (60 seconds)
+      // Call Apify Instagram Video Downloader with extended timeout (90 seconds)
       const apifyResponse = await Promise.race([
         fetch(`https://api.apify.com/v2/acts/epctex~instagram-video-downloader/run-sync-get-dataset-items?token=${apifyApiKey}`, {
           method: 'POST',
@@ -59,7 +60,7 @@ serve(async (req) => {
           body: JSON.stringify(requestBody),
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout after 60 seconds')), 60000)
+          setTimeout(() => reject(new Error('Request timeout after 90 seconds')), 90000)
         )
       ]) as Response;
 
