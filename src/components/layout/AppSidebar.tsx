@@ -1,18 +1,12 @@
-import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   Home, 
-  Video, 
-  Hash,
   Edit3, 
   Bookmark,
   CreditCard,
   Instagram,
   Music2,
   Calendar,
-  Users,
-  FileText,
-  Settings,
   UserCog
 } from "lucide-react";
 import {
@@ -20,260 +14,85 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarHeader,
   SidebarFooter,
-  useSidebar,
 } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SidebarProfileSection } from "@/components/profile/SidebarProfileSection";
-import { NavigationFlyout, FlyoutGroup } from "./NavigationFlyout";
 
 const navigationItems = [
-  { title: "Home", url: "/dashboard", icon: Home },
-  { title: "Script Generator", url: "/script-generator", icon: Edit3 },
-  { title: "Content Calendar", url: "/content-calendar", icon: Calendar },
-  { title: "Billing", url: "/billing", icon: CreditCard },
-];
-
-const savedFlyoutGroups: FlyoutGroup[] = [
-  {
-    title: "Saved",
-    items: [
-      { title: "Saved Content", url: "/content", icon: FileText, description: "Your saved videos" },
-      { title: "Saved Creators", url: "/saved-creators", icon: Users, description: "Your saved creators" },
-    ]
-  }
-];
-
-const instagramFlyoutGroups: FlyoutGroup[] = [
-  {
-    title: "Instagram",
-    items: [
-      { title: "Creators", url: "/instagram-creators", icon: Users, description: "Find top creators" },
-      { title: "Viral Reels", url: "/viral-reels", icon: Video, description: "Find standout videos" },
-      { title: "Hashtags", url: "/instagram-hashtags", icon: Hash, description: "Trending topics" },
-    ]
-  }
-];
-
-const tiktokFlyoutGroups: FlyoutGroup[] = [
-  {
-    title: "TikTok", 
-    items: [
-      { title: "Creators", url: "/tiktok-creators", icon: Users, description: "Find top creators" },
-      { title: "Viral Videos", url: "/viral-tiktoks", icon: Video, description: "Find standout videos" },
-      { title: "Hashtags", url: "/hashtag-search", icon: Hash, description: "Trending topics" },
-    ]
-  }
+  { title: "Home", url: "/dashboard", icon: Home, tooltip: "Dashboard Home" },
+  { title: "Instagram", url: "/instagram-creators", icon: Instagram, tooltip: "Instagram Creators & Content" },
+  { title: "TikTok", url: "/tiktok-creators", icon: Music2, tooltip: "TikTok Creators & Content" },
+  { title: "Saved", url: "/saved-creators", icon: Bookmark, tooltip: "Your Saved Content" },
+  { title: "Creators", url: "/creator-profiles", icon: UserCog, tooltip: "Creator Profiles" },
+  { title: "Scripts", url: "/script-generator", icon: Edit3, tooltip: "Script Generator" },
+  { title: "Calendar", url: "/content-calendar", icon: Calendar, tooltip: "Content Calendar" },
+  { title: "Billing", url: "/billing", icon: CreditCard, tooltip: "Billing & Plans" },
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
-  const collapsed = state === "collapsed";
-  const [openFlyouts, setOpenFlyouts] = useState<Record<string, boolean>>({});
 
-  const isActive = (path: string) => currentPath === path;
-  
-  const isGroupActive = (groups: FlyoutGroup[]) => {
-    return groups.some(group => 
-      group.items.some(item => isActive(item.url))
-    );
-  };
-
-  const handleFlyoutChange = (key: string, open: boolean) => {
-    setOpenFlyouts(prev => ({ ...prev, [key]: open }));
+  const isActive = (path: string) => {
+    if (path === "/dashboard") return currentPath === path;
+    return currentPath.startsWith(path);
   };
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-72 sm:w-64"} collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center space-x-2 p-3 sm:p-2">
-          <img 
-            src="/lovable-uploads/20438a19-0f33-4e14-ad03-f2ce206ada62.png" 
-            alt="Viraltify logo" 
-            className={collapsed ? "w-8 h-8 object-contain" : "h-10 w-auto max-w-[120px] object-contain"}
-          />
-        </div>
-      </SidebarHeader>
+    <TooltipProvider>
+      <Sidebar className="w-18" collapsible="none">
+        <SidebarHeader className="border-b border-sidebar-border p-3">
+          <div className="flex justify-center">
+            <img 
+              src="/lovable-uploads/20438a19-0f33-4e14-ad03-f2ce206ada62.png" 
+              alt="Viraltify logo" 
+              className="w-8 h-8 object-contain"
+            />
+          </div>
+        </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className={collapsed ? "sr-only" : ""}>
-            Navigation
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {/* Home */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/dashboard"
-                    className={({ isActive }) =>
-                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                      }`
-                    }
-                  >
-                    <Home className="w-5 h-5 flex-shrink-0" />
-                    {!collapsed && <span>Home</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+        <SidebarContent className="px-2">
+          <SidebarGroup className="border-none">
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-1">
+                {navigationItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to={item.url}
+                            className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-lg transition-all duration-200 min-h-[56px] group ${
+                              isActive(item.url)
+                                ? "bg-primary/10 text-primary"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                            }`}
+                          >
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                            <span className="text-2xs font-medium text-center leading-tight">{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="ml-2">
+                        {item.tooltip}
+                      </TooltipContent>
+                    </Tooltip>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-              {/* Instagram flyout */}
-              <SidebarMenuItem>
-                <NavigationFlyout
-                  trigger={
-                    <SidebarMenuButton
-                      className={`w-full justify-start min-h-[44px] px-3 py-3 sm:py-2 ${
-                        isGroupActive(instagramFlyoutGroups)
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50"
-                      }`}
-                    >
-                      <Instagram className="w-5 h-5 flex-shrink-0" />
-                      {!collapsed && <span className="flex-1 text-left">Instagram</span>}
-                    </SidebarMenuButton>
-                  }
-                  groups={instagramFlyoutGroups}
-                  open={openFlyouts.instagram || false}
-                  onOpenChange={(open) => handleFlyoutChange("instagram", open)}
-                />
-              </SidebarMenuItem>
-
-              {/* TikTok flyout */}
-              <SidebarMenuItem>
-                <NavigationFlyout
-                  trigger={
-                    <SidebarMenuButton
-                      className={`w-full justify-start min-h-[44px] px-3 py-3 sm:py-2 ${
-                        isGroupActive(tiktokFlyoutGroups)
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50"
-                      }`}
-                    >
-                      <Music2 className="w-5 h-5 flex-shrink-0" />
-                      {!collapsed && <span className="flex-1 text-left">TikTok</span>}
-                    </SidebarMenuButton>
-                  }
-                  groups={tiktokFlyoutGroups}
-                  open={openFlyouts.tiktok || false}
-                  onOpenChange={(open) => handleFlyoutChange("tiktok", open)}
-                />
-              </SidebarMenuItem>
-
-              {/* Saved flyout */}
-              <SidebarMenuItem>
-                <NavigationFlyout
-                  trigger={
-                    <SidebarMenuButton
-                      className={`w-full justify-start min-h-[44px] px-3 py-3 sm:py-2 ${
-                        isGroupActive(savedFlyoutGroups)
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50"
-                      }`}
-                    >
-                      <Bookmark className="w-5 h-5 flex-shrink-0" />
-                      {!collapsed && <span className="flex-1 text-left">Saved</span>}
-                    </SidebarMenuButton>
-                  }
-                  groups={savedFlyoutGroups}
-                  open={openFlyouts.saved || false}
-                  onOpenChange={(open) => handleFlyoutChange("saved", open)}
-                />
-              </SidebarMenuItem>
-
-              {/* Creator Profiles */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/creator-profiles"
-                    className={({ isActive }) =>
-                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
-                        isActive || currentPath.startsWith('/creator-profile')
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                      }`
-                    }
-                  >
-                    <UserCog className="w-5 h-5 flex-shrink-0" />
-                    {!collapsed && <span>Creator Profiles</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {/* Script Generator */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/script-generator"
-                    className={({ isActive }) =>
-                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                      }`
-                    }
-                  >
-                    <Edit3 className="w-5 h-5 flex-shrink-0" />
-                    {!collapsed && <span>Script Generator</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {/* Content Calendar */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/content-calendar"
-                    className={({ isActive }) =>
-                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                      }`
-                    }
-                  >
-                    <Calendar className="w-5 h-5 flex-shrink-0" />
-                    {!collapsed && <span>Content Calendar</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-
-              {/* Billing */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/billing"
-                    className={({ isActive }) =>
-                      `flex items-center space-x-3 px-3 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                      }`
-                    }
-                  >
-                    <CreditCard className="w-5 h-5 flex-shrink-0" />
-                    {!collapsed && <span>Billing</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter className="border-t border-sidebar-border p-0">
-        <SidebarProfileSection collapsed={collapsed} />
-      </SidebarFooter>
-    </Sidebar>
+        <SidebarFooter className="border-t border-sidebar-border p-0">
+          <SidebarProfileSection />
+        </SidebarFooter>
+      </Sidebar>
+    </TooltipProvider>
   );
 }

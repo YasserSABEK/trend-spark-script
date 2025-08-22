@@ -239,7 +239,7 @@ export function MobileSidebar({ onClose }: MobileSidebarProps) {
 
       {/* Footer */}
       <div className="border-t p-4">
-        <SidebarProfileSection collapsed={false} />
+        <SidebarProfileSection />
       </div>
     </div>
   );
