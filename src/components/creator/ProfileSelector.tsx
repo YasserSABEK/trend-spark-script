@@ -115,49 +115,65 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
   return (
     <div className={`space-y-3 ${className}`}>
       <Select value={value} onValueChange={handleValueChange}>
-        <SelectTrigger>
+        <SelectTrigger className="h-auto min-h-[3rem] bg-card border-2 hover:border-primary/20 transition-colors">
           <SelectValue placeholder="Select a creator profile">
             {selectedProfile && (
-              <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
+              <div className="flex items-center gap-3 py-2">
+                <Avatar className="h-8 w-8 ring-2 ring-primary/10">
                   <AvatarImage src={selectedProfile.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                  <AvatarFallback className="bg-gradient-to-br from-primary/10 to-secondary/10 text-primary font-semibold text-sm">
                     {getInitials(selectedProfile.brand_name)}
                   </AvatarFallback>
                 </Avatar>
-                <span className="truncate">{selectedProfile.brand_name}</span>
-                <Badge variant="outline" className="text-xs">
-                  {selectedProfile.niche}
-                </Badge>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground truncate">{selectedProfile.brand_name}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary" className="text-xs font-medium bg-secondary/10 text-secondary-foreground">
+                      {selectedProfile.niche}
+                    </Badge>
+                    {selectedProfile.on_camera !== null && (
+                      <Badge variant="outline" className="text-xs bg-background">
+                        {selectedProfile.on_camera ? 'On-camera' : 'Voiceover'}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-popover border-2 shadow-lg">
           {profiles.map((profile) => (
-            <SelectItem key={profile.id} value={profile.id}>
-              <div className="flex items-center gap-3 py-2">
-                <Avatar className="h-8 w-8">
+            <SelectItem 
+              key={profile.id} 
+              value={profile.id}
+              className="hover:bg-accent/50 focus:bg-accent/50 cursor-pointer p-3"
+            >
+              <div className="flex items-center gap-3 w-full">
+                <Avatar className="h-10 w-10 ring-2 ring-primary/10">
                   <AvatarImage src={profile.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                  <AvatarFallback className="bg-gradient-to-br from-primary/10 to-secondary/10 text-primary font-semibold">
                     {getInitials(profile.brand_name)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{profile.brand_name}</p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <p className="font-semibold text-foreground truncate">{profile.brand_name}</p>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                     <Target className="h-3 w-3" />
                     {profile.niche}
                   </p>
+                  <p className="text-xs text-muted-foreground mt-1 truncate">
+                    {profile.target_audience}
+                  </p>
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   {profile.content_format && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs font-medium bg-secondary/10 text-secondary-foreground">
                       {profile.content_format}
                     </Badge>
                   )}
                   {profile.on_camera !== null && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs bg-background">
                       {profile.on_camera ? 'On-camera' : 'Voiceover'}
                     </Badge>
                   )}
@@ -172,7 +188,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = ({
         variant="outline" 
         size="sm" 
         onClick={() => navigate('/creator-profiles/new')}
-        className="w-full"
+        className="w-full border-dashed hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
       >
         <Plus className="h-4 w-4 mr-2" />
         Create New Profile
