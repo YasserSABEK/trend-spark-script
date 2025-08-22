@@ -83,14 +83,50 @@ export default function TikTokCreatorResults() {
   };
 
   const loadSavedCreators = async () => {
-    // Since the saved_creators table was just created and types haven't been updated yet,
-    // we'll temporarily skip loading saved creators to avoid type errors
-    setSavedCreators(new Set());
+    try {
+      const { data, error } = await supabase
+        .from('saved_creators')
+        .select('username')
+        .eq('user_id', user?.id)
+        .eq('platform', 'tiktok');
+
+      if (error) throw error;
+
+      setSavedCreators(new Set(data.map(item => item.username)));
+    } catch (error) {
+      console.error('Error loading saved creators:', error);
+    }
   };
 
   const handleSaveCreator = async (creator: Creator) => {
-    // Temporarily disabled until types are updated
-    toast.info('Save creator functionality will be enabled after database types are updated');
+    try {
+      const { error } = await supabase
+        .from('saved_creators')
+        .upsert({
+          user_id: user?.id,
+          platform: 'tiktok',
+          username: creator.username,
+          display_name: creator.display_name || creator.username,
+          avatar_url: creator.avatar_url,
+          profile_url: creator.profile_url,
+          follower_count: creator.follower_count
+        }, {
+          onConflict: 'user_id,platform,username'
+        });
+
+      if (error) throw error;
+
+      setSavedCreators(prev => new Set([...prev, creator.username]));
+      toast.success(`Creator @${creator.username} saved!`);
+      
+      // Navigate to saved creators page
+      setTimeout(() => {
+        navigate('/saved-creators');
+      }, 1000);
+    } catch (error) {
+      console.error('Error saving creator:', error);
+      toast.error('Failed to save creator');
+    }
   };
 
   const handleScrapeCreator = (username: string) => {

@@ -67,13 +67,50 @@ export default function InstagramCreatorResults() {
   };
 
   const loadSavedCreators = async () => {
-    // TODO: Load saved creators from database
-    // This would query the saved_creators table for the current user
+    try {
+      const { data, error } = await supabase
+        .from('saved_creators')
+        .select('username')
+        .eq('user_id', user?.id)
+        .eq('platform', 'instagram');
+
+      if (error) throw error;
+
+      setSavedCreators(new Set(data.map(item => item.username)));
+    } catch (error) {
+      console.error('Error loading saved creators:', error);
+    }
   };
 
-  const handleSaveCreator = (username: string) => {
-    // TODO: Implement save creator functionality
-    toast.success(`Creator @${username} saved!`);
+  const handleSaveCreator = async (creator: Creator) => {
+    try {
+      const { error } = await supabase
+        .from('saved_creators')
+        .upsert({
+          user_id: user?.id,
+          platform: 'instagram',
+          username: creator.username,
+          display_name: creator.full_name || creator.username,
+          avatar_url: creator.avatar_url,
+          profile_url: creator.profile_url,
+          follower_count: creator.follower_count
+        }, {
+          onConflict: 'user_id,platform,username'
+        });
+
+      if (error) throw error;
+
+      setSavedCreators(prev => new Set([...prev, creator.username]));
+      toast.success(`Creator @${creator.username} saved!`);
+      
+      // Navigate to saved creators page
+      setTimeout(() => {
+        navigate('/saved-creators');
+      }, 1000);
+    } catch (error) {
+      console.error('Error saving creator:', error);
+      toast.error('Failed to save creator');
+    }
   };
 
   const handleScrapeCreator = (username: string) => {
@@ -284,11 +321,15 @@ export default function InstagramCreatorResults() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleSaveCreator(creator.username)}
+                          onClick={() => handleSaveCreator(creator)}
                           className="flex-1"
                         >
-                          <Heart className="w-3 h-3 mr-1" />
-                          Save
+                          <Heart 
+                            className={`w-3 h-3 mr-1 ${
+                              savedCreators.has(creator.username) ? 'fill-current text-red-500' : ''
+                            }`} 
+                          />
+                          {savedCreators.has(creator.username) ? 'Saved' : 'Save'}
                         </Button>
                         <Button
                           variant="outline"
