@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,14 @@ import { Mic, MicOff, Loader2, Plus, X, Play, CheckCircle, AlertCircle } from 'l
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/components/auth/AuthContext';
 import { Switch } from '@/components/ui/switch';
+
+// Constants moved outside component to prevent recreation
+const STORAGE_KEYS = {
+  formData: 'creator-profile-form-data',
+  videos: 'creator-profile-videos',
+  enableVideoAnalysis: 'creator-profile-enable-video-analysis',
+  currentUrl: 'creator-profile-current-url'
+};
 
 interface SimpleCreatorProfileFormProps {
   onComplete: () => void;
@@ -59,27 +67,31 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
     instagram_handle: existingProfile?.instagram_handle || ''
   });
 
-  // localStorage keys
-  const STORAGE_KEYS = {
-    formData: 'creator-profile-form-data',
-    videos: 'creator-profile-videos',
-    enableVideoAnalysis: 'creator-profile-enable-video-analysis',
-    currentUrl: 'creator-profile-current-url'
-  };
+  // Refs to track save timeout
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Save form and video state to localStorage
-  const saveFormState = useCallback(() => {
-    if (!isEditing) { // Only persist for new profiles, not when editing
+  // Separate save functions to avoid dependency issues
+  const saveFormDataToStorage = useCallback(() => {
+    if (!isEditing) {
       try {
         localStorage.setItem(STORAGE_KEYS.formData, JSON.stringify(formData));
+      } catch (error) {
+        console.error('Error saving form data to localStorage:', error);
+      }
+    }
+  }, [formData, isEditing]);
+
+  const saveVideoDataToStorage = useCallback(() => {
+    if (!isEditing) {
+      try {
         localStorage.setItem(STORAGE_KEYS.videos, JSON.stringify(videos));
         localStorage.setItem(STORAGE_KEYS.enableVideoAnalysis, JSON.stringify(enableVideoAnalysis));
         localStorage.setItem(STORAGE_KEYS.currentUrl, currentUrl);
       } catch (error) {
-        console.error('Error saving form state to localStorage:', error);
+        console.error('Error saving video data to localStorage:', error);
       }
     }
-  }, [formData, videos, enableVideoAnalysis, currentUrl, isEditing, STORAGE_KEYS]);
+  }, [videos, enableVideoAnalysis, currentUrl, isEditing]);
 
   // Clear all form state from localStorage
   const clearFormState = useCallback(() => {
@@ -87,11 +99,11 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
     localStorage.removeItem(STORAGE_KEYS.videos);
     localStorage.removeItem(STORAGE_KEYS.enableVideoAnalysis);
     localStorage.removeItem(STORAGE_KEYS.currentUrl);
-  }, [STORAGE_KEYS]);
+  }, []);
 
   // Restore form state from localStorage on component mount
   useEffect(() => {
-    if (!isEditing) { // Only restore for new profiles, not when editing
+    if (!isEditing) {
       try {
         const savedFormData = localStorage.getItem(STORAGE_KEYS.formData);
         const savedVideos = localStorage.getItem(STORAGE_KEYS.videos);
@@ -124,17 +136,29 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
         }
       } catch (error) {
         console.error('Error restoring form state from localStorage:', error);
-        // Clear corrupted data
         clearFormState();
       }
     }
-  }, [isEditing, STORAGE_KEYS, clearFormState]);
+  }, [isEditing, clearFormState]);
 
-  // Save form state whenever it changes (debounced via useCallback dependencies)
+  // Debounced save for form data
   useEffect(() => {
-    const timeoutId = setTimeout(saveFormState, 500); // Debounce saves
-    return () => clearTimeout(timeoutId);
-  }, [saveFormState]);
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = setTimeout(saveFormDataToStorage, 300);
+    
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [saveFormDataToStorage]);
+
+  // Save video data immediately when it changes
+  useEffect(() => {
+    saveVideoDataToStorage();
+  }, [saveVideoDataToStorage]);
 
   const niches = [
     'Fitness & Health', 'Business & Entrepreneurship', 'Technology', 'Lifestyle', 
@@ -160,28 +184,39 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
     'Build community', 'Establish authority', 'Entertain followers', 'Share knowledge'
   ];
 
-  const handleInputChange = (field: string, value: any) => {
+  // Memoized input handlers to prevent unnecessary re-renders
+  const handleInputChange = useCallback((field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
-  const handleTraitToggle = (trait: string) => {
-    const newTraits = formData.personality_traits.includes(trait)
-      ? formData.personality_traits.filter(t => t !== trait)
-      : [...formData.personality_traits, trait];
-    
-    handleInputChange('personality_traits', newTraits);
-  };
+  const handleTraitToggle = useCallback((trait: string) => {
+    setFormData(prev => {
+      const newTraits = prev.personality_traits.includes(trait)
+        ? prev.personality_traits.filter(t => t !== trait)
+        : [...prev.personality_traits, trait];
+      
+      return {
+        ...prev,
+        personality_traits: newTraits
+      };
+    });
+  }, []);
 
-  const handleGoalToggle = (goal: string) => {
-    const newGoals = formData.content_goals.includes(goal)
-      ? formData.content_goals.filter(g => g !== goal)
-      : [...formData.content_goals, goal];
-    
-    handleInputChange('content_goals', newGoals);
-  };
+  const handleGoalToggle = useCallback((goal: string) => {
+    setFormData(prev => {
+      const newGoals = prev.content_goals.includes(goal)
+        ? prev.content_goals.filter(g => g !== goal)
+        : [...prev.content_goals, goal];
+      
+      return {
+        ...prev,
+        content_goals: newGoals
+      };
+    });
+  }, []);
 
   // Video handling functions
   const validateInstagramUrl = (url: string): boolean => {
