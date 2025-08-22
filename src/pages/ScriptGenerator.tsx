@@ -19,9 +19,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface GeneratedScript {
   hook: string;
-  mainContent: string;
-  callToAction: string;
-  hashtags: string[];
+  main_content: string;
+  call_to_action: string;
+  suggested_hashtags: string[];
 }
 
 const ScriptGeneratorContent = () => {
@@ -204,11 +204,11 @@ const ScriptGeneratorContent = () => {
     const fullScript = `
 ${generatedScript.hook}
 
-${generatedScript.mainContent}
+${generatedScript.main_content}
 
-${generatedScript.callToAction}
+${generatedScript.call_to_action}
 
-${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
+${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
     `.trim();
     
     copyToClipboard(fullScript);
@@ -382,12 +382,12 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <Label className="text-sm font-semibold text-primary">Main Content</Label>
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.mainContent)}>
+                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.main_content)}>
                       <Copy className="h-3 w-3" />
                     </Button>
                   </div>
                   <div className="bg-muted p-3 rounded-md text-sm">
-                    {generatedScript.mainContent}
+                    {generatedScript.main_content}
                   </div>
                 </div>
 
@@ -396,12 +396,12 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <Label className="text-sm font-semibold text-primary">Call to Action</Label>
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.callToAction)}>
+                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.call_to_action)}>
                       <Copy className="h-3 w-3" />
                     </Button>
                   </div>
                   <div className="bg-muted p-3 rounded-md text-sm">
-                    {generatedScript.callToAction}
+                    {generatedScript.call_to_action}
                   </div>
                 </div>
 
@@ -410,11 +410,11 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
                 <div>
                   <Label className="text-sm font-semibold text-primary mb-2 block">Suggested Hashtags</Label>
                   <div className="flex flex-wrap gap-2">
-                    {generatedScript.hashtags.map((hashtag, index) => (
+                    {generatedScript.suggested_hashtags?.map((hashtag, index) => (
                       <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => copyToClipboard(`#${hashtag}`)}>
                         #{hashtag}
                       </Badge>
-                    ))}
+                    )) || <span className="text-muted-foreground text-sm">No hashtags generated</span>}
                   </div>
                 </div>
               </div>
