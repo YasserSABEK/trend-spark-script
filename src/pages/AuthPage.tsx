@@ -15,22 +15,55 @@ export const AuthPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Add error boundary protection
+  const [componentError, setComponentError] = useState<Error | null>(null);
+
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
+    try {
+      if (user) {
+        console.log('AuthPage: User authenticated, redirecting to dashboard');
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('AuthPage: Error in user effect', error);
+      setComponentError(error as Error);
     }
   }, [user, navigate]);
 
   useEffect(() => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    setIsValidEmail(emailRegex.test(email));
+    try {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      setIsValidEmail(emailRegex.test(email));
+    } catch (error) {
+      console.error('AuthPage: Error in email validation', error);
+      setComponentError(error as Error);
+    }
   }, [email]);
+
+  // Show error if component error occurred
+  if (componentError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center p-6 max-w-md">
+          <h2 className="text-xl font-semibold text-destructive mb-4">Component Error</h2>
+          <p className="text-muted-foreground mb-4">
+            {componentError.message || 'An error occurred in the authentication page'}
+          </p>
+          <Button onClick={() => setComponentError(null)} variant="outline">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleEmailSignUp = async () => {
     if (!isValidEmail) return;
     
     try {
       setEmailLoading(true);
+      console.log('AuthPage: Starting email signup process');
+      
       const { error } = await supabase.auth.signUp({
         email,
         password: 'temp-password-' + Math.random().toString(36),
@@ -40,14 +73,17 @@ export const AuthPage = () => {
       });
 
       if (error) {
+        console.error('AuthPage: Email signup error', error);
         throw error;
       }
 
+      console.log('AuthPage: Email signup successful');
       toast({
         title: "Check your email",
         description: "We've sent you a magic link to sign in.",
       });
     } catch (error: any) {
+      console.error('AuthPage: Email signup catch block', error);
       toast({
         title: "Authentication Error",
         description: error.message || "Failed to sign up with email.",
@@ -61,6 +97,8 @@ export const AuthPage = () => {
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
+      console.log('AuthPage: Starting Google signin process');
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -69,9 +107,13 @@ export const AuthPage = () => {
       });
 
       if (error) {
+        console.error('AuthPage: Google signin error', error);
         throw error;
       }
+      
+      console.log('AuthPage: Google signin initiated successfully');
     } catch (error: any) {
+      console.error('AuthPage: Google signin catch block', error);
       toast({
         title: "Authentication Error",
         description: error.message || "Failed to sign in with Google.",

@@ -23,6 +23,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error('Component stack:', errorInfo.componentStack);
+    console.error('Error stack:', error.stack);
   }
 
   render() {
@@ -34,9 +36,25 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             <p className="text-muted-foreground mb-4">
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
-            <Button onClick={() => window.location.reload()}>
-              Reload Page
-            </Button>
+            {process.env.NODE_ENV === 'development' && this.state.error && (
+              <details className="text-left text-xs bg-muted p-3 rounded border mb-4">
+                <summary className="cursor-pointer font-medium mb-2">
+                  Error Details (Development)
+                </summary>
+                <pre className="whitespace-pre-wrap break-words">
+                  {this.state.error.toString()}
+                  {this.state.error.stack}
+                </pre>
+              </details>
+            )}
+            <div className="flex gap-2 justify-center">
+              <Button onClick={() => this.setState({ hasError: false, error: undefined })} variant="outline">
+                Try Again
+              </Button>
+              <Button onClick={() => window.location.reload()}>
+                Reload Page
+              </Button>
+            </div>
           </div>
         </div>
       );
