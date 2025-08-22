@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   Home, 
@@ -27,7 +26,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SidebarProfileSection } from "@/components/profile/SidebarProfileSection";
-import { NavigationFlyout, FlyoutGroup } from "./NavigationFlyout";
+import { FlyoutMenu, FlyoutGroup } from "./FlyoutMenu";
 
 // Flyout data structures
 const instagramItems = [
@@ -60,11 +59,6 @@ const navigationItems = [
 export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
-  
-  // Flyout state management
-  const [instagramOpen, setInstagramOpen] = useState(false);
-  const [tiktokOpen, setTiktokOpen] = useState(false);
-  const [savedOpen, setSavedOpen] = useState(false);
 
   const isActive = (item: typeof navigationItems[number]) => {
     if (item.type === "direct" && item.url) {
@@ -81,12 +75,6 @@ export function AppSidebar() {
     return false;
   };
 
-  const getFlyoutState = (item: typeof navigationItems[number]) => {
-    if (item.title === "Instagram") return { open: instagramOpen, setOpen: setInstagramOpen };
-    if (item.title === "TikTok") return { open: tiktokOpen, setOpen: setTiktokOpen };
-    if (item.title === "Saved") return { open: savedOpen, setOpen: setSavedOpen };
-    return { open: false, setOpen: () => {} };
-  };
 
   const renderNavigationItem = (item: typeof navigationItems[number]) => {
     const active = isActive(item);
@@ -117,14 +105,11 @@ export function AppSidebar() {
     }
 
     if (item.type === "flyout" && item.flyoutData) {
-      const { open, setOpen } = getFlyoutState(item);
-      
       return (
-        <NavigationFlyout
+        <FlyoutMenu
           key={item.title}
           groups={item.flyoutData as FlyoutGroup[]}
-          open={open}
-          onOpenChange={setOpen}
+          isActive={active}
           trigger={
             <Tooltip>
               <TooltipTrigger asChild>
