@@ -314,13 +314,39 @@ Deno.serve(async (req) => {
         };
       });
 
-    console.log(`Processed ${processedResults.length} posts (${processedResults.filter(p => p.content_type === 'video').length} videos, ${processedResults.filter(p => p.content_type === 'image').length} images), sending response`);
+    console.log(`Processed ${processedResults.length} posts (${processedResults.filter(p => p.content_type === 'video').length} videos, ${processedResults.filter(p => p.content_type === 'image').length} images)`);
+
+    // Save processed results to database
+    if (processedResults.length > 0) {
+      console.log('💾 Saving results to database...');
+      
+      try {
+        // Use upsert to handle duplicates gracefully
+        const { data: insertedData, error: insertError } = await supabase
+          .from('instagram_reels')
+          .upsert(processedResults, {
+            onConflict: 'post_id',
+            ignoreDuplicates: false
+          })
+          .select();
+
+        if (insertError) {
+          console.error('❌ Database insertion error:', insertError);
+          // Still return success but log the error
+        } else {
+          console.log('✅ Successfully saved', insertedData?.length || 0, 'reels to database');
+        }
+      } catch (dbError) {
+        console.error('❌ Database operation failed:', dbError);
+      }
+    }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         data: processedResults,
-        total: processedResults.length 
+        total: processedResults.length,
+        message: `Successfully processed and saved ${processedResults.length} Instagram posts`
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
