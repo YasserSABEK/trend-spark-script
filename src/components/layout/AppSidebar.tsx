@@ -98,14 +98,14 @@ export function AppSidebar() {
             <SidebarMenuButton asChild>
                 <NavLink
                   to={item.url}
-                  className={`flex flex-col items-center gap-1 px-2 py-3 rounded-lg transition-all duration-200 min-h-[60px] group text-center ${
+                  className={`flex flex-col items-center gap-1 px-1 py-3 rounded-lg transition-all duration-200 min-h-[60px] group text-center w-full ${
                     active
                       ? "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300 font-medium"
                       : "text-muted-foreground hover:text-foreground hover:bg-gray-50 dark:hover:bg-gray-800/60"
                   }`}
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-sm font-medium">{item.title}</span>
+                  <span className="text-sm font-medium leading-tight text-center break-words w-full px-1">{item.title}</span>
                 </NavLink>
             </SidebarMenuButton>
           </TooltipTrigger>
@@ -130,14 +130,14 @@ export function AppSidebar() {
               <TooltipTrigger asChild>
                 <SidebarMenuButton asChild>
                   <button
-                    className={`flex flex-col items-center gap-1 px-2 py-3 rounded-lg transition-all duration-200 min-h-[60px] group text-center w-full ${
+                    className={`flex flex-col items-center gap-1 px-1 py-3 rounded-lg transition-all duration-200 min-h-[60px] group text-center w-full ${
                       active
                         ? "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300 font-medium"
                         : "text-muted-foreground hover:text-foreground hover:bg-gray-50 dark:hover:bg-gray-800/60"
                     }`}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                    <span className="text-sm font-medium">{item.title}</span>
+                    <span className="text-sm font-medium leading-tight text-center break-words w-full px-1">{item.title}</span>
                   </button>
                 </SidebarMenuButton>
               </TooltipTrigger>
@@ -166,7 +166,7 @@ export function AppSidebar() {
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="px-2 flex-1">
+        <SidebarContent className="px-1 flex-1">
           <SidebarGroup className="border-none">
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
