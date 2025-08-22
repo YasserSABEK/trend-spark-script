@@ -42,8 +42,8 @@ const tiktokItems = [
 ];
 
 const savedItems = [
-  { title: "Scripts", url: "/my-scripts", icon: Edit3, description: "Your saved scripts" },
-  { title: "Ideas", url: "/content", icon: FileText, description: "Your saved content" },
+  { title: "Content", url: "/content", icon: FileText, description: "Your saved content" },
+  { title: "Creators", url: "/saved-creators", icon: Users, description: "Your saved creators" },
 ];
 
 // Navigation items with flyout support
@@ -95,7 +95,7 @@ export function AppSidebar() {
                   }`}
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-xs font-medium leading-tight text-center break-words w-full px-1">{item.title}</span>
+                  <span className="text-[11px] font-medium leading-tight text-center break-words w-full px-1">{item.title}</span>
                 </NavLink>
             </SidebarMenuButton>
           </TooltipTrigger>
@@ -124,7 +124,7 @@ export function AppSidebar() {
                     }`}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                    <span className="text-xs font-medium leading-tight text-center break-words w-full px-1">{item.title}</span>
+                    <span className="text-[11px] font-medium leading-tight text-center break-words w-full px-1">{item.title}</span>
                   </button>
                 </SidebarMenuButton>
               </TooltipTrigger>
