@@ -96,7 +96,7 @@ export const ScriptGenerator = () => {
           targetAudience: selectedProfile?.target_audience || '',
           format: 'reel',
           highAccuracy: false,
-          post_id: `script_${Date.now()}`
+          post_id: crypto.randomUUID()
         }
       });
 

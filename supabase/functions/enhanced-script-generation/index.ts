@@ -47,6 +47,18 @@ serve(async (req) => {
       format = 'reel'
     } = await req.json();
 
+    // Validate UUID format for post_id
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (post_id && !uuidRegex.test(post_id)) {
+      logStep("Invalid UUID format for post_id", { post_id });
+      return new Response(JSON.stringify({ 
+        error: 'Invalid post_id format. Must be a valid UUID.' 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+
     logStep("Request parameters", { post_id, highAccuracy, format });
 
     // Calculate credit cost
@@ -149,7 +161,13 @@ serve(async (req) => {
 
     if (saveError) {
       logStep("Error saving script", { error: saveError.message });
-      throw new Error(`Database error: ${saveError.message}`);
+      return new Response(JSON.stringify({ 
+        error: `Failed to save script: ${saveError.message}`,
+        details: saveError.details || 'Database constraint violation'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      });
     }
 
     logStep("Script saved successfully", { scriptId: savedScript.id });
