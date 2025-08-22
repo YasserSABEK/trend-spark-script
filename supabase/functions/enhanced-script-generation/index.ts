@@ -47,17 +47,7 @@ serve(async (req) => {
       format = 'reel'
     } = await req.json();
 
-    // Validate UUID format for post_id
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (post_id && !uuidRegex.test(post_id)) {
-      logStep("Invalid UUID format for post_id", { post_id });
-      return new Response(JSON.stringify({ 
-        error: 'Invalid post_id format. Must be a valid UUID.' 
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      });
-    }
+    // post_id is used for internal tracking only, not as foreign key
 
     logStep("Request parameters", { post_id, highAccuracy, format });
 
@@ -131,7 +121,7 @@ serve(async (req) => {
       .from('generated_scripts')
       .insert({
         user_id: user.id,
-        reel_id: post_id,
+        reel_id: null, // Set to null for standalone scripts to avoid foreign key constraint
         profile_id: profile?.id || null,
         style_profile_id: styleProfile?.id || null,
         title: scriptData.title,
@@ -153,7 +143,8 @@ serve(async (req) => {
           has_style_profile: !!styleProfile,
           personalization_level: styleProfile ? 'high' : profile ? 'medium' : 'low',
           viral_elements: scriptData.viral_elements || [],
-          optimal_length: scriptData.optimal_length || '30-60 seconds'
+          optimal_length: scriptData.optimal_length || '30-60 seconds',
+          generation_timestamp: new Date().toISOString()
         }
       })
       .select()

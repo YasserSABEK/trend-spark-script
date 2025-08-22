@@ -86,19 +86,18 @@ export const ScriptGenerator = () => {
     setIsGenerating(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('enhanced-script-generation', {
-        body: {
-          prompt: formData.prompt,
-          hookStyle: formData.hookStyle,
-          profileId: formData.profileId || null,
-          niche: selectedProfile?.niche || '',
-          toneOfVoice: selectedProfile?.personality_traits?.[0] || '',
-          targetAudience: selectedProfile?.target_audience || '',
-          format: 'reel',
-          highAccuracy: false,
-          post_id: crypto.randomUUID()
-        }
-      });
+        const { data, error } = await supabase.functions.invoke('enhanced-script-generation', {
+          body: {
+            prompt: formData.prompt,
+            hookStyle: formData.hookStyle,
+            profileId: formData.profileId || null,
+            niche: selectedProfile?.niche || '',
+            toneOfVoice: selectedProfile?.personality_traits?.[0] || '',
+            targetAudience: selectedProfile?.target_audience || '',
+            format: 'reel',
+            highAccuracy: false
+          }
+        });
 
       if (error) {
         if (error.error === 'INSUFFICIENT_CREDITS') {
