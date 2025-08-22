@@ -42,12 +42,11 @@ interface InstagramReel {
   comments: number;
   video_view_count: number;
   viral_score: number;
-  engagement_rate: number;
+  engagement_rate: number;  
   timestamp: string;
   scraped_at: string;
   thumbnail_url: string;
   video_url?: string;
-  profile_photo_url?: string;
 }
 
 export const ViralReels = () => {
@@ -318,8 +317,7 @@ export const ViralReels = () => {
         count: data?.length || 0,
         searches: data?.map(s => ({
           username: s.username,
-          status: s.status,
-          profile_photo_url: s.profile_photo_url
+          status: s.status
         }))
       });
       

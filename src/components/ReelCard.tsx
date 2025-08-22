@@ -12,7 +12,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { EnhancedInstagramEmbed } from "@/components/media/EnhancedInstagramEmbed";
-import { CreatorProfileAvatar } from "@/components/profile/CreatorProfileAvatar";
 
 interface InstagramReel {
   id: string;
@@ -33,7 +32,6 @@ interface InstagramReel {
   scraped_at: string;
   thumbnail_url: string;
   video_url?: string;
-  profile_photo_url?: string;
 }
 
 interface ReelCardProps {
@@ -142,11 +140,11 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
       <CardContent className="p-4">
         {/* Creator Info */}
         <div className="flex items-center gap-2 mb-3">
-          <CreatorProfileAvatar 
-            profilePhotoUrl={reel.profile_photo_url}
-            creatorName={reel.display_name || reel.username}
-            size="sm"
-          />
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center">
+            <span className="text-white font-bold text-xs">
+              {(reel.display_name || reel.username).slice(0, 2).toUpperCase()}
+            </span>
+          </div>
           <div className="flex-1">
             <div className="flex items-center gap-1">
               <p className="font-semibold text-sm">@{reel.username}</p>

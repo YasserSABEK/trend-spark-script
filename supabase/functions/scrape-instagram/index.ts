@@ -210,63 +210,6 @@ Deno.serve(async (req) => {
     const results: any[] = await resultsResponse.json();
     console.log(`Received ${results.length} posts from Apify`);
     
-    // Debug: Log first result structure to understand available fields
-    if (results.length > 0) {
-      console.log('First result structure:', JSON.stringify(results[0], null, 2));
-      console.log('Available profile photo fields:', {
-        'owner.profilePicUrl': results[0]['owner.profilePicUrl'],
-        profilePicUrl: results[0].profilePicUrl,
-        profilePic: results[0].profilePic,
-        avatar: results[0].avatar,
-        image: results[0].image
-      });
-    }
-
-    // Initialize Supabase client (reuse if already created)
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-    // Enhanced profile photo extraction with multiple fallbacks
-    let profilePhotoUrl = null;
-    if (results.length > 0) {
-      const firstPost = results[0];
-      // Try multiple possible field names for profile photo
-      profilePhotoUrl = firstPost['owner.profilePicUrl'] || 
-                       firstPost.profilePicUrl || 
-                       firstPost.profilePic || 
-                       firstPost.avatar || 
-                       firstPost.image || 
-                       null;
-      
-      console.log('Profile photo extraction attempt:', {
-        username: username,
-        profilePhotoUrl: profilePhotoUrl,
-        originalFields: {
-          'owner.profilePicUrl': firstPost['owner.profilePicUrl'],
-          profilePicUrl: firstPost.profilePicUrl,
-          profilePic: firstPost.profilePic,
-          avatar: firstPost.avatar,
-          image: firstPost.image
-        }
-      });
-    }
-    
-    // Update search queue with profile photo
-    try {
-      const updateResult = await supabase
-        .from('search_queue')
-        .update({ profile_photo_url: profilePhotoUrl })
-        .eq('username', username.replace('@', ''));
-      
-      console.log('Profile photo update result:', updateResult);
-      if (updateResult.error) {
-        console.error('Failed to update profile photo:', updateResult.error);
-      }
-    } catch (error) {
-      console.error('Error updating profile photo:', error);
-    }
-
     // Filter and transform results using new data structure
     const processedResults = results
       .filter(post => {
@@ -310,7 +253,6 @@ Deno.serve(async (req) => {
           is_video: hasVideo,
           content_type: contentType,
           search_username: username,
-          profile_photo_url: profilePhotoUrl, // Add profile photo to each reel record
           user_id: userId // Add user association for RLS
         };
       });
