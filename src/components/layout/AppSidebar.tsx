@@ -31,20 +31,18 @@ import { NavigationFlyout, FlyoutGroup } from "./NavigationFlyout";
 
 // Flyout data structures
 const instagramItems = [
-  { title: "Creators", url: "/instagram-creators", icon: Users, description: "Find top creators" },
-  { title: "Viral Reels", url: "/viral-reels", icon: Video, description: "Find standout videos" },
   { title: "Hashtags", url: "/instagram-hashtags", icon: Hash, description: "Trending topics" },
+  { title: "Content Creators", url: "/instagram-creators", icon: Users, description: "Find top creators" },
 ];
 
 const tiktokItems = [
+  { title: "Trending", url: "/viral-tiktoks", icon: Video, description: "Find standout videos" },
   { title: "Creators", url: "/tiktok-creators", icon: Users, description: "Find top creators" },
-  { title: "Viral Videos", url: "/viral-tiktoks", icon: Video, description: "Find standout videos" },
-  { title: "Hashtags", url: "/hashtag-search", icon: Hash, description: "Trending topics" },
 ];
 
 const savedItems = [
-  { title: "Saved Content", url: "/content", icon: FileText, description: "Your saved videos" },
-  { title: "Saved Creators", url: "/saved-creators", icon: Users, description: "Your saved creators" },
+  { title: "Scripts", url: "/my-scripts", icon: Edit3, description: "Your saved scripts" },
+  { title: "Ideas", url: "/content", icon: FileText, description: "Your saved content" },
 ];
 
 // Navigation items with flyout support
@@ -98,17 +96,17 @@ export function AppSidebar() {
         <Tooltip key={item.title}>
           <TooltipTrigger asChild>
             <SidebarMenuButton asChild>
-              <NavLink
-                to={item.url}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 min-h-[44px] group hover:scale-105 ${
-                  active
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                }`}
-              >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm font-medium">{item.title}</span>
-              </NavLink>
+                <NavLink
+                  to={item.url}
+                  className={`flex flex-col items-center gap-1 px-2 py-3 rounded-lg transition-all duration-200 min-h-[60px] group text-center ${
+                    active
+                      ? "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300 font-medium"
+                      : "text-muted-foreground hover:text-foreground hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                  }`}
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">{item.title}</span>
+                </NavLink>
             </SidebarMenuButton>
           </TooltipTrigger>
           <TooltipContent side="right" className="ml-2">
@@ -132,10 +130,10 @@ export function AppSidebar() {
               <TooltipTrigger asChild>
                 <SidebarMenuButton asChild>
                   <button
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 min-h-[44px] group hover:scale-105 w-full ${
+                    className={`flex flex-col items-center gap-1 px-2 py-3 rounded-lg transition-all duration-200 min-h-[60px] group text-center w-full ${
                       active
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        ? "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300 font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:bg-gray-50 dark:hover:bg-gray-800/60"
                     }`}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -157,7 +155,7 @@ export function AppSidebar() {
 
   return (
     <TooltipProvider>
-      <Sidebar className="w-36 flex flex-col fixed left-0 top-0 h-screen z-40" collapsible="none">
+      <Sidebar className="w-36 flex flex-col fixed left-0 top-0 h-screen z-50 bg-white dark:bg-black border-r" collapsible="none">
         <SidebarHeader className="border-b border-sidebar-border p-3">
           <div className="flex justify-center">
             <img 
@@ -182,7 +180,7 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border p-0 mt-auto">
+        <SidebarFooter className="border-t border-sidebar-border p-0 mt-auto absolute bottom-0 w-full">
           <SidebarProfileSection />
         </SidebarFooter>
       </Sidebar>

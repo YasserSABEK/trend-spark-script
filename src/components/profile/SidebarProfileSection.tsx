@@ -39,23 +39,23 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
                          'User';
 
   return (
-    <div className="p-3">
+    <div className="p-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
             variant="ghost" 
-            className="w-full h-auto p-2 flex items-center gap-3 hover:bg-accent/50 justify-start"
+            className="w-full h-auto p-2 flex flex-col items-center gap-2 hover:bg-accent/50 text-center"
           >
             <ProfileAvatar 
               user={user} 
-              size="sm" 
+              size="sm"
             />
-            <div className="flex flex-col items-start min-w-0 flex-1">
-              <div className="font-medium text-foreground text-sm truncate max-w-full">
+            <div className="flex flex-col items-center min-w-0 w-full">
+              <div className="font-medium text-foreground text-xs truncate max-w-full">
                 {userDisplayName}
               </div>
               <div className="text-muted-foreground text-xs truncate max-w-full">
-                {user.email}
+                {user.email?.split('@')[0]}
               </div>
             </div>
           </Button>
@@ -92,9 +92,9 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
         </DropdownMenuContent>
       </DropdownMenu>
       
-      {/* Credit Widget */}
-      <div className="mt-3">
-        <SidebarCreditWidget collapsed={false} />
+      {/* Compact Credit Widget */}
+      <div className="mt-2">
+        <SidebarCreditWidget collapsed={true} />
       </div>
     </div>
   );
