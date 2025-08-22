@@ -62,36 +62,57 @@ serve(async (req) => {
     // Step 1: Extract video using Apify
     console.log('[extract-and-rewrite-script] Extracting video with Apify');
     
-    const apifyResponse = await fetch(`https://api.apify.com/v2/acts/epctex~instagram-video-downloader/run-sync-get-dataset-items?token=${apifyApiKey}`, {
+    const apifyRequestBody = {
+      startUrls: [instagramUrl], // Direct URL string, not object
+      quality: "highest",
+      proxy: {
+        useApifyProxy: true
+      }
+    };
+    
+    console.log('[extract-and-rewrite-script] Apify request body:', JSON.stringify(apifyRequestBody));
+    
+    const apifyResponse = await fetch(`https://api.apify.com/v2/acts/epctex~instagram-video-downloader/run-sync-get-dataset-items?token=${apifyApiKey}&timeout=90`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        startUrls: [{ url: instagramUrl }],
-        includeAudio: true
-      }),
+      body: JSON.stringify(apifyRequestBody),
     });
 
     if (!apifyResponse.ok) {
+      const errorText = await apifyResponse.text();
+      console.error('[extract-and-rewrite-script] Apify error response:', errorText);
       throw new Error(`Apify request failed: ${apifyResponse.statusText}`);
     }
 
     const apifyData = await apifyResponse.json();
-    console.log('[extract-and-rewrite-script] Apify response received');
+    console.log('[extract-and-rewrite-script] Apify response received, data length:', apifyData?.length);
+    console.log('[extract-and-rewrite-script] First item structure:', JSON.stringify(apifyData?.[0], null, 2));
 
     if (!apifyData || apifyData.length === 0) {
       throw new Error('No video data found');
     }
 
     const videoData = apifyData[0];
-    const videoUrl = videoData.videoUrl;
+    const videoUrl = videoData.downloadUrl || videoData.videoUrl; // Try downloadUrl first, fallback to videoUrl
 
     if (!videoUrl) {
+      console.error('[extract-and-rewrite-script] Available fields in response:', Object.keys(videoData));
       throw new Error('No video URL found in response');
     }
 
     console.log('[extract-and-rewrite-script] Video URL extracted:', videoUrl);
+    
+    // Test video URL accessibility
+    try {
+      const testResponse = await fetch(videoUrl, { method: 'HEAD' });
+      if (!testResponse.ok) {
+        console.warn('[extract-and-rewrite-script] Video URL may not be accessible:', testResponse.status);
+      }
+    } catch (testError) {
+      console.warn('[extract-and-rewrite-script] Could not test video URL accessibility:', testError);
+    }
 
     // Step 2: Transcribe with AssemblyAI
     console.log('[extract-and-rewrite-script] Starting transcription with AssemblyAI');
