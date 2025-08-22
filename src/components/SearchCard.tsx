@@ -21,7 +21,7 @@ interface SearchQueueItem {
   total_results: number;
   processing_time_seconds: number;
   error_message?: string;
-  profile_photo_url?: string;
+  profile_photo_url?: string | object;
 }
 
 interface SearchCardProps {
@@ -45,10 +45,30 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
     "Almost done..."
   ];
 
+  // Extract profile photo URL from either string or JSON object format
+  const getProfilePhotoUrl = () => {
+    if (!search.profile_photo_url) return null;
+    
+    if (typeof search.profile_photo_url === 'string') {
+      return search.profile_photo_url;
+    }
+    
+    if (typeof search.profile_photo_url === 'object' && search.profile_photo_url !== null) {
+      // Handle JSON object format from database
+      const photoData = search.profile_photo_url as any;
+      return photoData.url || photoData.profilePhotoUrl || null;
+    }
+    
+    return null;
+  };
+
   // Determine if this is a hashtag or username search
   const isHashtagSearch = search.search_type === 'hashtag' || (search.hashtag && !search.username);
   const displayText = isHashtagSearch ? (search.hashtag || 'Unknown') : (search.username || 'Unknown');
   const displayInitials = isHashtagSearch ? '#' : displayText.slice(0, 2);
+  
+  // Get the processed profile photo URL
+  const profilePhotoUrl = getProfilePhotoUrl();
 
   // Simulate progress for processing state
   useEffect(() => {
@@ -165,10 +185,10 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group">
       {/* Header with avatar-like design */}
       <div className="aspect-[4/3] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden">
-        {search.profile_photo_url ? (
+        {profilePhotoUrl ? (
           <img 
-            src={`${search.profile_photo_url}${search.profile_photo_url.includes('?') ? '&' : '?'}v=${Date.now()}`}
-            data-proxy-src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(search.profile_photo_url)}&v=${Date.now()}`}
+            src={`${profilePhotoUrl}${profilePhotoUrl.includes('?') ? '&' : '?'}v=${Date.now()}`}
+            data-proxy-src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(profilePhotoUrl)}&v=${Date.now()}`}
             alt={`${displayText} profile`}
             className="w-20 h-20 rounded-full object-cover border-2 border-white/20"
             onLoad={(e) => {
@@ -180,7 +200,7 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
               const target = e.currentTarget;
               const proxyUrl = target.getAttribute('data-proxy-src');
               console.log(`❌ Profile photo error for ${displayText}:`, {
-                originalUrl: search.profile_photo_url,
+                originalUrl: profilePhotoUrl,
                 currentSrc: target.src,
                 hasProxy: !!proxyUrl,
                 usingProxy: target.src.includes('image-proxy')
@@ -199,7 +219,7 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
           />
         ) : null}
         <div 
-          className={`w-20 h-20 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center ${search.profile_photo_url && !isHashtagSearch ? 'hidden' : ''}`}
+          className={`w-20 h-20 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center ${profilePhotoUrl && !isHashtagSearch ? 'hidden' : ''}`}
         >
           <span className="text-white font-bold text-xl">
             {isHashtagSearch ? '#' : `@${displayInitials}`}
