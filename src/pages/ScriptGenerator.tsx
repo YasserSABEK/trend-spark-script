@@ -12,9 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Sparkles, Copy, Heart, Star, AlertCircle } from 'lucide-react';
 import { CreditGuard } from '@/components/credits/CreditGuard';
-import { DroppableArea } from '@/components/dnd/DroppableArea';
 import { ProfileSelector } from '@/components/creator/ProfileSelector';
 import { ScriptGeneratorErrorBoundary } from '@/components/script/ScriptGeneratorErrorBoundary';
+import { InstagramLinkInput } from '@/components/script/InstagramLinkInput';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface GeneratedScript {
@@ -299,11 +299,13 @@ ${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
                   onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
                   className="min-h-[100px]"
                 />
-                <DroppableArea
-                  id="script-generator-prompt-drop"
-                  placeholder="Drop a video to auto-generate prompt"
-                  className="p-4"
-                />
+                <ScriptGeneratorErrorBoundary>
+                  <InstagramLinkInput
+                    onScriptExtracted={(script) => {
+                      setFormData(prev => ({ ...prev, prompt: script }));
+                    }}
+                  />
+                </ScriptGeneratorErrorBoundary>
               </div>
             </div>
 

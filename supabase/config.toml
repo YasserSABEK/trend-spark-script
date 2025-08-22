@@ -1,5 +1,8 @@
 project_id = "siafgzfpzowztfhlajtn"
 
+[functions.extract-and-rewrite-script]
+verify_jwt = true
+
 [functions.process-profile-videos]
 verify_jwt = true
 
