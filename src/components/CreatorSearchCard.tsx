@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InstallationProgress } from './InstallationProgress';
+import { CreatorProfileAvatar } from '@/components/profile/CreatorProfileAvatar';
 
 interface CreatorSearch {
   id: string;
@@ -13,6 +14,7 @@ interface CreatorSearch {
   processing_time_seconds: number;
   completed_at?: string;
   error_message?: string;
+  profile_photo_url?: string | object;
 }
 
 interface CreatorSearchCardProps {
@@ -107,11 +109,13 @@ export const CreatorSearchCard = ({ search, onViewResults, onDelete }: CreatorSe
   return (
     <Card className="group relative overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 hover:border-primary/30 transition-all duration-200 hover:shadow-lg">
       <CardContent className="p-6">
-        {/* Header with icon */}
+        {/* Header with avatar */}
         <div className="flex items-start justify-between mb-4">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
-            <Users className="w-5 h-5" />
-          </div>
+          <CreatorProfileAvatar 
+            profilePhotoUrl={search.profile_photo_url}
+            creatorName={search.query}
+            size="default"
+          />
           {getStatusBadge()}
         </div>
 
