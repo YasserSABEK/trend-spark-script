@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Settings, User, LogOut, MoreHorizontal } from 'lucide-react';
+import { Settings, User, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface SidebarProfileSectionProps {
@@ -39,15 +39,15 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
                          'User';
 
   return (
-    <div className="flex flex-col items-center space-y-3 p-3">
-      {/* Profile Avatar */}
+    <div className="flex flex-col items-center space-y-2 p-2">
+      {/* Single Avatar Dropdown - Consolidated */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-auto p-1 rounded-full">
+          <Button variant="ghost" size="sm" className="h-auto p-1 rounded-full hover:scale-105 transition-transform">
             <ProfileAvatar user={user} size="sm" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" side="right" className="w-56 ml-2">
+        <DropdownMenuContent align="center" side="right" className="w-56 ml-2 bg-popover border shadow-md">
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium truncate" title={userDisplayName}>{userDisplayName}</p>
@@ -56,47 +56,19 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link to="/profile">
+            <Link to="/profile" className="flex items-center">
               <User className="mr-2 h-4 w-4" />
               Profile
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link to="/settings">
+            <Link to="/settings" className="flex items-center">
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      
-      {/* Three dots for additional actions */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" side="right" className="w-48 ml-2">
-          <DropdownMenuItem asChild>
-            <Link to="/profile">
-              <User className="mr-2 h-4 w-4" />
-              Profile
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link to="/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut}>
+          <DropdownMenuItem onClick={handleSignOut} className="flex items-center">
             <LogOut className="mr-2 h-4 w-4" />
             Sign out
           </DropdownMenuItem>
@@ -104,7 +76,9 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
       </DropdownMenu>
       
       {/* Compact Credit Widget */}
-      <SidebarCreditWidget collapsed={true} />
+      <div className="w-full">
+        <SidebarCreditWidget collapsed={true} />
+      </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   Home, 
@@ -7,7 +8,11 @@ import {
   Instagram,
   Music2,
   Calendar,
-  UserCog
+  UserCog,
+  Users,
+  Video,
+  Hash,
+  FileText
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,30 +27,137 @@ import {
 } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SidebarProfileSection } from "@/components/profile/SidebarProfileSection";
+import { NavigationFlyout, FlyoutGroup } from "./NavigationFlyout";
 
+// Flyout data structures
+const instagramItems = [
+  { title: "Creators", url: "/instagram-creators", icon: Users, description: "Find top creators" },
+  { title: "Viral Reels", url: "/viral-reels", icon: Video, description: "Find standout videos" },
+  { title: "Hashtags", url: "/instagram-hashtags", icon: Hash, description: "Trending topics" },
+];
+
+const tiktokItems = [
+  { title: "Creators", url: "/tiktok-creators", icon: Users, description: "Find top creators" },
+  { title: "Viral Videos", url: "/viral-tiktoks", icon: Video, description: "Find standout videos" },
+  { title: "Hashtags", url: "/hashtag-search", icon: Hash, description: "Trending topics" },
+];
+
+const savedItems = [
+  { title: "Saved Content", url: "/content", icon: FileText, description: "Your saved videos" },
+  { title: "Saved Creators", url: "/saved-creators", icon: Users, description: "Your saved creators" },
+];
+
+// Navigation items with flyout support
 const navigationItems = [
-  { title: "Home", url: "/dashboard", icon: Home, tooltip: "Dashboard Home" },
-  { title: "Instagram", url: "/instagram-creators", icon: Instagram, tooltip: "Instagram Creators & Content" },
-  { title: "TikTok", url: "/tiktok-creators", icon: Music2, tooltip: "TikTok Creators & Content" },
-  { title: "Saved", url: "/saved-creators", icon: Bookmark, tooltip: "Your Saved Content" },
-  { title: "Creators", url: "/creator-profiles", icon: UserCog, tooltip: "Creator Profiles" },
-  { title: "Scripts", url: "/script-generator", icon: Edit3, tooltip: "Script Generator" },
-  { title: "Calendar", url: "/content-calendar", icon: Calendar, tooltip: "Content Calendar" },
-  { title: "Billing", url: "/billing", icon: CreditCard, tooltip: "Billing & Plans" },
+  { title: "Home", url: "/dashboard", icon: Home, tooltip: "Dashboard Home", type: "direct" },
+  { title: "Insta", icon: Instagram, tooltip: "Instagram Creators & Content", type: "flyout", flyoutData: [{ title: "Instagram", items: instagramItems }] },
+  { title: "TikTok", icon: Music2, tooltip: "TikTok Creators & Content", type: "flyout", flyoutData: [{ title: "TikTok", items: tiktokItems }] },
+  { title: "Saved", icon: Bookmark, tooltip: "Your Saved Content", type: "flyout", flyoutData: [{ title: "Saved", items: savedItems }] },
+  { title: "Creators", url: "/creator-profiles", icon: UserCog, tooltip: "Creator Profiles", type: "direct" },
+  { title: "Scripts", url: "/script-generator", icon: Edit3, tooltip: "Script Generator", type: "direct" },
+  { title: "Calendar", url: "/content-calendar", icon: Calendar, tooltip: "Content Calendar", type: "direct" },
+  { title: "Billing", url: "/billing", icon: CreditCard, tooltip: "Billing & Plans", type: "direct" },
 ];
 
 export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
+  
+  // Flyout state management
+  const [instagramOpen, setInstagramOpen] = useState(false);
+  const [tiktokOpen, setTiktokOpen] = useState(false);
+  const [savedOpen, setSavedOpen] = useState(false);
 
-  const isActive = (path: string) => {
-    if (path === "/dashboard") return currentPath === path;
-    return currentPath.startsWith(path);
+  const isActive = (item: typeof navigationItems[number]) => {
+    if (item.type === "direct" && item.url) {
+      if (item.url === "/dashboard") return currentPath === item.url;
+      return currentPath.startsWith(item.url);
+    }
+    
+    if (item.type === "flyout" && item.flyoutData) {
+      return item.flyoutData[0].items.some(flyoutItem => 
+        currentPath.startsWith(flyoutItem.url)
+      );
+    }
+    
+    return false;
+  };
+
+  const getFlyoutState = (item: typeof navigationItems[number]) => {
+    if (item.title === "Insta") return { open: instagramOpen, setOpen: setInstagramOpen };
+    if (item.title === "TikTok") return { open: tiktokOpen, setOpen: setTiktokOpen };
+    if (item.title === "Saved") return { open: savedOpen, setOpen: setSavedOpen };
+    return { open: false, setOpen: () => {} };
+  };
+
+  const renderNavigationItem = (item: typeof navigationItems[number]) => {
+    const active = isActive(item);
+    
+    if (item.type === "direct" && item.url) {
+      return (
+        <Tooltip key={item.title}>
+          <TooltipTrigger asChild>
+            <SidebarMenuButton asChild>
+              <NavLink
+                to={item.url}
+                className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-lg transition-all duration-200 min-h-[56px] group hover:scale-105 ${
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                }`}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <span className="text-[10px] font-medium text-center leading-tight max-w-full truncate">{item.title}</span>
+              </NavLink>
+            </SidebarMenuButton>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="ml-2">
+            {item.tooltip}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    if (item.type === "flyout" && item.flyoutData) {
+      const { open, setOpen } = getFlyoutState(item);
+      
+      return (
+        <NavigationFlyout
+          key={item.title}
+          groups={item.flyoutData as FlyoutGroup[]}
+          open={open}
+          onOpenChange={setOpen}
+          trigger={
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarMenuButton asChild>
+                  <button
+                    className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-lg transition-all duration-200 min-h-[56px] group hover:scale-105 w-full ${
+                      active
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-[10px] font-medium text-center leading-tight max-w-full truncate">{item.title}</span>
+                  </button>
+                </SidebarMenuButton>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="ml-2">
+                {item.tooltip}
+              </TooltipContent>
+            </Tooltip>
+          }
+        />
+      );
+    }
+
+    return null;
   };
 
   return (
     <TooltipProvider>
-      <Sidebar className="w-18" collapsible="none">
+      <Sidebar className="w-18 flex flex-col" collapsible="none">
         <SidebarHeader className="border-b border-sidebar-border p-3">
           <div className="flex justify-center">
             <img 
@@ -56,32 +168,13 @@ export function AppSidebar() {
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="px-2">
+        <SidebarContent className="px-2 flex-1">
           <SidebarGroup className="border-none">
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
                 {navigationItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to={item.url}
-                            className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-lg transition-all duration-200 min-h-[56px] group ${
-                              isActive(item.url)
-                                ? "bg-primary/10 text-primary"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                            }`}
-                          >
-                            <item.icon className="w-5 h-5 flex-shrink-0" />
-                            <span className="text-2xs font-medium text-center leading-tight">{item.title}</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="ml-2">
-                        {item.tooltip}
-                      </TooltipContent>
-                    </Tooltip>
+                    {renderNavigationItem(item)}
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -89,7 +182,7 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border p-0">
+        <SidebarFooter className="border-t border-sidebar-border p-0 mt-auto">
           <SidebarProfileSection />
         </SidebarFooter>
       </Sidebar>
