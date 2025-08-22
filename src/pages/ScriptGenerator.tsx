@@ -102,6 +102,16 @@ const ScriptGeneratorContent = () => {
       return;
     }
 
+    if (!formData.profileId) {
+      console.warn('[ScriptGenerator] No creator profile selected');
+      toast({
+        title: "Creator Profile Required",
+        description: "Please select a creator profile to generate personalized content.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsGenerating(true);
     setError(null);
     
@@ -256,7 +266,7 @@ ${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="profile">Creator Profile (Optional)</Label>
+              <Label htmlFor="profile">Creator Profile *</Label>
               <ScriptGeneratorErrorBoundary>
                 <ProfileSelector
                   value={formData.profileId}
@@ -330,7 +340,7 @@ ${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
               >
                 <Button 
                   onClick={handleGenerate} 
-                  disabled={isGenerating || !formData.prompt.trim()}
+                  disabled={isGenerating || !formData.prompt.trim() || !formData.profileId}
                   className="w-full"
                   size="lg"
                 >
