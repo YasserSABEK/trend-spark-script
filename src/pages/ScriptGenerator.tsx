@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDroppable } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Sparkles, Copy, Heart, Star, AlertCircle } from 'lucide-react';
+import { Loader2, Sparkles, Copy, Heart, Star, AlertCircle, Calendar, Eye } from 'lucide-react';
 import { CreditGuard } from '@/components/credits/CreditGuard';
 import { ProfileSelector } from '@/components/creator/ProfileSelector';
 import { ScriptGeneratorErrorBoundary } from '@/components/script/ScriptGeneratorErrorBoundary';
@@ -18,6 +20,7 @@ import { InstagramLinkInput } from '@/components/script/InstagramLinkInput';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface GeneratedScript {
+  id?: string;
   title: string;
   hook: string;
   main_content: string;
@@ -26,6 +29,8 @@ interface GeneratedScript {
 }
 
 const ScriptGeneratorContent = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedScript, setGeneratedScript] = useState<GeneratedScript | null>(null);
   const [formData, setFormData] = useState({
@@ -36,6 +41,8 @@ const ScriptGeneratorContent = () => {
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [showViewCalendarButton, setShowViewCalendarButton] = useState(false);
   const { toast } = useToast();
 
   // Initialize component
@@ -226,6 +233,48 @@ ${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
     copyToClipboard(fullScript);
   };
 
+  const handleSendToCalendar = async () => {
+    if (!generatedScript?.id || !user?.id) return;
+    
+    setIsSending(true);
+    try {
+      const { data, error } = await supabase
+        .from("content_items")
+        .insert({
+          title: generatedScript.title,
+          script_id: generatedScript.id,
+          platform: "Instagram",
+          status: "idea",
+          user_id: user.id,
+          source_url: "script-generator",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Script sent to Content Calendar!",
+        description: "Your script is now ready for planning in the Ideas column.",
+      });
+      
+      setShowViewCalendarButton(true);
+    } catch (error: any) {
+      console.error('Failed to send script to calendar:', error);
+      toast({
+        title: "Failed to send script",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleViewCalendar = () => {
+    navigate('/dashboard/calendar');
+  };
+
   if (!isInitialized) {
     return (
       <div className="container mx-auto py-6 space-y-6">
@@ -369,10 +418,37 @@ ${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
             <CardTitle className="flex items-center justify-between">
               Generated Script
               {generatedScript && (
-                <Button variant="outline" size="sm" onClick={copyFullScript}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy All
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={copyFullScript}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy All
+                  </Button>
+                  {generatedScript.id && generatedScript.title && (
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={handleSendToCalendar}
+                      disabled={isSending}
+                    >
+                      {isSending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Calendar className="mr-2 h-4 w-4" />
+                      )}
+                      {isSending ? 'Sending...' : 'Send to Calendar'}
+                    </Button>
+                  )}
+                  {showViewCalendarButton && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleViewCalendar}
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Calendar
+                    </Button>
+                  )}
+                </div>
               )}
             </CardTitle>
           </CardHeader>
