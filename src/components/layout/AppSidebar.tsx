@@ -30,13 +30,15 @@ import { FlyoutMenu, FlyoutGroup } from "./FlyoutMenu";
 
 // Flyout data structures
 const instagramItems = [
-  { title: "Hashtags", url: "/instagram-hashtags", icon: Hash, description: "Trending topics" },
   { title: "Content Creators", url: "/instagram-creators", icon: Users, description: "Find top creators" },
+  { title: "Viral Reels", url: "/viral-reels", icon: Video, description: "Discover trending content" },
+  { title: "Hashtags", url: "/instagram-hashtags", icon: Hash, description: "Trending topics" },
 ];
 
 const tiktokItems = [
-  { title: "Trending", url: "/viral-tiktoks", icon: Video, description: "Find standout videos" },
-  { title: "Creators", url: "/tiktok-creators", icon: Users, description: "Find top creators" },
+  { title: "Content Creators", url: "/tiktok-creators", icon: Users, description: "Find top creators" },
+  { title: "Viral Videos", url: "/viral-tiktoks", icon: Video, description: "Find standout videos" },
+  { title: "Hashtags", url: "/hashtag-search", icon: Hash, description: "Search hashtags" },
 ];
 
 const savedItems = [
@@ -93,7 +95,7 @@ export function AppSidebar() {
                   }`}
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-sm font-medium leading-tight text-center break-words w-full px-1">{item.title}</span>
+                  <span className="text-xs font-medium leading-tight text-center break-words w-full px-1">{item.title}</span>
                 </NavLink>
             </SidebarMenuButton>
           </TooltipTrigger>
@@ -122,7 +124,7 @@ export function AppSidebar() {
                     }`}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                    <span className="text-sm font-medium leading-tight text-center break-words w-full px-1">{item.title}</span>
+                    <span className="text-xs font-medium leading-tight text-center break-words w-full px-1">{item.title}</span>
                   </button>
                 </SidebarMenuButton>
               </TooltipTrigger>
