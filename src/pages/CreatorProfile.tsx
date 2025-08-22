@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { PageContainer } from '@/components/layout/PageContainer';
 import SimpleCreatorProfileForm from '@/components/creator/SimpleCreatorProfileForm';
-import CreatorProfileCard from '@/components/creator/CreatorProfileCard';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
 const CreatorProfile: React.FC = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showWizard, setShowWizard] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -61,15 +60,23 @@ const CreatorProfile: React.FC = () => {
     }
   };
 
-  const handleProfileCreated = () => {
-    setHasProfile(true);
-    setShowWizard(false);
+  const handleProfileCreated = async () => {
+    try {
+      // Get the created profile to navigate to detail view
+      const { data, error } = await supabase.functions.invoke('creator-profile', {
+        body: { action: 'get' }
+      });
+      
+      if (data?.profile) {
+        navigate(`/creator-profiles/${data.profile.id}`);
+      } else {
+        setHasProfile(true);
+      }
+    } catch (error) {
+      console.error('Error after profile creation:', error);
+      setHasProfile(true);
+    }
     setIsCreating(false);
-  };
-
-  const handleEditProfile = () => {
-    setShowWizard(true);
-    setIsCreating(true);
   };
 
   const handleCreationStarted = () => {
@@ -138,21 +145,14 @@ const CreatorProfile: React.FC = () => {
   return (
     <PageContainer>
       <div className="max-w-4xl mx-auto">
-        {!hasProfile || showWizard ? (
+        {!hasProfile ? (
           <SimpleCreatorProfileForm 
             onComplete={handleProfileCreated} 
             onCreationStarted={handleCreationStarted}
           />
         ) : (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Creator Profile</h1>
-              <p className="text-muted-foreground">
-                Manage your creator profile and personalization settings
-              </p>
-            </div>
-            <CreatorProfileCard onEdit={handleEditProfile} />
-          </div>
+          // Redirect to profiles list if already has profile
+          <Navigate to="/creator-profiles" replace />
         )}
       </div>
     </PageContainer>

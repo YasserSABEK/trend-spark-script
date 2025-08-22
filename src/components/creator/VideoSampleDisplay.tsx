@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Video, Clock, MessageSquare, ExternalLink } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Video, Clock, MessageSquare, ExternalLink, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface VideoSample {
   id: string;
@@ -32,6 +34,17 @@ export const VideoSampleDisplay: React.FC<VideoSampleDisplayProps> = ({
   title = "Video Samples",
   showTranscripts = true
 }) => {
+  const [expandedSamples, setExpandedSamples] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (sampleId: string) => {
+    const newExpanded = new Set(expandedSamples);
+    if (newExpanded.has(sampleId)) {
+      newExpanded.delete(sampleId);
+    } else {
+      newExpanded.add(sampleId);
+    }
+    setExpandedSamples(newExpanded);
+  };
   const formatDuration = (seconds?: number) => {
     if (!seconds) return 'Unknown';
     const mins = Math.floor(seconds / 60);
@@ -79,104 +92,148 @@ export const VideoSampleDisplay: React.FC<VideoSampleDisplayProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Video className="h-5 w-5" />
-          {title} ({samples.length})
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Video className="h-5 w-5" />
+            {title} ({samples.length})
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={() => window.location.href = '/analyze'}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add More Videos
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {samples.map((sample) => (
-          <Card key={sample.id} className="border-border/50">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">
-                    {sample.platform}
-                  </Badge>
-                  <Badge 
-                    variant={getStatusColor(sample.analysis?.status || sample.status)}
-                    className="text-xs"
-                  >
-                    {getStatusText(sample.analysis?.status || sample.status)}
-                  </Badge>
-                  {sample.analysis?.video_duration && (
-                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {formatDuration(sample.analysis.video_duration)}
+        {samples.map((sample) => {
+          const isExpanded = expandedSamples.has(sample.id);
+          const hasAnalysis = sample.analysis?.transcript || sample.analysis?.hook_text;
+          
+          return (
+            <Card key={sample.id} className="border-border/50">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      {sample.platform}
                     </Badge>
-                  )}
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => window.open(sample.source_url, '_blank')}
-                  className="h-6 w-6 p-0"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
-              </div>
-              
-              {sample.caption && (
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
-                  {sample.caption}
-                </p>
-              )}
-            </CardHeader>
-
-            {showTranscripts && sample.analysis?.transcript && (
-              <>
-                <Separator />
-                <CardContent className="pt-4">
-                  <div className="space-y-3">
-                    {sample.analysis.hook_text && (
-                      <div>
-                        <h5 className="font-medium text-sm mb-2 flex items-center gap-2">
-                          <MessageSquare className="h-3 w-3" />
-                          Hook
-                        </h5>
-                        <p className="text-sm bg-muted/50 p-3 rounded-md">
-                          "{sample.analysis.hook_text}"
-                        </p>
-                      </div>
+                    <Badge 
+                      variant={getStatusColor(sample.analysis?.status || sample.status)}
+                      className="text-xs"
+                    >
+                      {getStatusText(sample.analysis?.status || sample.status)}
+                    </Badge>
+                    {sample.analysis?.video_duration && (
+                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {formatDuration(sample.analysis.video_duration)}
+                      </Badge>
                     )}
-                    
-                    <div>
-                      <h5 className="font-medium text-sm mb-2">Full Transcript</h5>
-                      <div className="max-h-32 overflow-y-auto">
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {sample.analysis.transcript}
-                        </p>
-                      </div>
-                    </div>
                   </div>
-                </CardContent>
-              </>
-            )}
-
-            {sample.analysis?.status === 'processing' && (
-              <>
-                <Separator />
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="animate-spin rounded-full h-3 w-3 border border-gray-300 border-t-gray-600"></div>
-                    Analyzing transcript...
+                  <div className="flex items-center gap-2">
+                    {hasAnalysis && showTranscripts && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleExpanded(sample.id)}
+                        className="h-6 w-6 p-0"
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="h-3 w-3" />
+                        ) : (
+                          <ChevronDown className="h-3 w-3" />
+                        )}
+                      </Button>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => window.open(sample.source_url, '_blank')}
+                      className="h-6 w-6 p-0"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
                   </div>
-                </CardContent>
-              </>
-            )}
-
-            {sample.analysis?.status === 'failed' && (
-              <>
-                <Separator />
-                <CardContent className="pt-4">
-                  <p className="text-sm text-destructive">
-                    Analysis failed. Please try uploading the video again.
+                </div>
+                
+                {sample.caption && (
+                  <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
+                    {sample.caption}
                   </p>
-                </CardContent>
-              </>
-            )}
-          </Card>
-        ))}
+                )}
+              </CardHeader>
+
+              {showTranscripts && hasAnalysis && (
+                <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(sample.id)}>
+                  <CollapsibleContent>
+                    <Separator />
+                    <CardContent className="pt-4">
+                      <Tabs defaultValue="overview" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="overview">Overview</TabsTrigger>
+                          <TabsTrigger value="transcript">Full Transcript</TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="overview" className="space-y-4 mt-4">
+                          {sample.analysis?.hook_text && (
+                            <div className="p-4 bg-muted/50 rounded-lg">
+                              <h5 className="font-medium text-sm mb-2 flex items-center gap-2">
+                                <MessageSquare className="h-3 w-3" />
+                                Hook (First 3-5 seconds)
+                              </h5>
+                              <p className="text-sm leading-relaxed">
+                                "{sample.analysis.hook_text}"
+                              </p>
+                            </div>
+                          )}
+                          
+                          {sample.analysis?.transcript && (
+                            <div className="p-4 border rounded-lg">
+                              <h5 className="font-medium text-sm mb-2">Preview</h5>
+                              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+                                {sample.analysis.transcript}
+                              </p>
+                            </div>
+                          )}
+                        </TabsContent>
+
+                        <TabsContent value="transcript" className="space-y-4 mt-4">
+                          <div className="p-4 border rounded-lg max-h-64 overflow-y-auto">
+                            <pre className="text-sm whitespace-pre-wrap leading-relaxed">
+                              {sample.analysis?.transcript || 'Transcript not available'}
+                            </pre>
+                          </div>
+                        </TabsContent>
+                      </Tabs>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+
+              {sample.analysis?.status === 'processing' && (
+                <>
+                  <Separator />
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="animate-spin rounded-full h-3 w-3 border border-gray-300 border-t-gray-600"></div>
+                      Analyzing transcript...
+                    </div>
+                  </CardContent>
+                </>
+              )}
+
+              {sample.analysis?.status === 'failed' && (
+                <>
+                  <Separator />
+                  <CardContent className="pt-4">
+                    <p className="text-sm text-destructive">
+                      Analysis failed. Please try uploading the video again.
+                    </p>
+                  </CardContent>
+                </>
+              )}
+            </Card>
+          );
+        })}
       </CardContent>
     </Card>
   );

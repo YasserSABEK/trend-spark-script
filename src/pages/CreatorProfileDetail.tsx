@@ -70,12 +70,13 @@ export const CreatorProfileDetail = () => {
       if (profileError) throw profileError;
       setProfile(profileData);
 
-      // Fetch content samples
+      // Fetch content samples with complete analysis data
       const { data: samplesData, error: samplesError } = await supabase
         .from('user_content_samples')
         .select(`
           *,
-          content_items (
+          content_items!inner (
+            id,
             source_url,
             thumbnail_url,
             caption,
@@ -87,11 +88,15 @@ export const CreatorProfileDetail = () => {
             transcript,
             hook_text,
             status,
-            video_duration
+            video_duration,
+            analysis_result,
+            sections,
+            insights
           )
         `)
         .eq('profile_id', profileId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
 
       if (samplesError) throw samplesError;
       
@@ -330,11 +335,13 @@ export const CreatorProfileDetail = () => {
         </Card>
 
         {/* Content Samples */}
-        <VideoSampleDisplay 
-          samples={contentSamples}
-          title="Video Samples"
-          showTranscripts={true}
-        />
+        <div className="lg:col-span-3">
+          <VideoSampleDisplay 
+            samples={contentSamples}
+            title="Video Samples"
+            showTranscripts={true}
+          />
+        </div>
       </div>
     </div>
   );
