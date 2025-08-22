@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { hashtag, limit = 30 } = await req.json();
+    const { hashtag, limit = 80 } = await req.json();
     
     if (!hashtag) {
       return new Response(JSON.stringify({ error: 'Hashtag is required' }), {
@@ -277,6 +277,21 @@ Deno.serve(async (req) => {
 
           console.log(`Processed ${transformedResults.length} posts (${transformedResults.filter(r => r.is_video).length} videos, ${transformedResults.filter(r => !r.is_video).length} images)`);
 
+          // Sort results by viral metrics for better discovery (most viral first)
+          transformedResults.sort((a, b) => {
+            // Primary: video views (descending)
+            if (b.video_view_count !== a.video_view_count) {
+              return (b.video_view_count || 0) - (a.video_view_count || 0);
+            }
+            // Secondary: likes (descending)  
+            if (b.likes !== a.likes) {
+              return (b.likes || 0) - (a.likes || 0);
+            }
+            // Tertiary: viral score (descending)
+            return (b.viral_score || 0) - (a.viral_score || 0);
+          });
+
+          console.log('📈 Results sorted by viral metrics (most viewed first)');
           console.log('💾 Saving results to database...');
           
           // Insert results into instagram_reels table
