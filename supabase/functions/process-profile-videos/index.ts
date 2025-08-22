@@ -141,7 +141,7 @@ serve(async (req) => {
             content_item_id: contentItem.id,
             user_id: user.id,
             video_url: actualVideoUrl,
-            status: 'processing',
+            status: 'transcribing',
             deeper_analysis: false,
             credits_used: 0, // Free during profile setup
           })
@@ -149,7 +149,8 @@ serve(async (req) => {
           .single();
 
         if (analysisError || !analysis) {
-          throw new Error('Failed to create analysis record');
+          console.error('Analysis creation error:', analysisError);
+          throw new Error(`Failed to create analysis record: ${analysisError?.message || 'Unknown error'}`);
         }
 
         // Update analysis with AssemblyAI transcript ID
@@ -169,7 +170,7 @@ serve(async (req) => {
           contentItemId: contentItem.id,
           analysisId: analysis.id,
           transcriptId: transcriptData.id,
-          status: 'processing'
+          status: 'transcribing'
         });
 
       } catch (error) {

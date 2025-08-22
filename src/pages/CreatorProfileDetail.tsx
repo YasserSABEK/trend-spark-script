@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
-import { ArrowLeft, Edit, Target, User, Video, Mic, MicOff, Calendar, ExternalLink, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit, Target, User, Video, Mic, MicOff, Calendar, ExternalLink, Trash2, RefreshCw } from 'lucide-react';
 
 interface CreatorProfile {
   id: string;
@@ -50,6 +50,7 @@ export const CreatorProfileDetail = () => {
   const [profile, setProfile] = useState<CreatorProfile | null>(null);
   const [contentSamples, setContentSamples] = useState<ContentSample[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [recovering, setRecovering] = useState(false);
 
   useEffect(() => {
     if (user && profileId) {
@@ -128,6 +129,40 @@ export const CreatorProfileDetail = () => {
       navigate('/creator-profiles');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRecoverVideos = async () => {
+    if (!user || !profile) return;
+    
+    setRecovering(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('recover-profile-videos', {
+        body: { profileId: profile.id }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast({
+          title: "Videos Recovered",
+          description: `Successfully recovered ${data.recovered} video samples`,
+        });
+        
+        // Refresh the profile data
+        await fetchProfileData();
+      } else {
+        throw new Error(data.error || 'Recovery failed');
+      }
+    } catch (error) {
+      console.error('Recovery error:', error);
+      toast({
+        title: "Recovery Failed",
+        description: error.message || "Failed to recover videos",
+        variant: "destructive",
+      });
+    } finally {
+      setRecovering(false);
     }
   };
 
@@ -220,10 +255,24 @@ export const CreatorProfileDetail = () => {
             </div>
           </div>
         </div>
-        <Button onClick={() => navigate(`/creator-profiles/${profile.id}/edit`)}>
-          <Edit className="h-4 w-4 mr-2" />
-          Edit Profile
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => navigate(`/creator-profiles/${profile.id}/edit`)}>
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Profile
+          </Button>
+          
+          {contentSamples.length === 0 && (
+            <Button
+              onClick={handleRecoverVideos}
+              disabled={recovering}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${recovering ? 'animate-spin' : ''}`} />
+              {recovering ? 'Recovering...' : 'Recover Videos'}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
