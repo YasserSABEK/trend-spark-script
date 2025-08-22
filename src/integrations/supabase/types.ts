@@ -524,6 +524,7 @@ export type Database = {
           post_id: string
           processing_time_seconds: number | null
           product_type: string | null
+          profile_photo_url: string | null
           scraped_at: string | null
           search_hashtag: string | null
           search_id: string | null
@@ -561,6 +562,7 @@ export type Database = {
           post_id: string
           processing_time_seconds?: number | null
           product_type?: string | null
+          profile_photo_url?: string | null
           scraped_at?: string | null
           search_hashtag?: string | null
           search_id?: string | null
@@ -598,6 +600,7 @@ export type Database = {
           post_id?: string
           processing_time_seconds?: number | null
           product_type?: string | null
+          profile_photo_url?: string | null
           scraped_at?: string | null
           search_hashtag?: string | null
           search_id?: string | null

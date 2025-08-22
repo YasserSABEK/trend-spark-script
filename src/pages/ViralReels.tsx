@@ -47,6 +47,7 @@ interface InstagramReel {
   scraped_at: string;
   thumbnail_url: string;
   video_url?: string;
+  profile_photo_url?: string;
 }
 
 export const ViralReels = () => {

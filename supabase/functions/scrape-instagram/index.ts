@@ -310,6 +310,7 @@ Deno.serve(async (req) => {
           is_video: hasVideo,
           content_type: contentType,
           search_username: username,
+          profile_photo_url: profilePhotoUrl, // Add profile photo to each reel record
           user_id: userId // Add user association for RLS
         };
       });
