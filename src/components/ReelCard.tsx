@@ -7,7 +7,6 @@ import {
   MessageSquare, 
   Clock, 
   Bookmark,
-  Eye,
   ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -181,7 +180,7 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         </div>
 
         {/* Engagement Stats */}
-        <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+        <div className="grid grid-cols-2 gap-4 mb-4 text-center">
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-1 text-sm font-medium">
               <Heart className="w-4 h-4 text-red-500" />
@@ -195,13 +194,6 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
               {formatNumber(reel.comments)}
             </div>
             <span className="text-xs text-muted-foreground">Comments</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-1 text-sm font-medium">
-              <Eye className="w-4 h-4 text-green-500" />
-              {formatNumber(reel.video_view_count)}
-            </div>
-            <span className="text-xs text-muted-foreground">Views</span>
           </div>
         </div>
 
