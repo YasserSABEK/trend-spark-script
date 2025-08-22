@@ -41,8 +41,11 @@ interface ContentItem {
 
 interface GeneratedScript {
   id: string;
-  script_content?: string;
   title?: string;
+  hook?: string;
+  main_content?: string;
+  call_to_action?: string;
+  script_content?: string;
   script_text?: string;
   script_title?: string;
   created_at: string;
@@ -61,6 +64,7 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
   const [isUpdating, setIsUpdating] = useState(false);
   const [script, setScript] = useState<GeneratedScript | null>(null);
   const [loadingScript, setLoadingScript] = useState(false);
+  const [scriptUpdating, setScriptUpdating] = useState<{[key: string]: boolean}>({});
   
   const [formData, setFormData] = useState({
     title: "",
@@ -139,6 +143,70 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
   const handleInputBlur = (field: string) => {
     if (!item || formData[field as keyof typeof formData] === item[field as keyof ContentItem]) return;
     handleUpdate(field, formData[field as keyof typeof formData]);
+  };
+
+  const handleScriptUpdate = async (field: string, value: string) => {
+    if (!script) return;
+    
+    setScriptUpdating(prev => ({ ...prev, [field]: true }));
+    try {
+      const { error } = await supabase
+        .from("generated_scripts")
+        .update({ [field]: value })
+        .eq("id", script.id);
+
+      if (error) throw error;
+      
+      setScript(prev => prev ? { ...prev, [field]: value } : null);
+    } catch (error) {
+      console.error("Script update error:", error);
+      toast.error("Failed to update script");
+    } finally {
+      setScriptUpdating(prev => ({ ...prev, [field]: false }));
+    }
+  };
+
+  const handleScriptFieldChange = (field: string, value: string) => {
+    setScript(prev => prev ? { ...prev, [field]: value } : null);
+  };
+
+  const copyFullScript = () => {
+    if (!script) return;
+    
+    const fullScript = [
+      script.hook || '',
+      script.main_content || '',
+      script.call_to_action || ''
+    ].filter(Boolean).join('\n\n');
+    
+    navigator.clipboard.writeText(fullScript);
+    toast.success("Script copied to clipboard");
+  };
+
+  const parseExistingScript = (content: string) => {
+    const lines = content.split('\n').filter(line => line.trim());
+    
+    if (lines.length >= 3) {
+      return {
+        hook: lines[0],
+        main_content: lines.slice(1, -1).join('\n'),
+        call_to_action: lines[lines.length - 1]
+      };
+    } else if (lines.length === 2) {
+      return {
+        hook: lines[0],
+        main_content: '',
+        call_to_action: lines[1]
+      };
+    } else if (lines.length === 1) {
+      return {
+        hook: lines[0],
+        main_content: '',
+        call_to_action: ''
+      };
+    }
+    
+    return { hook: '', main_content: content, call_to_action: '' };
   };
 
   const handleGenerateScript = () => {
@@ -375,24 +443,96 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
                 <p className="text-muted-foreground">Loading script...</p>
               </div>
             ) : script ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-green-600">
                   <FileText className="w-4 h-4" />
                   Script ready
                 </div>
-                <div className="bg-muted/30 rounded-lg p-4 max-h-64 overflow-y-auto">
-                  <h4 className="font-medium mb-2">{script.title || script.script_title || "Generated Script"}</h4>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{script.script_content || script.script_text || "No content available"}</p>
+                
+                {/* Hook Field */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Hook
+                    </Label>
+                    <span className="text-xs text-muted-foreground">
+                      {script.hook?.length || 0} chars
+                    </span>
+                  </div>
+                  <Textarea
+                    value={script.hook || ''}
+                    onChange={(e) => handleScriptFieldChange('hook', e.target.value)}
+                    onBlur={(e) => handleScriptUpdate('hook', e.target.value)}
+                    placeholder="Your attention-grabbing opener..."
+                    className="resize-none h-16 text-sm"
+                    disabled={scriptUpdating.hook}
+                  />
                 </div>
-                <Button
-                  onClick={handleGenerateScript}
-                  variant="ghost"
-                  size="sm"
-                  className="w-full"
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Regenerate Script
-                </Button>
+
+                {/* Main Content Field */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Main Value
+                    </Label>
+                    <span className="text-xs text-muted-foreground">
+                      {script.main_content?.length || 0} chars
+                    </span>
+                  </div>
+                  <Textarea
+                    value={script.main_content || ''}
+                    onChange={(e) => handleScriptFieldChange('main_content', e.target.value)}
+                    onBlur={(e) => handleScriptUpdate('main_content', e.target.value)}
+                    placeholder="Your core message and value..."
+                    className="resize-none h-32 text-sm"
+                    disabled={scriptUpdating.main_content}
+                  />
+                </div>
+
+                {/* Call to Action Field */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Call to Action
+                    </Label>
+                    <span className="text-xs text-muted-foreground">
+                      {script.call_to_action?.length || 0} chars
+                    </span>
+                  </div>
+                  <Textarea
+                    value={script.call_to_action || ''}
+                    onChange={(e) => handleScriptFieldChange('call_to_action', e.target.value)}
+                    onBlur={(e) => handleScriptUpdate('call_to_action', e.target.value)}
+                    placeholder="Your engagement prompt..."
+                    className="resize-none h-16 text-sm"
+                    disabled={scriptUpdating.call_to_action}
+                  />
+                </div>
+
+                {/* Script Actions */}
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    onClick={copyFullScript}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Full Script
+                  </Button>
+                  <Button
+                    onClick={handleGenerateScript}
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Regenerate
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center">
