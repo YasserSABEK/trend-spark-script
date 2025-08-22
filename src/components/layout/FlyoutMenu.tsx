@@ -24,22 +24,8 @@ interface FlyoutMenuProps {
 
 export function FlyoutMenu({ trigger, groups, isActive = false, onNavigate }: FlyoutMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const flyoutRef = useRef<HTMLDivElement>(null);
-
-  const openFlyout = () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      setTimeoutId(null);
-    }
-    setIsOpen(true);
-  };
-
-  const closeFlyout = () => {
-    const id = setTimeout(() => setIsOpen(false), 200);
-    setTimeoutId(id);
-  };
 
   const handleTriggerClick = () => {
     setIsOpen(!isOpen);
@@ -50,12 +36,25 @@ export function FlyoutMenu({ trigger, groups, isActive = false, onNavigate }: Fl
     onNavigate?.();
   };
 
-  // Clean up timeout on unmount
+  // Close on click outside
   useEffect(() => {
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isOpen &&
+        flyoutRef.current &&
+        triggerRef.current &&
+        !flyoutRef.current.contains(event.target as Node) &&
+        !triggerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
     };
-  }, [timeoutId]);
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isOpen]);
 
   // Close on Escape key
   useEffect(() => {
@@ -86,21 +85,10 @@ export function FlyoutMenu({ trigger, groups, isActive = false, onNavigate }: Fl
     <>
       <div
         ref={triggerRef}
-        onMouseEnter={openFlyout}
-        onMouseLeave={closeFlyout}
         onClick={handleTriggerClick}
-        className="relative"
+        className={`relative ${isOpen ? 'bg-accent/50' : ''}`}
       >
         {trigger}
-        
-        {/* Invisible hover buffer */}
-        {isOpen && (
-          <div 
-            className="absolute top-0 left-full w-2 h-full"
-            onMouseEnter={openFlyout}
-            onMouseLeave={closeFlyout}
-          />
-        )}
       </div>
 
       {/* Portal flyout menu */}
@@ -112,8 +100,6 @@ export function FlyoutMenu({ trigger, groups, isActive = false, onNavigate }: Fl
             top: `${position.top}px`,
             left: `${position.left}px`,
           }}
-          onMouseEnter={openFlyout}
-          onMouseLeave={closeFlyout}
         >
           <div className="space-y-4">
             {groups.map((group, groupIndex) => (
