@@ -39,7 +39,7 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
                          'User';
 
   return (
-    <div className="flex flex-col items-center space-y-2 p-2">
+    <div className="flex flex-col items-center gap-1 p-1">
       {/* Single Avatar Dropdown - Consolidated */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -47,7 +47,7 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
             <ProfileAvatar user={user} size="sm" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" side="right" className="w-56 ml-2 bg-popover border shadow-md">
+        <DropdownMenuContent align="center" side="right" className="w-56 ml-2 bg-popover border shadow-md z-50">
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium truncate" title={userDisplayName}>{userDisplayName}</p>
@@ -76,7 +76,7 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
       </DropdownMenu>
       
       {/* Compact Credit Widget */}
-      <div className="w-full">
+      <div className="w-full px-1">
         <SidebarCreditWidget collapsed={true} />
       </div>
     </div>

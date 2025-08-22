@@ -53,9 +53,9 @@ const navigationItems = [
   { title: "Insta", icon: Instagram, tooltip: "Instagram Creators & Content", type: "flyout", flyoutData: [{ title: "Instagram", items: instagramItems }] },
   { title: "TikTok", icon: Music2, tooltip: "TikTok Creators & Content", type: "flyout", flyoutData: [{ title: "TikTok", items: tiktokItems }] },
   { title: "Saved", icon: Bookmark, tooltip: "Your Saved Content", type: "flyout", flyoutData: [{ title: "Saved", items: savedItems }] },
-  { title: "Creators", url: "/creator-profiles", icon: UserCog, tooltip: "Creator Profiles", type: "direct" },
-  { title: "Scripts", url: "/script-generator", icon: Edit3, tooltip: "Script Generator", type: "direct" },
-  { title: "Calendar", url: "/content-calendar", icon: Calendar, tooltip: "Content Calendar", type: "direct" },
+  { title: "Create", url: "/creator-profiles", icon: UserCog, tooltip: "Creator Profiles", type: "direct" },
+  { title: "Script", url: "/script-generator", icon: Edit3, tooltip: "Script Generator", type: "direct" },
+  { title: "Cal", url: "/content-calendar", icon: Calendar, tooltip: "Content Calendar", type: "direct" },
   { title: "Billing", url: "/billing", icon: CreditCard, tooltip: "Billing & Plans", type: "direct" },
 ];
 
@@ -100,14 +100,14 @@ export function AppSidebar() {
             <SidebarMenuButton asChild>
               <NavLink
                 to={item.url}
-                className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-lg transition-all duration-200 min-h-[56px] group hover:scale-105 ${
+                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2 rounded-lg transition-all duration-200 min-h-[48px] group hover:scale-105 ${
                   active
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent"
                 }`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
-                <span className="text-[10px] font-medium text-center leading-tight max-w-full truncate">{item.title}</span>
+                <span className="text-xs font-medium text-center leading-tight max-w-full truncate">{item.title}</span>
               </NavLink>
             </SidebarMenuButton>
           </TooltipTrigger>
@@ -132,14 +132,14 @@ export function AppSidebar() {
               <TooltipTrigger asChild>
                 <SidebarMenuButton asChild>
                   <button
-                    className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-lg transition-all duration-200 min-h-[56px] group hover:scale-105 w-full ${
+                    className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2 rounded-lg transition-all duration-200 min-h-[48px] group hover:scale-105 w-full ${
                       active
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:text-foreground hover:bg-accent"
                     }`}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                    <span className="text-[10px] font-medium text-center leading-tight max-w-full truncate">{item.title}</span>
+                    <span className="text-xs font-medium text-center leading-tight max-w-full truncate">{item.title}</span>
                   </button>
                 </SidebarMenuButton>
               </TooltipTrigger>
@@ -157,7 +157,7 @@ export function AppSidebar() {
 
   return (
     <TooltipProvider>
-      <Sidebar className="w-18 flex flex-col" collapsible="none">
+      <Sidebar className="w-22 flex flex-col" collapsible="none">
         <SidebarHeader className="border-b border-sidebar-border p-3">
           <div className="flex justify-center">
             <img 

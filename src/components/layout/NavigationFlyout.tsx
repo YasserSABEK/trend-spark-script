@@ -30,10 +30,10 @@ export function NavigationFlyout({ trigger, groups, open, onOpenChange }: Naviga
         {trigger}
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-4 bg-popover border shadow-md" 
+        className="w-80 p-4 bg-popover border shadow-md z-50" 
         side="right" 
         align="start"
-        sideOffset={8}
+        sideOffset={12}
       >
         <div className="space-y-4">
           {groups.map((group, groupIndex) => (
