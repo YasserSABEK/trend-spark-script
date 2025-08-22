@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, Trash2, Copy, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
-import { InstagramEmbed } from "@/components/media/InstagramEmbed";
+import { EnhancedInstagramEmbed } from "@/components/media/EnhancedInstagramEmbed";
 import { TikTokEmbed } from "@/components/media/TikTokEmbed";
 import { AnalysisModal } from "@/components/analysis/AnalysisModal";
 
@@ -139,9 +139,11 @@ export function Content() {
             <Card key={item.id} className="overflow-hidden">
               <div className="relative">
                 {item.platform === 'instagram' ? (
-                  <InstagramEmbed 
+                  <EnhancedInstagramEmbed 
                     url={item.source_url}
                     className="aspect-[9/16]"
+                    caption={item.caption || undefined}
+                    thumbnailUrl={item.thumbnail_url || undefined}
                   />
                 ) : (
                   <TikTokEmbed 

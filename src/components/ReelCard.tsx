@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { InstagramEmbed } from "@/components/media/InstagramEmbed";
+import { EnhancedInstagramEmbed } from "@/components/media/EnhancedInstagramEmbed";
 
 interface InstagramReel {
   id: string;
@@ -103,9 +103,21 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group">
       {/* Video Container */}
       <div className="aspect-[9/16] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden">
-        {/* Instagram Embed */}
+        {/* Enhanced Instagram Embed */}
         <div className="absolute inset-0">
-          <InstagramEmbed url={reel.url} className="w-full h-full" />
+          <EnhancedInstagramEmbed 
+            url={reel.url} 
+            className="w-full h-full"
+            thumbnailUrl={reel.thumbnail_url}
+            caption={reel.caption}
+            username={reel.username}
+            displayName={reel.display_name}
+            likes={reel.likes}
+            comments={reel.comments}
+            videoViewCount={reel.video_view_count}
+            timestamp={reel.timestamp}
+            verified={reel.verified}
+          />
         </div>
         
         {/* Overlays */}
