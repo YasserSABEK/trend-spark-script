@@ -234,45 +234,65 @@ Deno.serve(async (req) => {
 
           const results = await resultsResponse.json();
           console.log(`✅ Retrieved ${results.length} hashtag results`);
+          
+          // Log first result structure for debugging
+          if (results.length > 0) {
+            console.log('First result structure:', JSON.stringify(results[0], null, 2));
+            console.log('Available owner fields:', Object.keys(results[0].owner || {}));
+          }
 
           // Transform results to match expected format
-          const transformedResults = results.map((item: any) => ({
-            post_id: item.code || item.id,
-            shortcode: item.code,
-            url: item.url,
-            caption: item.caption || '',
-            hashtags: extractHashtags(item.caption || ''),
-            username: item['owner.username'],
-            display_name: item['owner.fullName'],
-            followers: 0, // Not available in this actor
-            verified: item['owner.isVerified'] || false,
-            likes: item.likeCount || 0,
-            comments: item.commentCount || 0,
-            video_view_count: 0, // Will be calculated based on likes
-            viral_score: calculateViralScore(item.likeCount || 0, item.commentCount || 0),
-            engagement_rate: calculateEngagementRate(item.likeCount || 0, item.commentCount || 0),
-            timestamp: item.createdAt,
-            scraped_at: new Date().toISOString(),
-            thumbnail_url: item['image.url'],
-            video_url: item['video.url'],
-            video_duration: null,
-            is_video: !!item['video.url'],
-            product_type: 'clips',
-            search_hashtag: hashtag,
-            search_requested_at: new Date().toISOString(),
-            processing_time_seconds: Math.floor((Date.now() - startTime) / 1000),
-            user_id: user.id,
-            search_id: searchId
-          }));
+          const transformedResults = results.map((item: any) => {
+            console.log(`Processing post ${item.code || item.id}: ${item.isVideo ? 'video' : 'image'} - likes: ${item.likeCount}, comments: ${item.commentCount}`);
+            
+            return {
+              post_id: item.code || item.id || `apify-${Date.now()}-${Math.random()}`,
+              shortcode: item.code,
+              url: item.url,
+              caption: item.caption || '',
+              hashtags: extractHashtags(item.caption || ''),
+              username: item.owner?.username || 'unknown',
+              display_name: item.owner?.fullName || item.owner?.username || 'Unknown User',
+              followers: item.owner?.followerCount || 0,
+              verified: item.owner?.isVerified || false,
+              likes: item.likeCount || 0,
+              comments: item.commentCount || 0,
+              video_view_count: item.video?.playCount || item.video?.viewCount || item.playCount || 0,
+              viral_score: calculateViralScore(item.likeCount || 0, item.commentCount || 0, item.video?.playCount || 0),
+              engagement_rate: calculateEngagementRate(item.likeCount || 0, item.commentCount || 0),
+              timestamp: item.createdAt,
+              scraped_at: new Date().toISOString(),
+              thumbnail_url: item.image?.url || item.displayUrl,
+              video_url: item.video?.url || (item.isVideo ? item.videoUrl : null),
+              video_duration: item.video?.duration || null,
+              is_video: item.isVideo || !!item.video?.url,
+              product_type: 'clips',
+              search_hashtag: hashtag,
+              search_requested_at: new Date().toISOString(),
+              processing_time_seconds: Math.floor((Date.now() - startTime) / 1000),
+              user_id: user.id,
+              search_id: searchId
+            };
+          });
 
+          console.log(`Processed ${transformedResults.length} posts (${transformedResults.filter(r => r.is_video).length} videos, ${transformedResults.filter(r => !r.is_video).length} images)`);
+
+          console.log('💾 Saving results to database...');
+          
           // Insert results into instagram_reels table
           if (transformedResults.length > 0) {
             const { error: insertError } = await supabase
               .from('instagram_reels')
-              .insert(transformedResults);
+              .upsert(transformedResults, { 
+                onConflict: 'post_id',
+                ignoreDuplicates: false 
+              });
 
             if (insertError) {
-              console.error('Failed to insert Instagram reels:', insertError);
+              console.error('❌ Database insertion error:', insertError);
+              // Continue execution - don't fail the entire operation for DB conflicts
+            } else {
+              console.log('✅ Successfully saved results to database');
             }
           }
 
