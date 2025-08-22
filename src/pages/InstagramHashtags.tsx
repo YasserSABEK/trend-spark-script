@@ -35,6 +35,21 @@ export function InstagramHashtags() {
     }
   }, [user]);
 
+  // Add real-time polling for processing searches
+  useEffect(() => {
+    const hasProcessingSearches = searches.some(search => 
+      search.status === 'pending' || search.status === 'processing'
+    );
+
+    if (!hasProcessingSearches || !user) return;
+
+    const pollInterval = setInterval(() => {
+      loadSearchHistory();
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [searches, user]);
+
   const scrapeHashtagPosts = async (hashtag: string) => {
     if (!user) {
       toast.error("Please sign in to search hashtags");
