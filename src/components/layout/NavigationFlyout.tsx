@@ -33,7 +33,7 @@ export function NavigationFlyout({ trigger, groups, open, onOpenChange }: Naviga
         className="w-80 p-4 bg-popover border shadow-md z-50" 
         side="right" 
         align="start"
-        sideOffset={12}
+        sideOffset={16}
       >
         <div className="space-y-4">
           {groups.map((group, groupIndex) => (

@@ -180,9 +180,8 @@ function AppContent() {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         
-        <SidebarInset className="flex-1">
+        <div className="flex-1 ml-36">
           <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-            <SidebarTrigger className="-ml-1" />
             <div className="ml-auto flex items-center space-x-4">
               {/* Additional header content can go here */}
             </div>
@@ -244,7 +243,7 @@ function AppContent() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
-        </SidebarInset>
+        </div>
       </div>
     </SidebarProvider>
   );
