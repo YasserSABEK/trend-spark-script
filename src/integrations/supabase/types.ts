@@ -165,6 +165,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          planned_publish_date: string | null
           platform: string
           scheduled_at: string | null
           script_id: string | null
@@ -173,6 +174,7 @@ export type Database = {
           status: string
           tags: string[] | null
           thumbnail_url: string | null
+          title: string | null
           updated_at: string
           user_id: string
         }
@@ -183,6 +185,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          planned_publish_date?: string | null
           platform: string
           scheduled_at?: string | null
           script_id?: string | null
@@ -191,6 +194,7 @@ export type Database = {
           status?: string
           tags?: string[] | null
           thumbnail_url?: string | null
+          title?: string | null
           updated_at?: string
           user_id: string
         }
@@ -201,6 +205,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          planned_publish_date?: string | null
           platform?: string
           scheduled_at?: string | null
           script_id?: string | null
@@ -209,6 +214,7 @@ export type Database = {
           status?: string
           tags?: string[] | null
           thumbnail_url?: string | null
+          title?: string | null
           updated_at?: string
           user_id?: string
         }
