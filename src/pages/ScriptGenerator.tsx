@@ -10,10 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Sparkles, Copy, Heart, Star } from 'lucide-react';
+import { Loader2, Sparkles, Copy, Heart, Star, AlertCircle } from 'lucide-react';
 import { CreditGuard } from '@/components/credits/CreditGuard';
 import { DroppableArea } from '@/components/dnd/DroppableArea';
 import { ProfileSelector } from '@/components/creator/ProfileSelector';
+import { ScriptGeneratorErrorBoundary } from '@/components/script/ScriptGeneratorErrorBoundary';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface GeneratedScript {
   hook: string;
@@ -22,7 +24,7 @@ interface GeneratedScript {
   hashtags: string[];
 }
 
-export const ScriptGenerator = () => {
+const ScriptGeneratorContent = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedScript, setGeneratedScript] = useState<GeneratedScript | null>(null);
   const [formData, setFormData] = useState({
@@ -31,7 +33,21 @@ export const ScriptGenerator = () => {
     hookStyle: ''
   });
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
+
+  // Initialize component
+  useEffect(() => {
+    console.log('[ScriptGenerator] Component initializing');
+    try {
+      setIsInitialized(true);
+      console.log('[ScriptGenerator] Component initialized successfully');
+    } catch (error) {
+      console.error('[ScriptGenerator] Initialization error:', error);
+      setError('Failed to initialize script generator');
+    }
+  }, []);
 
   // Pre-fill form from URL params
   useEffect(() => {
@@ -74,7 +90,10 @@ export const ScriptGenerator = () => {
   ];
 
   const handleGenerate = async () => {
+    console.log('[ScriptGenerator] Starting script generation');
+    
     if (!formData.prompt.trim()) {
+      console.warn('[ScriptGenerator] No prompt provided');
       toast({
         title: "Missing Information",
         description: "Please provide a prompt for your script.",
@@ -84,34 +103,69 @@ export const ScriptGenerator = () => {
     }
 
     setIsGenerating(true);
+    setError(null);
     
     try {
-        const { data, error } = await supabase.functions.invoke('enhanced-script-generation', {
-          body: {
-            prompt: formData.prompt,
-            hookStyle: formData.hookStyle,
-            profileId: formData.profileId || null,
-            niche: selectedProfile?.niche || '',
-            toneOfVoice: selectedProfile?.personality_traits?.[0] || '',
-            targetAudience: selectedProfile?.target_audience || '',
-            format: 'reel',
-            highAccuracy: false
-          }
-        });
+      console.log('[ScriptGenerator] Calling enhanced-script-generation function with data:', {
+        prompt: formData.prompt,
+        hookStyle: formData.hookStyle,
+        profileId: formData.profileId || null,
+        selectedProfile: selectedProfile ? { 
+          id: selectedProfile.id, 
+          brand_name: selectedProfile.brand_name 
+        } : null
+      });
+
+      // Add timeout to the function call
+      const functionCall = supabase.functions.invoke('enhanced-script-generation', {
+        body: {
+          prompt: formData.prompt,
+          hookStyle: formData.hookStyle,
+          profileId: formData.profileId || null,
+          niche: selectedProfile?.niche || '',
+          toneOfVoice: selectedProfile?.personality_traits?.[0] || '',
+          targetAudience: selectedProfile?.target_audience || '',
+          format: 'reel',
+          highAccuracy: false
+        }
+      });
+
+      const { data, error } = await Promise.race([
+        functionCall,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Script generation timeout - please try again')), 30000)
+        )
+      ]) as any;
+
+      console.log('[ScriptGenerator] Function response:', { data, error });
 
       if (error) {
-        if (error.error === 'INSUFFICIENT_CREDITS') {
+        console.error('[ScriptGenerator] Function error:', error);
+        
+        if (error.message?.includes('INSUFFICIENT_CREDITS') || error.error === 'INSUFFICIENT_CREDITS') {
           toast({
             title: "Insufficient Credits",
-            description: `You need ${error.required_credits} credits. Current balance: ${error.current_balance}`,
+            description: `You need credits to generate a script. Please check your balance.`,
             variant: "destructive",
           });
           return;
         }
+        
+        if (error.message?.includes('timeout')) {
+          throw new Error('Request timed out. Please try again.');
+        }
+        
         throw error;
       }
 
+      if (!data || !data.script) {
+        console.error('[ScriptGenerator] Invalid response data:', data);
+        throw new Error('Invalid response from script generation service');
+      }
+
+      console.log('[ScriptGenerator] Script generated successfully:', data.script);
       setGeneratedScript(data.script);
+      
       toast({
         title: "Script Generated!",
         description: data.script.conditioning_data?.personalization_level === 'high' 
@@ -119,15 +173,20 @@ export const ScriptGenerator = () => {
           : "Your viral script has been created and saved.",
       });
 
-    } catch (error) {
-      console.error('Script generation error:', error);
+    } catch (error: any) {
+      console.error('[ScriptGenerator] Script generation error:', error);
+      
+      const errorMessage = error?.message || 'Failed to generate script. Please try again.';
+      setError(errorMessage);
+      
       toast({
         title: "Generation Failed",
-        description: "Failed to generate script. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
+      console.log('[ScriptGenerator] Script generation completed');
     }
   };
 
@@ -155,6 +214,23 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
     copyToClipboard(fullScript);
   };
 
+  if (!isInitialized) {
+    return (
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="flex items-center space-x-2">
+          <Sparkles className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">Script Generator</h1>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center space-x-2">
@@ -165,6 +241,13 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
         </div>
       </div>
 
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Generation Form */}
         <Card>
@@ -174,12 +257,20 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="profile">Creator Profile (Optional)</Label>
-              <ProfileSelector
-                value={formData.profileId}
-                onValueChange={(value) => setFormData({ ...formData, profileId: value })}
-                onProfileSelect={setSelectedProfile}
-                className="mb-4"
-              />
+              <ScriptGeneratorErrorBoundary>
+                <ProfileSelector
+                  value={formData.profileId}
+                  onValueChange={(value) => {
+                    console.log('[ScriptGenerator] Profile selected:', value);
+                    setFormData({ ...formData, profileId: value });
+                  }}
+                  onProfileSelect={(profile) => {
+                    console.log('[ScriptGenerator] Profile data loaded:', profile);
+                    setSelectedProfile(profile);
+                  }}
+                  className="mb-4"
+                />
+              </ScriptGeneratorErrorBoundary>
               {selectedProfile && (
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
                   <h4 className="font-medium text-primary">Using Profile: {selectedProfile.brand_name}</h4>
@@ -230,29 +321,31 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
               </Select>
             </div>
 
-            <CreditGuard
-              requiredCredits={1}
-              action="generate a script"
-            >
-              <Button 
-                onClick={handleGenerate} 
-                disabled={isGenerating || !formData.prompt.trim()}
-                className="w-full"
-                size="lg"
+            <ScriptGeneratorErrorBoundary>
+              <CreditGuard
+                requiredCredits={1}
+                action="generate a script"
               >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Script...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Script (1 Credit)
-                  </>
-                )}
-              </Button>
-            </CreditGuard>
+                <Button 
+                  onClick={handleGenerate} 
+                  disabled={isGenerating || !formData.prompt.trim()}
+                  className="w-full"
+                  size="lg"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Script...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Generate Script (1 Credit)
+                    </>
+                  )}
+                </Button>
+              </CreditGuard>
+            </ScriptGeneratorErrorBoundary>
           </CardContent>
         </Card>
 
@@ -336,5 +429,13 @@ ${generatedScript.hashtags.map(tag => `#${tag}`).join(' ')}
         </Card>
       </div>
     </div>
+  );
+};
+
+export const ScriptGenerator = () => {
+  return (
+    <ScriptGeneratorErrorBoundary>
+      <ScriptGeneratorContent />
+    </ScriptGeneratorErrorBoundary>
   );
 };

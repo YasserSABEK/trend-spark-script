@@ -152,7 +152,13 @@ function AppContent() {
                 </ErrorBoundary>
               </ProtectedRoute>
             } />
-            <Route path="/script-generator" element={<ProtectedRoute><ScriptGenerator /></ProtectedRoute>} />
+            <Route path="/script-generator" element={
+              <ProtectedRoute>
+                <ErrorBoundary>
+                  <ScriptGenerator />
+                </ErrorBoundary>
+              </ProtectedRoute>
+            } />
             <Route path="/my-scripts" element={<ProtectedRoute><MyScripts /></ProtectedRoute>} />
             <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
             <Route path="/saved-creators" element={<ProtectedRoute><SavedCreators /></ProtectedRoute>} />
@@ -221,7 +227,13 @@ function AppContent() {
                   </ErrorBoundary>
                 </ProtectedRoute>
               } />
-              <Route path="/script-generator" element={<ProtectedRoute><ScriptGenerator /></ProtectedRoute>} />
+              <Route path="/script-generator" element={
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <ScriptGenerator />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              } />
               <Route path="/my-scripts" element={<ProtectedRoute><MyScripts /></ProtectedRoute>} />
               <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
               <Route path="/saved-creators" element={<ProtectedRoute><SavedCreators /></ProtectedRoute>} />

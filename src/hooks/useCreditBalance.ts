@@ -31,50 +31,82 @@ export const useCreditBalance = () => {
 
   const fetchBalance = async () => {
     if (!user) {
+      console.log('[useCreditBalance] No user found, skipping balance fetch');
       setLoading(false);
       return;
     }
 
+    console.log('[useCreditBalance] Fetching balance for user:', user.id);
+
     try {
-      // Fetch credit balance
-      const { data: balanceData, error: balanceError } = await supabase
+      // Fetch credit balance with timeout
+      const balancePromise = supabase
         .from('credit_balances')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
+      const { data: balanceData, error: balanceError } = await Promise.race([
+        balancePromise,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Balance fetch timeout')), 10000)
+        )
+      ]) as any;
+
       if (balanceError && balanceError.code !== 'PGRST116') {
-        throw balanceError;
+        console.error('[useCreditBalance] Balance fetch error:', balanceError);
+        // Don't throw, just set default values
+        setBalance(0);
+      } else {
+        const balance = balanceData?.balance || 0;
+        console.log('[useCreditBalance] Balance fetched:', balance);
+        setBalance(balance);
       }
 
-      setBalance(balanceData?.balance || 0);
-
-      // Fetch subscription info
-      const { data: subData, error: subError } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!subError && subData) {
-        setSubscription(subData);
-
-        // Fetch plan details
-        const { data: planData, error: planError } = await supabase
-          .from('billing_plans')
+      // Fetch subscription info with error handling
+      try {
+        const { data: subData, error: subError } = await supabase
+          .from('user_subscriptions')
           .select('*')
-          .eq('slug', subData.plan_slug)
-          .single();
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-        if (!planError && planData) {
-          setPlan(planData);
+        if (!subError && subData) {
+          console.log('[useCreditBalance] Subscription data:', subData);
+          setSubscription(subData);
+
+          // Fetch plan details
+          try {
+            const { data: planData, error: planError } = await supabase
+              .from('billing_plans')
+              .select('*')
+              .eq('slug', subData.plan_slug)
+              .maybeSingle();
+
+            if (!planError && planData) {
+              console.log('[useCreditBalance] Plan data:', planData);
+              setPlan(planData);
+            } else if (planError) {
+              console.error('[useCreditBalance] Plan fetch error:', planError);
+            }
+          } catch (planFetchError) {
+            console.error('[useCreditBalance] Plan fetch exception:', planFetchError);
+          }
+        } else if (subError) {
+          console.error('[useCreditBalance] Subscription fetch error:', subError);
         }
+      } catch (subFetchError) {
+        console.error('[useCreditBalance] Subscription fetch exception:', subFetchError);
       }
     } catch (error) {
-      console.error('Error fetching credit balance:', error);
-      toast.error('Failed to load credit balance');
+      console.error('[useCreditBalance] Critical error fetching credit balance:', error);
+      // Set fallback values instead of showing error
+      setBalance(0);
+      setSubscription(null);
+      setPlan(null);
     } finally {
       setLoading(false);
+      console.log('[useCreditBalance] Balance fetch completed');
     }
   };
 
