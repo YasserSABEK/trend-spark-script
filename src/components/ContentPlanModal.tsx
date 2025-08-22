@@ -85,11 +85,18 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
         planned_publish_date: item.planned_publish_date ? new Date(item.planned_publish_date) : null,
       });
 
-      // Load script if it exists
+      // Load script if it exists, or initialize empty script
       if (item.script_id) {
         loadScript(item.script_id);
       } else {
-        setScript(null);
+        // Initialize empty script state for immediate editing
+        setScript({
+          id: '',
+          hook: '',
+          main_content: '',
+          call_to_action: '',
+          created_at: ''
+        });
       }
     }
   }, [item]);
@@ -145,8 +152,53 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
     handleUpdate(field, formData[field as keyof typeof formData]);
   };
 
+  const createScriptFromField = async (field: string, value: string) => {
+    if (!item) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: newScript, error } = await supabase
+        .from("generated_scripts")
+        .insert({
+          user_id: user.id,
+          title: item.title || 'Untitled Script',
+          [field]: value,
+          hook: field === 'hook' ? value : '',
+          main_content: field === 'main_content' ? value : '',
+          call_to_action: field === 'call_to_action' ? value : '',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Link the new script to the content item
+      const { error: linkError } = await supabase
+        .from("content_items")
+        .update({ script_id: newScript.id })
+        .eq("id", item.id);
+
+      if (linkError) throw linkError;
+
+      setScript(newScript);
+      onUpdate(item.id, { script_id: newScript.id });
+      toast.success("Script created");
+    } catch (error) {
+      console.error("Script creation error:", error);
+      toast.error("Failed to create script");
+    }
+  };
+
   const handleScriptUpdate = async (field: string, value: string) => {
     if (!script) return;
+    
+    // If this is an empty script (no ID), create a new one
+    if (!script.id) {
+      await createScriptFromField(field, value);
+      return;
+    }
     
     setScriptUpdating(prev => ({ ...prev, [field]: true }));
     try {
@@ -425,29 +477,29 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label className="text-base font-medium">Content Script</Label>
-              {!script && (
-                <Button
-                  onClick={handleGenerateScript}
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-primary/5 hover:border-primary/40"
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Generate Script
-                </Button>
-              )}
+              <Button
+                onClick={handleGenerateScript}
+                variant="outline"
+                size="sm"
+                className="hover:bg-primary/5 hover:border-primary/40"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                {script?.id ? 'Regenerate' : 'Generate'} Script
+              </Button>
             </div>
 
             {loadingScript ? (
               <div className="h-32 bg-muted/30 rounded-lg flex items-center justify-center">
                 <p className="text-muted-foreground">Loading script...</p>
               </div>
-            ) : script ? (
+            ) : (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm text-green-600">
-                  <FileText className="w-4 h-4" />
-                  Script ready
-                </div>
+                {script?.id && (
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <FileText className="w-4 h-4" />
+                    Script ready
+                  </div>
+                )}
                 
                 {/* Hook Field */}
                 <div className="space-y-2">
@@ -457,11 +509,11 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
                       Hook
                     </Label>
                     <span className="text-xs text-muted-foreground">
-                      {script.hook?.length || 0} chars
+                      {script?.hook?.length || 0} chars
                     </span>
                   </div>
                   <Textarea
-                    value={script.hook || ''}
+                    value={script?.hook || ''}
                     onChange={(e) => handleScriptFieldChange('hook', e.target.value)}
                     onBlur={(e) => handleScriptUpdate('hook', e.target.value)}
                     placeholder="Your attention-grabbing opener..."
@@ -478,11 +530,11 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
                       Main Value
                     </Label>
                     <span className="text-xs text-muted-foreground">
-                      {script.main_content?.length || 0} chars
+                      {script?.main_content?.length || 0} chars
                     </span>
                   </div>
                   <Textarea
-                    value={script.main_content || ''}
+                    value={script?.main_content || ''}
                     onChange={(e) => handleScriptFieldChange('main_content', e.target.value)}
                     onBlur={(e) => handleScriptUpdate('main_content', e.target.value)}
                     placeholder="Your core message and value..."
@@ -499,11 +551,11 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
                       Call to Action
                     </Label>
                     <span className="text-xs text-muted-foreground">
-                      {script.call_to_action?.length || 0} chars
+                      {script?.call_to_action?.length || 0} chars
                     </span>
                   </div>
                   <Textarea
-                    value={script.call_to_action || ''}
+                    value={script?.call_to_action || ''}
                     onChange={(e) => handleScriptFieldChange('call_to_action', e.target.value)}
                     onBlur={(e) => handleScriptUpdate('call_to_action', e.target.value)}
                     placeholder="Your engagement prompt..."
@@ -513,33 +565,19 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
                 </div>
 
                 {/* Script Actions */}
-                <div className="flex gap-2 flex-wrap">
-                  <Button
-                    onClick={copyFullScript}
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Full Script
-                  </Button>
-                  <Button
-                    onClick={handleGenerateScript}
-                    variant="ghost"
-                    size="sm"
-                    className="flex-1"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Regenerate
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <FileText className="w-8 h-8 text-muted-foreground/50 mx-auto" />
-                  <p className="text-sm text-muted-foreground">No script yet</p>
-                </div>
+                {script?.id && (
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      onClick={copyFullScript}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Full Script
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
