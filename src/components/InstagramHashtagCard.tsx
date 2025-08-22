@@ -5,6 +5,8 @@ import { Clock, CheckCircle, AlertCircle, Loader2, Play, Trash2, Hash } from "lu
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { ProgressWithLabel } from "@/components/ui/progress-with-label";
+import { useState, useEffect } from "react";
 
 interface HashtagSearch {
   id: string;
@@ -27,7 +29,55 @@ export const InstagramHashtagCard = ({ search, onDelete }: InstagramHashtagCardP
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Progress state for processing animation
+  const [estimatedProgress, setEstimatedProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState("Analyzing hashtag...");
+  
+  const progressMessages = [
+    "Analyzing hashtag...",
+    "Scraping Instagram posts...",
+    "Processing reel data...",
+    "Extracting metadata...",
+    "Almost finished..."
+  ];
+
   const displayHashtag = search.hashtag || 'Unknown';
+
+  // Simulate progress for processing state
+  useEffect(() => {
+    if (search.status === 'processing') {
+      setEstimatedProgress(0);
+      setProgressMessage(progressMessages[0]);
+      
+      const totalDuration = 45000; // 45 seconds
+      const interval = 200; // Update every 200ms
+      const increment = 100 / (totalDuration / interval);
+      
+      const progressInterval = setInterval(() => {
+        setEstimatedProgress(prev => {
+          const newProgress = Math.min(prev + increment, 95); // Cap at 95% until completion
+          return newProgress;
+        });
+      }, interval);
+      
+      // Rotate messages every 9 seconds
+      const messageInterval = setInterval(() => {
+        setProgressMessage(prev => {
+          const currentIndex = progressMessages.indexOf(prev);
+          const nextIndex = (currentIndex + 1) % progressMessages.length;
+          return progressMessages[nextIndex];
+        });
+      }, 9000);
+      
+      return () => {
+        clearInterval(progressInterval);
+        clearInterval(messageInterval);
+      };
+    } else if (search.status === 'completed') {
+      // Animate to 100% on completion
+      setEstimatedProgress(100);
+    }
+  }, [search.status]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -170,10 +220,15 @@ export const InstagramHashtagCard = ({ search, onDelete }: InstagramHashtagCardP
             View {search.total_results} Reels
           </Button>
         ) : search.status === 'processing' ? (
-          <Button size="sm" className="w-full" disabled>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Processing...
-          </Button>
+          <div className="space-y-2">
+            <ProgressWithLabel
+              value={estimatedProgress}
+              label={progressMessage}
+              variant="instagram"
+              height="sm"
+              className="h-1.5"
+            />
+          </div>
         ) : search.status === 'failed' ? (
           <Button size="sm" variant="outline" className="w-full" disabled>
             <AlertCircle className="w-4 h-4 mr-2" />
