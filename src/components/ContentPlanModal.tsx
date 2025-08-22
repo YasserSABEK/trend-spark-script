@@ -92,6 +92,7 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
         // Initialize empty script state for immediate editing
         setScript({
           id: '',
+          title: '',
           hook: '',
           main_content: '',
           call_to_action: '',
@@ -163,7 +164,7 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
         .from("generated_scripts")
         .insert({
           user_id: user.id,
-          title: item.title || 'Untitled Script',
+          title: field === 'title' ? value : (item.title || 'Untitled Script'),
           [field]: value,
           hook: field === 'hook' ? value : '',
           main_content: field === 'main_content' ? value : '',
@@ -226,6 +227,7 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
     if (!script) return;
     
     const fullScript = [
+      script.title || '',
       script.hook || '',
       script.main_content || '',
       script.call_to_action || ''
@@ -238,27 +240,37 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
   const parseExistingScript = (content: string) => {
     const lines = content.split('\n').filter(line => line.trim());
     
-    if (lines.length >= 3) {
+    if (lines.length >= 4) {
       return {
+        title: lines[0],
+        hook: lines[1],
+        main_content: lines.slice(2, -1).join('\n'),
+        call_to_action: lines[lines.length - 1]
+      };
+    } else if (lines.length >= 3) {
+      return {
+        title: '',
         hook: lines[0],
         main_content: lines.slice(1, -1).join('\n'),
         call_to_action: lines[lines.length - 1]
       };
     } else if (lines.length === 2) {
       return {
+        title: '',
         hook: lines[0],
         main_content: '',
         call_to_action: lines[1]
       };
     } else if (lines.length === 1) {
       return {
+        title: '',
         hook: lines[0],
         main_content: '',
         call_to_action: ''
       };
     }
     
-    return { hook: '', main_content: content, call_to_action: '' };
+    return { title: '', hook: '', main_content: content, call_to_action: '' };
   };
 
   const handleGenerateScript = () => {
@@ -500,7 +512,28 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
                     Script ready
                   </div>
                 )}
-                
+                 
+                {/* Title Field */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Title
+                    </Label>
+                    <span className="text-xs text-muted-foreground">
+                      {script?.title?.length || 0} chars
+                    </span>
+                  </div>
+                  <Input
+                    value={script?.title || ''}
+                    onChange={(e) => handleScriptFieldChange('title', e.target.value)}
+                    onBlur={(e) => handleScriptUpdate('title', e.target.value)}
+                    placeholder="Your script title..."
+                    className="text-base font-medium h-12"
+                    disabled={scriptUpdating.title}
+                  />
+                </div>
+
                 {/* Hook Field */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">

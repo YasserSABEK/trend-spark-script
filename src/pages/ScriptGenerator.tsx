@@ -18,6 +18,7 @@ import { InstagramLinkInput } from '@/components/script/InstagramLinkInput';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface GeneratedScript {
+  title: string;
   hook: string;
   main_content: string;
   call_to_action: string;
@@ -211,7 +212,8 @@ const ScriptGeneratorContent = () => {
   const copyFullScript = () => {
     if (!generatedScript) return;
     
-    const fullScript = `
+    const fullScript = `${generatedScript.title}
+
 ${generatedScript.hook}
 
 ${generatedScript.main_content}
@@ -377,6 +379,20 @@ ${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
           <CardContent>
             {generatedScript ? (
               <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-semibold text-primary">Title</Label>
+                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.title)}>
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <div className="bg-muted p-3 rounded-md text-sm font-medium">
+                    {generatedScript.title}
+                  </div>
+                </div>
+
+                <Separator />
+
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <Label className="text-sm font-semibold text-primary">Hook</Label>
