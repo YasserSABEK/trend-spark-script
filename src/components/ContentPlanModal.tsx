@@ -1,0 +1,476 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { 
+  Calendar as CalendarIcon,
+  FileText, 
+  Sparkles, 
+  ExternalLink,
+  Copy,
+  Archive,
+  Trash2,
+  X
+} from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
+
+interface ContentItem {
+  id: string;
+  title: string | null;
+  platform: string;
+  status: string;
+  script_id: string | null;
+  source_url: string | null;
+  planned_publish_date: string | null;
+  notes: string | null;
+  caption: string | null;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface GeneratedScript {
+  id: string;
+  script_content?: string;
+  title?: string;
+  script_text?: string;
+  script_title?: string;
+  created_at: string;
+}
+
+interface ContentPlanModalProps {
+  item: ContentItem | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpdate: (id: string, updates: Partial<ContentItem>) => void;
+  onDelete: (id: string) => void;
+}
+
+export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete }: ContentPlanModalProps) {
+  const navigate = useNavigate();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [script, setScript] = useState<GeneratedScript | null>(null);
+  const [loadingScript, setLoadingScript] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    title: "",
+    platform: "",
+    status: "",
+    notes: "",
+    planned_publish_date: null as Date | null,
+  });
+
+  // Initialize form data when item changes
+  useEffect(() => {
+    if (item) {
+      setFormData({
+        title: item.title || "",
+        platform: item.platform,
+        status: item.status,
+        notes: item.notes || "",
+        planned_publish_date: item.planned_publish_date ? new Date(item.planned_publish_date) : null,
+      });
+
+      // Load script if it exists
+      if (item.script_id) {
+        loadScript(item.script_id);
+      } else {
+        setScript(null);
+      }
+    }
+  }, [item]);
+
+  const loadScript = async (scriptId: string) => {
+    setLoadingScript(true);
+    try {
+      const { data, error } = await supabase
+        .from("generated_scripts")
+        .select("*")
+        .eq("id", scriptId)
+        .single();
+
+      if (error) throw error;
+      setScript(data);
+    } catch (error) {
+      console.error("Load script error:", error);
+    } finally {
+      setLoadingScript(false);
+    }
+  };
+
+  const handleUpdate = async (field: string, value: any) => {
+    if (!item) return;
+    
+    setIsUpdating(true);
+    try {
+      const updateData = { [field]: value };
+      
+      const { error } = await supabase
+        .from("content_items")
+        .update(updateData)
+        .eq("id", item.id);
+
+      if (error) throw error;
+      
+      onUpdate(item.id, updateData);
+      toast.success("Content updated");
+    } catch (error) {
+      console.error("Update error:", error);
+      toast.error("Failed to update content");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleInputBlur = (field: string) => {
+    if (!item || formData[field as keyof typeof formData] === item[field as keyof ContentItem]) return;
+    handleUpdate(field, formData[field as keyof typeof formData]);
+  };
+
+  const handleGenerateScript = () => {
+    if (item) {
+      navigate(`/script-generator?contentId=${item.id}`);
+      onOpenChange(false);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    if (!item) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("content_items")
+        .insert({
+          user_id: user.id,
+          title: `${item.title} (Copy)`,
+          platform: item.platform,
+          status: "idea",
+          notes: item.notes,
+          planned_publish_date: null,
+          source_url: item.source_url,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      toast.success("Content duplicated");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Duplicate error:", error);
+      toast.error("Failed to duplicate content");
+    }
+  };
+
+  const handleArchive = () => {
+    if (item) {
+      handleUpdate("status", "archived");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!item) return;
+
+    try {
+      const { error } = await supabase
+        .from("content_items")
+        .delete()
+        .eq("id", item.id);
+
+      if (error) throw error;
+      
+      onDelete(item.id);
+      onOpenChange(false);
+      toast.success("Content deleted");
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete content");
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'idea': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'scripting': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'ready': return 'bg-green-50 text-green-700 border-green-200';
+      case 'posted': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'archived': return 'bg-gray-50 text-gray-700 border-gray-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getPlatformColor = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'tiktok': return 'bg-pink-500/10 text-pink-700 border-pink-200';
+      case 'instagram': return 'bg-purple-500/10 text-purple-700 border-purple-200';
+      default: return 'bg-gray-500/10 text-gray-700 border-gray-200';
+    }
+  };
+
+  if (!item) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="flex flex-row items-center justify-between pr-6">
+          <DialogTitle className="text-xl">Content Plan</DialogTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            className="w-6 h-6 p-0"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Header with badges */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <Badge variant="outline" className={`capitalize ${getPlatformColor(formData.platform)}`}>
+              {formData.platform}
+            </Badge>
+            <Badge variant="outline" className={`capitalize ${getStatusColor(formData.status)}`}>
+              {formData.status}
+            </Badge>
+            {formData.planned_publish_date && (
+              <Badge variant="outline" className="text-muted-foreground">
+                <CalendarIcon className="w-3 h-3 mr-1" />
+                {format(formData.planned_publish_date, "MMM dd, yyyy")}
+              </Badge>
+            )}
+          </div>
+
+          {/* Title */}
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-base font-medium">Title</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) => handleInputChange("title", e.target.value)}
+              onBlur={() => handleInputBlur("title")}
+              placeholder="Content title..."
+              className="text-lg font-medium h-12"
+              disabled={isUpdating}
+            />
+          </div>
+
+          {/* Platform & Status */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Platform</Label>
+              <Select 
+                value={formData.platform} 
+                onValueChange={(value) => {
+                  handleInputChange("platform", value);
+                  handleUpdate("platform", value);
+                }}
+                disabled={isUpdating}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tiktok">TikTok</SelectItem>
+                  <SelectItem value="instagram">Instagram</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value) => {
+                  handleInputChange("status", value);
+                  handleUpdate("status", value);
+                }}
+                disabled={isUpdating}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="idea">Idea</SelectItem>
+                  <SelectItem value="scripting">Scripting</SelectItem>
+                  <SelectItem value="ready">Ready to Post</SelectItem>
+                  <SelectItem value="posted">Posted</SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Planned Date */}
+          <div className="space-y-2">
+            <Label>Planned Publish Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                  disabled={isUpdating}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.planned_publish_date ? (
+                    format(formData.planned_publish_date, "PPP")
+                  ) : (
+                    <span className="text-muted-foreground">Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.planned_publish_date}
+                  onSelect={(date) => {
+                    handleInputChange("planned_publish_date", date);
+                    handleUpdate("planned_publish_date", date?.toISOString() || null);
+                  }}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <Separator />
+
+          {/* Script Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Content Script</Label>
+              {!script && (
+                <Button
+                  onClick={handleGenerateScript}
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-primary/5 hover:border-primary/40"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Script
+                </Button>
+              )}
+            </div>
+
+            {loadingScript ? (
+              <div className="h-32 bg-muted/30 rounded-lg flex items-center justify-center">
+                <p className="text-muted-foreground">Loading script...</p>
+              </div>
+            ) : script ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-green-600">
+                  <FileText className="w-4 h-4" />
+                  Script ready
+                </div>
+                <div className="bg-muted/30 rounded-lg p-4 max-h-64 overflow-y-auto">
+                  <h4 className="font-medium mb-2">{script.title || script.script_title || "Generated Script"}</h4>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{script.script_content || script.script_text || "No content available"}</p>
+                </div>
+                <Button
+                  onClick={handleGenerateScript}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Regenerate Script
+                </Button>
+              </div>
+            ) : (
+              <div className="h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <FileText className="w-8 h-8 text-muted-foreground/50 mx-auto" />
+                  <p className="text-sm text-muted-foreground">No script yet</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label htmlFor="notes" className="text-base font-medium">Notes & Ideas</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => handleInputChange("notes", e.target.value)}
+              onBlur={() => handleInputBlur("notes")}
+              placeholder="Add your ideas, hooks, or notes..."
+              className="resize-none h-32"
+              disabled={isUpdating}
+            />
+          </div>
+
+          {/* Source URL */}
+          {item.source_url && (
+            <div className="space-y-2">
+              <Label className="text-base font-medium">Source</Label>
+              <Button
+                variant="outline"
+                onClick={() => window.open(item.source_url!, '_blank')}
+                className="w-full justify-start"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                View Original Content
+              </Button>
+            </div>
+          )}
+
+          <Separator />
+
+          {/* Actions */}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={handleDuplicate}
+              variant="outline"
+              size="sm"
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Duplicate
+            </Button>
+            
+            {formData.status !== 'archived' && (
+              <Button
+                onClick={handleArchive}
+                variant="outline"
+                size="sm"
+              >
+                <Archive className="w-4 h-4 mr-2" />
+                Archive
+              </Button>
+            )}
+            
+            <Button
+              onClick={handleDelete}
+              variant="destructive"
+              size="sm"
+              className="ml-auto"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

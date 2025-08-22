@@ -15,9 +15,10 @@ import { CalendarIcon } from "lucide-react";
 
 interface NewContentModalProps {
   onContentCreated: (content: any) => void;
+  children?: React.ReactNode;
 }
 
-export function NewContentModal({ onContentCreated }: NewContentModalProps) {
+export function NewContentModal({ onContentCreated, children }: NewContentModalProps) {
   const [open, setOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
@@ -92,12 +93,14 @@ export function NewContentModal({ onContentCreated }: NewContentModalProps) {
       if (!newOpen) resetForm();
     }}>
       <DialogTrigger asChild>
-        <Button 
-          className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-sm"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          New Plan
-        </Button>
+        {children || (
+          <Button 
+            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-sm"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Plan
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

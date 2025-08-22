@@ -38,9 +38,10 @@ interface ContentPlanCardProps {
   item: ContentItem;
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<ContentItem>) => void;
+  onClick?: () => void;
 }
 
-export function ContentPlanCard({ item, onDelete, onUpdate }: ContentPlanCardProps) {
+export function ContentPlanCard({ item, onDelete, onUpdate, onClick }: ContentPlanCardProps) {
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -160,7 +161,8 @@ export function ContentPlanCard({ item, onDelete, onUpdate }: ContentPlanCardPro
     <Card 
       ref={setNodeRef}
       style={style}
-      className={`group relative overflow-hidden transition-all duration-200 hover:shadow-md border-border/50 hover:border-border ${
+      onClick={onClick}
+      className={`group relative overflow-hidden transition-all duration-200 hover:shadow-md hover:scale-[1.02] border-border/50 hover:border-border cursor-pointer ${
         isDragging ? 'opacity-50 rotate-2 scale-105 z-50' : ''
       }`}
     >

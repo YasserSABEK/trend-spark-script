@@ -1,6 +1,7 @@
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { ContentPlanCard } from './ContentPlanCard';
+import { AddIdeaCard } from './AddIdeaCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -26,6 +27,8 @@ interface KanbanColumnProps {
   items: ContentItem[];
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<ContentItem>) => void;
+  onContentCreated?: (content: ContentItem) => void;
+  onCardClick?: (item: ContentItem) => void;
   defaultCollapsed?: boolean;
 }
 
@@ -63,7 +66,7 @@ const getStatusTitle = (status: string) => {
   }
 };
 
-export function KanbanColumn({ id, title, items, onDelete, onUpdate, defaultCollapsed = false }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, items, onDelete, onUpdate, onContentCreated, onCardClick, defaultCollapsed = false }: KanbanColumnProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   
   const {
@@ -113,7 +116,12 @@ export function KanbanColumn({ id, title, items, onDelete, onUpdate, defaultColl
           }`}
         >
           <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
-            {items.length === 0 ? (
+            {/* Add Idea Card for Ideas column */}
+            {id === 'idea' && onContentCreated && (
+              <AddIdeaCard onContentCreated={onContentCreated} />
+            )}
+            
+            {items.length === 0 && id !== 'idea' ? (
               <div className="flex items-center justify-center h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg">
                 <p className="text-sm text-muted-foreground">
                   {id === 'archived' ? 'No archived content' : `Drop content here`}
@@ -126,6 +134,7 @@ export function KanbanColumn({ id, title, items, onDelete, onUpdate, defaultColl
                   item={item}
                   onDelete={onDelete}
                   onUpdate={onUpdate}
+                  onClick={() => onCardClick?.(item)}
                 />
               ))
             )}

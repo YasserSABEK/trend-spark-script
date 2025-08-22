@@ -20,7 +20,7 @@ import {
 } from '@dnd-kit/sortable';
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { ContentPlanCard } from "@/components/ContentPlanCard";
-import { NewContentModal } from "@/components/NewContentModal";
+import { ContentPlanModal } from "@/components/ContentPlanModal";
 import { Input } from "@/components/ui/input";
 import { Search, Kanban } from "lucide-react";
 
@@ -48,6 +48,8 @@ export default function ContentCalendar() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const { toast: showToast } = useToast();
 
   const sensors = useSensors(
@@ -139,6 +141,11 @@ export default function ContentCalendar() {
     setItems(prev => [newContent, ...prev]);
   };
 
+  const handleCardClick = (item: ContentItem) => {
+    setSelectedItem(item);
+    setModalOpen(true);
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   };
@@ -213,17 +220,14 @@ export default function ContentCalendar() {
       <div className="space-y-4 h-full">
         {/* Header */}
         <header className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-                <Kanban className="w-6 h-6 text-primary" />
-                Content Planner
-              </h1>
-              <p className="text-muted-foreground">
-                Plan, organize and track your content creation workflow
-              </p>
-            </div>
-            <NewContentModal onContentCreated={handleContentCreated} />
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+              <Kanban className="w-6 h-6 text-primary" />
+              Content Planner
+            </h1>
+            <p className="text-muted-foreground">
+              Plan, organize and track your content creation workflow
+            </p>
           </div>
 
           {/* Search */}
@@ -243,36 +247,21 @@ export default function ContentCalendar() {
         </header>
 
         {/* Kanban Board */}
-        {items.length === 0 && !searchTerm ? (
-          <div className="text-center py-12">
-            <div className="max-w-md mx-auto space-y-4">
-              <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                <Kanban className="w-8 h-8 text-primary/60" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-medium">Start Planning Your Content</h3>
-                <p className="text-sm text-muted-foreground">
-                  Create your first content idea and organize your workflow
-                </p>
-              </div>
-              <NewContentModal onContentCreated={handleContentCreated} />
-            </div>
-          </div>
-        ) : (
-          <div className="flex gap-4 overflow-x-auto pb-4 flex-1 min-h-0">
-            {STATUSES.map((status) => (
-              <KanbanColumn
-                key={status}
-                id={status}
-                title={status}
-                items={getItemsByStatus(status)}
-                onDelete={handleDeleteItem}
-                onUpdate={handleUpdateItem}
-                defaultCollapsed={status === 'archived'}
-              />
-            ))}
-          </div>
-        )}
+        <div className="flex gap-4 overflow-x-auto pb-4 flex-1 min-h-0">
+          {STATUSES.map((status) => (
+            <KanbanColumn
+              key={status}
+              id={status}
+              title={status}
+              items={getItemsByStatus(status)}
+              onDelete={handleDeleteItem}
+              onUpdate={handleUpdateItem}
+              onContentCreated={handleContentCreated}
+              onCardClick={handleCardClick}
+              defaultCollapsed={status === 'archived'}
+            />
+          ))}
+        </div>
 
         {/* Stats */}
         {items.length > 0 && (
@@ -291,6 +280,15 @@ export default function ContentCalendar() {
           </div>
         )}
       </div>
+
+      {/* Content Plan Modal */}
+      <ContentPlanModal
+        item={selectedItem}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onUpdate={handleUpdateItem}
+        onDelete={handleDeleteItem}
+      />
 
       {/* Drag Overlay */}
       <DragOverlay>
