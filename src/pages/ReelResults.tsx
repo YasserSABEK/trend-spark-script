@@ -17,15 +17,16 @@ interface InstagramReel {
   url: string;
   caption: string;
   hashtags: string[];
-  username: string;
-  display_name: string;
-  followers: number;
+  username: string | null;
+  display_name: string | null;
+  search_username: string | null;
+  followers: number | null;
   verified: boolean;
-  likes: number;
-  comments: number;
-  video_view_count: number;
-  viral_score: number;
-  engagement_rate: number;
+  likes: number | null;
+  comments: number | null;
+  video_view_count: number | null;
+  viral_score: number | null;
+  engagement_rate: number | null;
   timestamp: string;
   scraped_at: string;
   thumbnail_url: string;
@@ -144,19 +145,19 @@ export const ReelResults = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-primary">
-                    {formatNumber(reels.reduce((sum, reel) => sum + reel.likes, 0))}
+                    {formatNumber(reels.reduce((sum, reel) => sum + (reel.likes || 0), 0))}
                   </p>
                   <p className="text-sm text-muted-foreground">Total Likes</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-primary">
-                    {formatNumber(reels.reduce((sum, reel) => sum + reel.comments, 0))}
+                    {formatNumber(reels.reduce((sum, reel) => sum + (reel.comments || 0), 0))}
                   </p>
                   <p className="text-sm text-muted-foreground">Total Comments</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-primary">
-                    {Math.round(reels.reduce((sum, reel) => sum + reel.viral_score, 0) / reels.length)}
+                    {Math.round(reels.reduce((sum, reel) => sum + (reel.viral_score || 0), 0) / reels.length)}
                   </p>
                   <p className="text-sm text-muted-foreground">Avg Viral Score</p>
                 </div>

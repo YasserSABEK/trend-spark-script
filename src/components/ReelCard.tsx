@@ -21,8 +21,9 @@ interface InstagramReel {
   url: string;
   caption: string;
   hashtags: string[];
-  username: string;
-  display_name: string;
+  username: string | null;
+  display_name: string | null;
+  search_username: string | null;
   followers: number | null;
   verified: boolean;
   likes: number | null;
@@ -43,6 +44,10 @@ interface ReelCardProps {
 }
 
 export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
+  // Get the actual username and display name with fallbacks
+  const actualUsername = reel.username || reel.search_username || 'unknown';
+  const actualDisplayName = reel.display_name || reel.username || reel.search_username || 'Unknown Creator';
+
   const formatNumber = (num: number | null | undefined) => {
     if (num === null || num === undefined || isNaN(num)) return '0';
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -112,8 +117,8 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
             className="w-full h-full"
             thumbnailUrl={reel.thumbnail_url}
             caption={reel.caption}
-            username={reel.username}
-            displayName={reel.display_name}
+            username={actualUsername}
+            displayName={actualDisplayName}
             likes={reel.likes}
             comments={reel.comments}
             videoViewCount={reel.video_view_count}
@@ -145,12 +150,12 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         <div className="flex items-center gap-2 mb-3">
           <CreatorProfileAvatar 
             profilePhotoUrl={reel.profile_photo_url}
-            creatorName={reel.display_name || reel.username}
+            creatorName={actualDisplayName}
             size="sm"
           />
           <div className="flex-1">
             <div className="flex items-center gap-1">
-              <p className="font-semibold text-sm">@{reel.username}</p>
+              <p className="font-semibold text-sm">@{actualUsername}</p>
               {reel.verified && (
                 <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
                   <span className="text-white text-xs">✓</span>

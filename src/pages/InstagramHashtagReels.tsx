@@ -25,8 +25,9 @@ interface InstagramReel {
   url: string;
   caption: string;
   hashtags: string[];
-  username: string;
-  display_name: string;
+  username: string | null;
+  display_name: string | null;
+  search_username: string | null;
   followers: number | null;
   verified: boolean;
   likes: number | null;
