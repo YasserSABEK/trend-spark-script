@@ -7,11 +7,13 @@ import {
   MessageSquare, 
   Clock, 
   Bookmark,
+  Eye,
   ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { EnhancedInstagramEmbed } from "@/components/media/EnhancedInstagramEmbed";
+import { CreatorProfileAvatar } from "@/components/profile/CreatorProfileAvatar";
 
 interface InstagramReel {
   id: string;
@@ -32,6 +34,7 @@ interface InstagramReel {
   scraped_at: string;
   thumbnail_url: string;
   video_url?: string;
+  profile_photo_url?: string;
 }
 
 interface ReelCardProps {
@@ -140,11 +143,11 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
       <CardContent className="p-4">
         {/* Creator Info */}
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center">
-            <span className="text-white font-bold text-xs">
-              {(reel.display_name || reel.username).slice(0, 2).toUpperCase()}
-            </span>
-          </div>
+          <CreatorProfileAvatar 
+            profilePhotoUrl={reel.profile_photo_url}
+            creatorName={reel.display_name || reel.username}
+            size="sm"
+          />
           <div className="flex-1">
             <div className="flex items-center gap-1">
               <p className="font-semibold text-sm">@{reel.username}</p>
@@ -178,7 +181,7 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
         </div>
 
         {/* Engagement Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-4 text-center">
+        <div className="grid grid-cols-3 gap-2 mb-4 text-center">
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-1 text-sm font-medium">
               <Heart className="w-4 h-4 text-red-500" />
@@ -192,6 +195,13 @@ export const ReelCard = ({ reel, onGenerateScript }: ReelCardProps) => {
               {formatNumber(reel.comments)}
             </div>
             <span className="text-xs text-muted-foreground">Comments</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="flex items-center gap-1 text-sm font-medium">
+              <Eye className="w-4 h-4 text-green-500" />
+              {formatNumber(reel.video_view_count)}
+            </div>
+            <span className="text-xs text-muted-foreground">Views</span>
           </div>
         </div>
 

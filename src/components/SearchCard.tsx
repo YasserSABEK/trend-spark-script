@@ -21,6 +21,7 @@ interface SearchQueueItem {
   total_results: number;
   processing_time_seconds: number;
   error_message?: string;
+  profile_photo_url?: string;
 }
 
 interface SearchCardProps {
@@ -164,9 +165,44 @@ export const SearchCard = ({ search, onViewResults, onDelete }: SearchCardProps)
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer group">
       {/* Header with avatar-like design */}
       <div className="aspect-[4/3] bg-gradient-to-br from-instagram-pink/20 via-instagram-purple/20 to-instagram-orange/20 flex items-center justify-center relative overflow-hidden">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center">
+        {search.profile_photo_url ? (
+          <img 
+            src={`${search.profile_photo_url}${search.profile_photo_url.includes('?') ? '&' : '?'}v=${Date.now()}`}
+            data-proxy-src={`https://siafgzfpzowztfhlajtn.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(search.profile_photo_url)}&v=${Date.now()}`}
+            alt={`${displayText} profile`}
+            className="w-20 h-20 rounded-full object-cover border-2 border-white/20"
+            onLoad={(e) => {
+              console.log(`✅ Profile photo loaded for ${displayText}:`, e.currentTarget.src);
+              e.currentTarget.style.opacity = '1';
+            }}
+            style={{ opacity: '0', transition: 'opacity 0.3s' }}
+            onError={(e) => {
+              const target = e.currentTarget;
+              const proxyUrl = target.getAttribute('data-proxy-src');
+              console.log(`❌ Profile photo error for ${displayText}:`, {
+                originalUrl: search.profile_photo_url,
+                currentSrc: target.src,
+                hasProxy: !!proxyUrl,
+                usingProxy: target.src.includes('image-proxy')
+              });
+              
+              if (proxyUrl && !target.src.includes('image-proxy')) {
+                console.log('🔄 Trying proxy for', displayText, proxyUrl);
+                target.src = proxyUrl;
+              } else {
+                console.log('🚫 All loading failed for', displayText, '- showing fallback');
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }
+            }}
+          />
+        ) : null}
+        <div 
+          className={`w-20 h-20 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center ${search.profile_photo_url && !isHashtagSearch ? 'hidden' : ''}`}
+        >
           <span className="text-white font-bold text-xl">
-            {isHashtagSearch ? '#' : displayInitials.toUpperCase()}
+            {isHashtagSearch ? '#' : `@${displayInitials}`}
           </span>
         </div>
         

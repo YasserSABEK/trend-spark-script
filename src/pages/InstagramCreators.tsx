@@ -21,6 +21,7 @@ interface CreatorSearch {
   processing_time_seconds: number;
   completed_at?: string;
   error_message?: string;
+  profile_photo_url?: string | object;
 }
 
 export default function InstagramCreators() {
@@ -45,7 +46,7 @@ export default function InstagramCreators() {
     try {
       const { data, error } = await supabase
         .from('search_queue')
-        .select('id, username, status, requested_at, total_results, processing_time_seconds, completed_at, error_message')
+        .select('id, username, status, requested_at, total_results, processing_time_seconds, completed_at, error_message, profile_photo_url')
         .eq('user_id', user?.id)
         .eq('platform', 'instagram')
         .eq('search_type', 'creators')
@@ -61,7 +62,8 @@ export default function InstagramCreators() {
         total_results: item.total_results || 0,
         processing_time_seconds: item.processing_time_seconds || 0,
         completed_at: item.completed_at,
-        error_message: item.error_message
+        error_message: item.error_message,
+        profile_photo_url: item.profile_photo_url
       })) || [];
 
       setSearches(formattedSearches);
