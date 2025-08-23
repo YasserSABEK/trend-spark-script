@@ -122,9 +122,30 @@ export default function Billing() {
       
       // Open Stripe customer portal in a new tab
       window.open(data.url, '_blank');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error opening customer portal:', error);
-      toast.error('Failed to open subscription management');
+      
+      // Handle structured error responses from the improved edge function
+      if (error?.message) {
+        const errorData = typeof error.message === 'string' ? 
+          JSON.parse(error.message) : error.message;
+        
+        switch (errorData?.error) {
+          case 'CUSTOMER_CREATION_FAILED':
+            toast.error('Please create a subscription first to access billing management');
+            break;
+          case 'AUTHENTICATION_FAILED':
+            toast.error('Please sign in again to access billing');
+            break;
+          case 'CONFIGURATION_ERROR':
+            toast.error('Billing service temporarily unavailable. Please try again later.');
+            break;
+          default:
+            toast.error(errorData?.message || 'Failed to open subscription management');
+        }
+      } else {
+        toast.error('Failed to open subscription management');
+      }
     }
   };
 

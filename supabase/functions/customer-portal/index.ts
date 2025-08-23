@@ -24,10 +24,11 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    // Use anon key for user authentication
+    // Use service role key for proper authentication like check-subscription
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
     );
 
     const authHeader = req.headers.get("Authorization");
@@ -42,14 +43,36 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
-    // Find Stripe customer
+    // Find or create Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    if (customers.data.length === 0) {
-      throw new Error("No Stripe customer found for this user");
-    }
+    let customerId: string;
     
-    const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
+    if (customers.data.length === 0) {
+      logStep("No Stripe customer found, creating new customer");
+      try {
+        const newCustomer = await stripe.customers.create({
+          email: user.email,
+          metadata: {
+            supabase_user_id: user.id
+          }
+        });
+        customerId = newCustomer.id;
+        logStep("Created new Stripe customer", { customerId });
+      } catch (stripeError) {
+        logStep("Failed to create Stripe customer", { error: stripeError });
+        return new Response(JSON.stringify({ 
+          error: "CUSTOMER_CREATION_FAILED",
+          message: "Unable to access billing portal. Please try creating a subscription first.",
+          action: "create_subscription"
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+    } else {
+      customerId = customers.data[0].id;
+      logStep("Found existing Stripe customer", { customerId });
+    }
 
     const origin = req.headers.get("origin") || "https://app.viraltify.com";
     const portalSession = await stripe.billingPortal.sessions.create({
@@ -68,8 +91,37 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in customer-portal", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    logStep("ERROR in customer-portal", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined });
+    
+    // Categorize errors for better user experience
+    if (errorMessage.includes("Authentication error") || errorMessage.includes("User not authenticated")) {
+      return new Response(JSON.stringify({ 
+        error: "AUTHENTICATION_FAILED",
+        message: "Please log in again to access billing portal.",
+        action: "login"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+    
+    if (errorMessage.includes("STRIPE_SECRET_KEY")) {
+      return new Response(JSON.stringify({ 
+        error: "CONFIGURATION_ERROR",
+        message: "Billing service temporarily unavailable. Please try again later.",
+        action: "retry"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 503,
+      });
+    }
+    
+    // Generic error for other cases
+    return new Response(JSON.stringify({ 
+      error: "PORTAL_ACCESS_FAILED",
+      message: "Unable to access billing portal. Please contact support if this persists.",
+      action: "contact_support"
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
