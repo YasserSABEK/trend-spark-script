@@ -25,7 +25,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditWarning } from "@/components/credits/CreditWarning";
-import { PageContainer } from "@/components/layout/PageContainer";
+import { DashboardContainer } from "@/components/layout/DashboardContainer";
 
 const features = [
   {
@@ -160,7 +160,7 @@ export const Dashboard = () => {
   }
 
   return (
-    <PageContainer>
+    <DashboardContainer>
       <CreditWarning />
       
       {/* Hero Section */}
@@ -179,9 +179,9 @@ export const Dashboard = () => {
           const Icon = feature.icon;
           return (
             <Link key={feature.title} to={feature.href} className="group">
-              <Card className="h-full transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 border-2 hover:border-primary/20">
+              <Card variant="floating" className="h-full bg-white/80 backdrop-blur-sm border-white/20 group-hover:bg-white/90">
                 <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-float-sm`}>
                     <Icon className="w-8 h-8 text-white" />
                   </div>
                   <div className="space-y-2">
@@ -201,7 +201,7 @@ export const Dashboard = () => {
       </div>
 
       {/* Recent Searches */}
-      <Card className="mb-12">
+      <Card variant="floating" className="mb-12 bg-white/80 backdrop-blur-sm border-white/20">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div className="space-y-1">
             <CardTitle className="text-2xl">Recent Searches</CardTitle>
@@ -220,7 +220,7 @@ export const Dashboard = () => {
           {recentSearches.length > 0 ? (
             <div className="grid gap-4">
               {recentSearches.map((search) => (
-                <Card key={search.id} className="p-4 hover:shadow-md transition-all duration-200 border hover:border-primary/30">
+                <Card key={search.id} variant="floating" className="p-4 bg-white/70 backdrop-blur-sm border-white/20 hover:bg-white/80">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-r from-instagram-pink to-instagram-purple flex items-center justify-center text-white font-semibold">
@@ -299,7 +299,7 @@ export const Dashboard = () => {
       </Card>
 
       {/* Trending Now - Placeholder */}
-      <Card>
+      <Card variant="floating" className="bg-white/80 backdrop-blur-sm border-white/20">
         <CardHeader>
           <CardTitle className="text-2xl">Trending Now</CardTitle>
           <CardDescription>
@@ -333,6 +333,6 @@ export const Dashboard = () => {
           </div>
         </CardContent>
       </Card>
-    </PageContainer>
+    </DashboardContainer>
   );
 };

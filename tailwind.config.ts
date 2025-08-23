@@ -120,6 +120,17 @@ export default {
 			},
 			fontSize: {
 				'2xs': ['0.625rem', '0.75rem']
+			},
+			boxShadow: {
+				"shadow-brand": "var(--shadow-brand)",
+				"shadow-glow": "var(--shadow-glow)",
+				"float-sm": "var(--shadow-float-sm)",
+				"float-md": "var(--shadow-float-md)",
+				"float-lg": "var(--shadow-float-lg)",
+				"float-xl": "var(--shadow-float-xl)",
+			},
+			backgroundImage: {
+				"gradient-canva": "var(--gradient-canva)",
 			}
 		}
 	},

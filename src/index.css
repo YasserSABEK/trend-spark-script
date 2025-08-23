@@ -49,10 +49,15 @@ All colors MUST be HSL.
     /* Gradients */
     --gradient-instagram: linear-gradient(135deg, hsl(var(--instagram-pink)), hsl(var(--instagram-purple)));
     --gradient-hero: linear-gradient(135deg, hsl(var(--instagram-pink)), hsl(var(--instagram-orange)));
+    --gradient-canva: linear-gradient(140deg, hsl(248, 50%, 98%) 0%, hsl(251, 45%, 96%) 25%, hsl(254, 40%, 94%) 50%, hsl(248, 35%, 92%) 75%, hsl(246, 30%, 90%) 100%);
     
-    /* Shadows */
+    /* 3D Floating Shadows */
     --shadow-brand: 0 10px 30px -10px hsl(var(--primary) / 0.3);
     --shadow-glow: 0 0 40px hsl(var(--primary) / 0.2);
+    --shadow-float-sm: 0 4px 6px -1px hsl(var(--foreground) / 0.05), 0 2px 4px -1px hsl(var(--foreground) / 0.03);
+    --shadow-float-md: 0 8px 25px -5px hsl(var(--foreground) / 0.08), 0 4px 10px -3px hsl(var(--foreground) / 0.05);
+    --shadow-float-lg: 0 20px 25px -5px hsl(var(--foreground) / 0.1), 0 10px 10px -5px hsl(var(--foreground) / 0.04);
+    --shadow-float-xl: 0 25px 50px -12px hsl(var(--foreground) / 0.15), 0 12px 20px -8px hsl(var(--foreground) / 0.08);
 
     --radius: 0.75rem;
 
@@ -101,6 +106,10 @@ All colors MUST be HSL.
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+    
+    /* Dark mode gradients */
+    --gradient-canva: linear-gradient(140deg, hsl(224, 71%, 8%) 0%, hsl(224, 65%, 6%) 25%, hsl(224, 60%, 5%) 50%, hsl(224, 55%, 4%) 75%, hsl(224, 71%, 4%) 100%);
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

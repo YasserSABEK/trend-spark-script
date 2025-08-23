@@ -182,13 +182,7 @@ function AppContent() {
         <AppSidebar />
         
         <div className="flex-1 ml-36">
-          <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-            <div className="ml-auto flex items-center space-x-4">
-              {/* Additional header content can go here */}
-            </div>
-          </header>
-          
-          <main className="flex-1 p-6">
+          <main className="flex-1 min-h-screen bg-gradient-canva">
             <Routes>
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/tiktok-creators" element={<ProtectedRoute><TikTokCreators /></ProtectedRoute>} />
