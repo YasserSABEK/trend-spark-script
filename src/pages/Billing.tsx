@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { useCreditBalance } from "@/hooks/useCreditBalance";
+import { useRetryLogic } from "@/hooks/useRetryLogic";
+import { useBillingErrorHandler } from "@/hooks/useBillingErrorHandler";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,13 +14,16 @@ import {
   Zap, 
   Check,
   ArrowUpCircle,
-  ExternalLink
+  ExternalLink,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ViraltifyCheckout } from "@/components/checkout/ViraltifyCheckout";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { BillingErrorAlert } from "@/components/billing/BillingErrorAlert";
 
 
 const plans = [
@@ -99,6 +104,10 @@ export default function Billing() {
   const { balance, loading, plan, subscription, checkSubscriptionStatus } = useCreditBalance();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [lastError, setLastError] = useState<any>(null);
+  
+  const { executeWithRetry, isRetrying } = useRetryLogic();
+  const { handleBillingError } = useBillingErrorHandler();
   
   const handleUpgrade = (planSlug: string) => {
     if (!user) {
@@ -119,37 +128,40 @@ export default function Billing() {
       return;
     }
     
-    try {
+    const result = await executeWithRetry(async () => {
       const { data, error } = await supabase.functions.invoke('customer-portal');
       
       if (error) throw error;
       
-      // Open Stripe customer portal in a new tab
-      window.open(data.url, '_blank');
-    } catch (error: any) {
-      console.error('Error opening customer portal:', error);
-      
-      // Handle structured error responses from the improved edge function
-      if (error?.message) {
-        const errorData = typeof error.message === 'string' ? 
-          JSON.parse(error.message) : error.message;
-        
-        switch (errorData?.error) {
-          case 'CUSTOMER_CREATION_FAILED':
-            toast.error('Please create a subscription first to access billing management');
-            break;
-          case 'AUTHENTICATION_FAILED':
-            toast.error('Please sign in again to access billing');
-            break;
-          case 'CONFIGURATION_ERROR':
-            toast.error('Billing service temporarily unavailable. Please try again later.');
-            break;
-          default:
-            toast.error(errorData?.message || 'Failed to open subscription management');
-        }
-      } else {
-        toast.error('Failed to open subscription management');
+      if (data?.error) {
+        throw data;
       }
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+        setLastError(null); // Clear any previous errors on success
+        return data;
+      } else {
+        throw new Error("No portal URL received");
+      }
+    }, {
+      maxRetries: 2,
+      baseDelay: 1000,
+      onRetry: (attempt) => {
+        toast.info(`Retrying billing portal access... (${attempt}/2)`);
+      },
+      onFinalError: (error) => {
+        const errorDetails = handleBillingError(error, {
+          onRetry: handleManageSubscription,
+          showToast: false // We'll show our own error component
+        });
+        setLastError(errorDetails);
+      }
+    });
+
+    if (!result) {
+      // Error was handled in onFinalError
+      return;
     }
   };
 
@@ -181,12 +193,33 @@ export default function Billing() {
 
   return (
     <PageContainer maxWidth="7xl" className="space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2">Simple Credit-Based Billing</h1>
-        <p className="text-muted-foreground">
-          Every action costs 1 credit. No complicated caching or wait times.
-        </p>
+      <div className="flex items-center justify-between">
+        <div className="text-center flex-1">
+          <h1 className="text-3xl font-bold mb-2">Simple Credit-Based Billing</h1>
+          <p className="text-muted-foreground">
+            Every action costs 1 credit. No complicated caching or wait times.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={checkSubscriptionStatus}
+          disabled={loading}
+          className="gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh Status
+        </Button>
       </div>
+
+      {/* Error Alert */}
+      {lastError && (
+        <BillingErrorAlert
+          error={lastError}
+          onRetry={handleManageSubscription}
+          showDetails={true}
+        />
+      )}
 
       {/* Current Plan Overview */}
       {plan && (
@@ -308,15 +341,26 @@ export default function Billing() {
                       className="w-full" 
                       variant="outline"
                       onClick={handleManageSubscription}
+                      disabled={isRetrying}
                     >
-                      Manage Subscription
-                      <ExternalLink className="ml-2 h-4 w-4" />
+                      {isRetrying ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Opening Portal...
+                        </>
+                      ) : (
+                        <>
+                          Manage Subscription
+                          <ExternalLink className="ml-2 h-4 w-4" />
+                        </>
+                      )}
                     </Button>
                   ) : (
                     <Button 
                       className="w-full" 
                       variant={planItem.popular ? "default" : "outline"}
                       onClick={() => handleUpgrade(planItem.slug)}
+                      disabled={isRetrying}
                     >
                       Upgrade to {planItem.name}
                       <ArrowUpCircle className="h-4 w-4 ml-2" />

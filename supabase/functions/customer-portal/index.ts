@@ -12,6 +12,46 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CUSTOMER-PORTAL] ${step}${detailsStr}`);
 };
 
+// Helper function to get or create portal configuration
+const getOrCreatePortalConfiguration = async (stripe: any) => {
+  try {
+    // Try to get existing configurations
+    const configs = await stripe.billingPortal.configurations.list({ limit: 1 });
+    if (configs.data.length > 0) {
+      logStep("Using existing portal configuration", { configId: configs.data[0].id });
+      return configs.data[0].id;
+    }
+    
+    // Create a basic configuration if none exists
+    logStep("Creating new portal configuration");
+    const config = await stripe.billingPortal.configurations.create({
+      business_profile: {
+        headline: "Manage your Viraltify subscription",
+      },
+      features: {
+        payment_method_update: { enabled: true },
+        subscription_cancel: { 
+          enabled: true,
+          mode: "at_period_end",
+          cancellation_reason: { enabled: true }
+        },
+        subscription_update: {
+          enabled: true,
+          default_allowed_updates: ["price"],
+          proration_behavior: "always_invoice"
+        },
+        invoice_history: { enabled: true },
+      },
+    });
+    
+    logStep("Created new portal configuration", { configId: config.id });
+    return config.id;
+  } catch (error) {
+    logStep("Failed to create portal configuration", { error: error.message });
+    throw error;
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -75,10 +115,36 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "https://app.viraltify.com";
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: `${origin}/billing`,
-    });
+    
+    // Create portal session with configuration to handle missing default config
+    let portalSession;
+    try {
+      portalSession = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${origin}/billing`,
+        configuration: await getOrCreatePortalConfiguration(stripe),
+      });
+    } catch (configError) {
+      // Fallback: try without configuration for existing setups
+      logStep("Portal configuration failed, trying fallback", { error: configError.message });
+      try {
+        portalSession = await stripe.billingPortal.sessions.create({
+          customer: customerId,
+          return_url: `${origin}/billing`,
+        });
+      } catch (fallbackError) {
+        logStep("Fallback portal creation failed", { error: fallbackError.message });
+        return new Response(JSON.stringify({ 
+          error: "PORTAL_CONFIGURATION_REQUIRED",
+          message: "Billing portal is not configured. Please contact support or complete Stripe setup.",
+          action: "contact_support",
+          setup_url: "https://dashboard.stripe.com/settings/billing/portal"
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 503,
+        });
+      }
+    }
     
     logStep("Customer portal session created", { 
       sessionId: portalSession.id, 
