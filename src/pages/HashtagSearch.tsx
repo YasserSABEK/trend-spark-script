@@ -149,7 +149,7 @@ export function HashtagSearch() {
     setFilteredVideos(filtered);
   }, [videos, selectedHashtag, hashtagFilter, minViralScore, minViews, timeRange, sortBy]);
 
-  const scrapeHashtagPosts = async (hashtag: string, offset = 0) => {
+  const scrapeHashtagPosts = async (hashtag: string, offset = 0, retryCount = 0) => {
     if (!user) {
       toast.error("Please sign in to search hashtags");
       return;
@@ -162,6 +162,8 @@ export function HashtagSearch() {
     }
 
     const isFirstPage = offset === 0;
+    const maxRetries = 3;
+    
     if (isFirstPage) {
       setLoading(true);
       // Reset state for new search
@@ -190,6 +192,8 @@ export function HashtagSearch() {
     }
     
     try {
+      console.log(`Attempting hashtag search: ${cleanHashtag} (offset: ${offset}, retry: ${retryCount})`);
+      
       const { data, error } = await supabase.functions.invoke('scrape-tiktok-hashtags', {
         body: { 
           hashtag: cleanHashtag,
@@ -200,8 +204,24 @@ export function HashtagSearch() {
 
       if (error) {
         console.error('Function invoke error:', error);
-        toast.error(`Network error: ${error.message}`);
-        // Remove temporary entry on error (only for first page)
+        
+        // Implement retry logic with exponential backoff
+        if (retryCount < maxRetries) {
+          const retryDelay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+          console.log(`Retrying in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+          
+          setTimeout(() => {
+            scrapeHashtagPosts(hashtag, offset, retryCount + 1);
+          }, retryDelay);
+          
+          if (retryCount === 0) {
+            toast.error(`Network error - retrying automatically...`);
+          }
+          return;
+        }
+        
+        toast.error(`Failed after ${maxRetries} attempts: ${error.message}`);
+        // Remove temporary entry on final error (only for first page)
         if (isFirstPage && tempSearchEntry) {
           setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
         }
@@ -211,6 +231,27 @@ export function HashtagSearch() {
       // Check if the response indicates success or failure
       if (data?.success === false) {
         console.error('Function returned error:', data);
+        
+        // Retry for certain errors that might be temporary
+        const retryableErrors = ['timeout', 'network', 'api', 'temporary'];
+        const isRetryable = retryableErrors.some(err => 
+          (data.error || '').toLowerCase().includes(err)
+        );
+        
+        if (isRetryable && retryCount < maxRetries) {
+          const retryDelay = Math.pow(2, retryCount) * 1000;
+          console.log(`Retrying failed search in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+          
+          setTimeout(() => {
+            scrapeHashtagPosts(hashtag, offset, retryCount + 1);
+          }, retryDelay);
+          
+          if (retryCount === 0) {
+            toast.error(`Search failed - retrying automatically...`);
+          }
+          return;
+        }
+        
         toast.error(data.error || "Failed to search hashtag - please try again");
         // Remove temporary entry on error (only for first page)
         if (isFirstPage && tempSearchEntry) {
@@ -221,7 +262,13 @@ export function HashtagSearch() {
 
       if (data?.success) {
         if (isFirstPage) {
-          toast.success(`Found ${data.videosFound} TikTok videos for #${cleanHashtag}`);
+          // Show total available vs processed for transparency
+          const totalMessage = data.totalAvailable > data.videosFound 
+            ? `Found ${data.totalAvailable} total videos, showing first ${data.videosFound} for #${cleanHashtag}`
+            : `Found ${data.videosFound} TikTok videos for #${cleanHashtag}`;
+          
+          toast.success(totalMessage);
+          
           // Remove temporary entry and reload search history
           if (tempSearchEntry) {
             setSearches(prev => prev.filter(s => s.id !== tempSearchEntry.id));
@@ -235,15 +282,37 @@ export function HashtagSearch() {
           toast.success(`Loaded ${data.videosFound} more videos`);
         }
         
-        // Update pagination state
+        // Update pagination state with accurate information
         setHasMore(data.hasMore || false);
         setCurrentOffset(data.offset + data.videosFound);
+        
+        console.log(`Pagination updated:
+        - Has more: ${data.hasMore}
+        - New offset: ${data.offset + data.videosFound}
+        - Total available: ${data.totalAvailable}
+        - Videos in this batch: ${data.videosFound}`);
         
         // Load videos from database
         await loadHashtagVideos();
       }
     } catch (error: any) {
       console.error('Network error:', error);
+      
+      // Retry network errors
+      if (retryCount < maxRetries) {
+        const retryDelay = Math.pow(2, retryCount) * 1000;
+        console.log(`Retrying network error in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+        
+        setTimeout(() => {
+          scrapeHashtagPosts(hashtag, offset, retryCount + 1);
+        }, retryDelay);
+        
+        if (retryCount === 0) {
+          toast.error("Network error - retrying automatically...");
+        }
+        return;
+      }
+      
       toast.error("Network error - please check your connection and try again");
       // Remove temporary entry on error (only for first page)
       if (isFirstPage && tempSearchEntry) {
@@ -271,16 +340,19 @@ export function HashtagSearch() {
         .select('*')
         .not('search_hashtag', 'is', null)
         .order('viral_score', { ascending: false })
-        .limit(50);
+        .limit(200); // Increased limit to show more videos
 
       if (error) {
         console.error('Error loading TikTok videos:', error);
+        toast.error("Failed to load videos from database");
         return;
       }
 
+      console.log(`Loaded ${data?.length || 0} videos from database`);
       setVideos(data || []);
     } catch (error) {
       console.error('Error loading TikTok videos:', error);
+      toast.error("Failed to load videos");
     }
   };
 

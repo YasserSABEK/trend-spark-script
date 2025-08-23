@@ -152,82 +152,183 @@ serve(async (req) => {
 
     const actorId = '5K30i8aFccKNF5ICs'; // Official apidojo/tiktok-scraper actor ID
     
-    // Calculate pagination parameters for Apify
-    const maxItems = Math.min(limit, 50); // Cap at 50 to prevent timeouts
+    // Enhanced pagination to fetch more videos (up to 100 total)
+    const maxItems = Math.min(100, offset + limit); // Fetch up to 100 videos total
+    const targetLimit = Math.min(limit, 50); // Still limit per-page response
     
     const input = {
       customMapFunction: "(object) => { return {...object} }",
       includeSearchKeywords: false,
-      maxItems: offset + maxItems, // Total items to fetch including offset
+      maxItems: maxItems, // Fetch more videos to ensure good pagination
       sortType: "RELEVANCE",
-      startUrls: [`https://www.tiktok.com/tag/${cleanHashtag}`]
+      startUrls: [`https://www.tiktok.com/tag/${cleanHashtag}`],
+      // Add additional parameters for better scraping reliability
+      proxyConfiguration: {
+        useApifyProxy: true
+      }
     };
 
     console.log('Starting Apify run with input:', JSON.stringify(input, null, 2));
 
-    // Start Apify run
-    const startResponse = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apifyToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(input),
-    });
+    // Start Apify run with enhanced error handling
+    let startResponse;
+    let retryCount = 0;
+    const maxStartRetries = 3;
+    
+    while (retryCount < maxStartRetries) {
+      try {
+        startResponse = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apifyToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(input),
+        });
 
-    if (!startResponse.ok) {
-      const errorText = await startResponse.text();
-      console.error(`Apify API Error: ${startResponse.status} ${startResponse.statusText}`, errorText);
-      throw new Error(`Failed to start Apify run: ${startResponse.statusText} - ${errorText}`);
+        if (startResponse.ok) break;
+        
+        const errorText = await startResponse.text();
+        console.error(`Apify API Error (attempt ${retryCount + 1}): ${startResponse.status} ${startResponse.statusText}`, errorText);
+        
+        if (retryCount === maxStartRetries - 1) {
+          throw new Error(`Failed to start Apify run after ${maxStartRetries} attempts: ${startResponse.statusText} - ${errorText}`);
+        }
+        
+        // Wait before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+        retryCount++;
+      } catch (fetchError) {
+        console.error(`Network error starting Apify run (attempt ${retryCount + 1}):`, fetchError);
+        if (retryCount === maxStartRetries - 1) {
+          throw new Error(`Network error starting Apify run: ${fetchError}`);
+        }
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+        retryCount++;
+      }
     }
 
-    const startData = await startResponse.json();
+    const startData = await startResponse!.json();
     const runId = startData.data.id;
     console.log(`Started Apify run: ${runId}`);
 
-    // Poll for completion
+    // Poll for completion with enhanced monitoring
     let attempts = 0;
-    const maxAttempts = 60; // 5 minutes max
+    const maxAttempts = 120; // Increased to 10 minutes max for better success rate
     let runData;
+    let lastStatus = 'RUNNING';
 
     while (attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
 
-      const statusResponse = await fetch(`https://api.apify.com/v2/actor-runs/${runId}`, {
-        headers: { 'Authorization': `Bearer ${apifyToken}` },
-      });
+      try {
+        const statusResponse = await fetch(`https://api.apify.com/v2/actor-runs/${runId}`, {
+          headers: { 'Authorization': `Bearer ${apifyToken}` },
+        });
 
-      runData = await statusResponse.json();
-      const status = runData.data.status;
-      
-      console.log(`Run status (attempt ${attempts + 1}): ${status}`);
+        if (!statusResponse.ok) {
+          console.error(`Error checking run status: ${statusResponse.status}`);
+          attempts++;
+          continue;
+        }
 
-      if (status === 'SUCCEEDED') {
-        console.log('Run completed successfully');
-        break;
-      } else if (status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') {
-        throw new Error(`Apify run failed with status: ${status}`);
+        runData = await statusResponse.json();
+        const status = runData.data.status;
+        
+        // Only log status changes to reduce noise
+        if (status !== lastStatus) {
+          console.log(`Run status changed to: ${status} (after ${attempts + 1} attempts)`);
+          lastStatus = status;
+        }
+
+        if (status === 'SUCCEEDED') {
+          console.log('Run completed successfully');
+          break;
+        } else if (status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') {
+          const errorMessage = runData.data.errorMessage || `Run failed with status: ${status}`;
+          console.error(`Apify run failed:`, errorMessage);
+          throw new Error(`Apify run failed: ${errorMessage}`);
+        }
+
+        attempts++;
+      } catch (statusError) {
+        console.error(`Error checking run status (attempt ${attempts + 1}):`, statusError);
+        attempts++;
+        // Continue polling unless it's the last attempt
+        if (attempts >= maxAttempts) {
+          throw new Error(`Failed to check run status: ${statusError}`);
+        }
       }
-
-      attempts++;
     }
 
     if (attempts >= maxAttempts) {
-      throw new Error('Apify run timed out');
+      console.error(`Run timed out after ${maxAttempts} attempts (${maxAttempts * 5} seconds)`);
+      throw new Error(`Apify run timed out after ${Math.round(maxAttempts * 5 / 60)} minutes`);
     }
 
-    // Get results from dataset
+    // Get results from dataset with enhanced error handling
     const datasetId = runData.data.defaultDatasetId;
-    const datasetResponse = await fetch(`https://api.apify.com/v2/datasets/${datasetId}/items`, {
-      headers: { 'Authorization': `Bearer ${apifyToken}` },
-    });
+    if (!datasetId) {
+      throw new Error('No dataset ID found in Apify run data');
+    }
+    
+    console.log(`Using dataset ID: ${datasetId}`);
+    
+    let datasetResponse;
+    let retryCount = 0;
+    const maxDatasetRetries = 3;
+    
+    while (retryCount < maxDatasetRetries) {
+      try {
+        datasetResponse = await fetch(`https://api.apify.com/v2/datasets/${datasetId}/items`, {
+          headers: { 'Authorization': `Bearer ${apifyToken}` },
+        });
 
-    const allVideos = await datasetResponse.json();
+        if (datasetResponse.ok) break;
+        
+        console.error(`Dataset fetch error (attempt ${retryCount + 1}): ${datasetResponse.status}`);
+        if (retryCount === maxDatasetRetries - 1) {
+          throw new Error(`Failed to fetch dataset after ${maxDatasetRetries} attempts: ${datasetResponse.statusText}`);
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+        retryCount++;
+      } catch (fetchError) {
+        console.error(`Network error fetching dataset (attempt ${retryCount + 1}):`, fetchError);
+        if (retryCount === maxDatasetRetries - 1) {
+          throw new Error(`Network error fetching dataset: ${fetchError}`);
+        }
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+        retryCount++;
+      }
+    }
+
+    let allVideos;
+    try {
+      allVideos = await datasetResponse!.json();
+      if (!Array.isArray(allVideos)) {
+        console.error('Dataset response is not an array:', allVideos);
+        allVideos = [];
+      }
+    } catch (parseError) {
+      console.error('Error parsing dataset JSON:', parseError);
+      allVideos = [];
+    }
+    
     console.log(`Retrieved ${allVideos.length} videos for hashtag: ${cleanHashtag}`);
     
-    // Apply pagination to the results
-    const videos = allVideos.slice(offset, offset + limit);
-    console.log(`Paginated to ${videos.length} videos (offset: ${offset}, limit: ${limit})`);
+    // Apply pagination to the results  
+    const videos = allVideos.slice(offset, offset + targetLimit);
+    console.log(`Paginated to ${videos.length} videos (offset: ${offset}, limit: ${targetLimit})`);
+    
+    // Log pagination details for debugging
+    console.log(`Pagination details:
+    - Total videos fetched from Apify: ${allVideos.length}
+    - Requested offset: ${offset}
+    - Requested limit: ${limit}
+    - Target limit: ${targetLimit}
+    - Videos being processed: ${videos.length}
+    - Has more videos: ${allVideos.length > offset + videos.length}`);
     
     // Log sample video structure for debugging
     if (videos.length > 0) {
@@ -382,12 +483,12 @@ serve(async (req) => {
     const processingTime = Math.round((endTime.getTime() - startTime.getTime()) / 1000);
 
     if (searchEntry?.id && offset === 0) {
-      // Only update search queue status for the first page
+      // For first page, update with total available videos and actual processed count
       const { error: updateError } = await supabase
         .from('search_queue')
         .update({ 
           status: 'completed',
-          total_results: processedVideos.length,
+          total_results: allVideos.length, // Store total videos found by scraper
           processing_time_seconds: processingTime,
           completed_at: endTime.toISOString()
         })
@@ -395,6 +496,8 @@ serve(async (req) => {
 
       if (updateError) {
         console.error('Error updating search queue:', updateError);
+      } else {
+        console.log(`✅ Search queue updated: ${allVideos.length} total videos found, ${processedVideos.length} processed in this batch`);
       }
     }
 
@@ -406,10 +509,12 @@ serve(async (req) => {
         videosFound: processedVideos.length,
         processingTimeSeconds: processingTime,
         offset: offset,
-        limit: limit,
-        hasMore: allVideos.length > offset + limit, // Check if there are more videos available
+        limit: targetLimit,
+        hasMore: allVideos.length > offset + videos.length, // Check if there are more videos available
         totalFetched: offset + processedVideos.length,
-        totalAvailable: allVideos.length
+        totalAvailable: allVideos.length,
+        actualVideosInBatch: videos.length, // Debug info
+        processedVideosCount: processedVideos.length // Debug info
       }),
       { 
         status: 200, 
