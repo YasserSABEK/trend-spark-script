@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ViraltifyCheckout } from "@/components/checkout/ViraltifyCheckout";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 
 const plans = [
@@ -154,7 +155,7 @@ export default function Billing() {
     : 0;
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
+    <PageContainer maxWidth="7xl" className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-2">Simple Credit-Based Billing</h1>
         <p className="text-muted-foreground">
@@ -236,7 +237,7 @@ export default function Billing() {
           return (
             <Card 
               key={planItem.name} 
-              className={`relative ${planItem.popular ? 'border-primary shadow-lg' : ''} ${isCurrentPlan ? 'bg-primary/5 border-primary' : ''}`}
+              className={`relative h-full flex flex-col ${planItem.popular ? 'border-primary shadow-lg' : ''} ${isCurrentPlan ? 'bg-primary/5 border-primary' : ''}`}
             >
               {planItem.popular && (
                 <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground">
@@ -260,8 +261,8 @@ export default function Billing() {
                 </CardDescription>
               </CardHeader>
               
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className="flex-1 flex flex-col space-y-4">
+                <div className="space-y-2 flex-1">
                   {planItem.features.map((feature, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-primary flex-shrink-0" />
@@ -270,25 +271,27 @@ export default function Billing() {
                   ))}
                 </div>
                 
-                {isCurrentPlan ? (
-                  <Button 
-                    className="w-full" 
-                    variant="outline"
-                    onClick={handleManageSubscription}
-                  >
-                    Manage Subscription
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button 
-                    className="w-full" 
-                    variant={planItem.popular ? "default" : "outline"}
-                    onClick={() => handleUpgrade(planItem.slug)}
-                  >
-                    Upgrade to {planItem.name}
-                    <ArrowUpCircle className="h-4 w-4 ml-2" />
-                  </Button>
-                )}
+                <div className="mt-auto">
+                  {isCurrentPlan ? (
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={handleManageSubscription}
+                    >
+                      Manage Subscription
+                      <ExternalLink className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button 
+                      className="w-full" 
+                      variant={planItem.popular ? "default" : "outline"}
+                      onClick={() => handleUpgrade(planItem.slug)}
+                    >
+                      Upgrade to {planItem.name}
+                      <ArrowUpCircle className="h-4 w-4 ml-2" />
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           );
@@ -355,6 +358,6 @@ export default function Billing() {
           planCredits={selectedPlan.credits}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }
