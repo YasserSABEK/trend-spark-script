@@ -58,9 +58,9 @@ const Pricing = () => {
       price: "$19",
       period: "per month",
       description: "For serious content creators",
-      credits: "75 credits/month",
+      credits: "50 credits/month",
       features: [
-        "75 AI-generated scripts",
+        "50 AI-generated scripts",
         "Advanced trending discovery",
         "Performance analytics",
         "Priority support",

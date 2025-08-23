@@ -119,7 +119,7 @@ export const FeatureShowcase = () => {
               <CardTitle className="text-sm">Starter</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Badge variant="outline" className="w-full justify-center bg-green-50">100 Credits</Badge>
+              <Badge variant="outline" className="w-full justify-center bg-green-50">50 Credits</Badge>
               <Badge variant="outline" className="w-full justify-center">Unlimited Profiles</Badge>
               <div className="text-xs text-muted-foreground">All features</div>
             </CardContent>
@@ -130,7 +130,7 @@ export const FeatureShowcase = () => {
               <CardTitle className="text-sm">Pro</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Badge variant="outline" className="w-full justify-center bg-blue-50">500 Credits</Badge>
+              <Badge variant="outline" className="w-full justify-center bg-blue-50">200 Credits</Badge>
               <Badge variant="outline" className="w-full justify-center">Advanced Analytics</Badge>
               <div className="text-xs text-muted-foreground">Premium support</div>
             </CardContent>
