@@ -87,8 +87,8 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/checkout/cancel?plan=${planSlug}`,
+      success_url: `${req.headers.get("origin")}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.get("origin")}/billing?canceled=true&plan=${planSlug}`,
       metadata: {
         plan_slug: planSlug,
         user_id: user.id,

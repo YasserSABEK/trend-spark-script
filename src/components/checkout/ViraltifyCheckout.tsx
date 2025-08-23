@@ -62,17 +62,8 @@ export const ViraltifyCheckout = ({
 
       if (error) throw error;
 
-      // Open Stripe checkout in a new tab with better UX
-      const checkoutWindow = window.open(data.url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-      
-      // Optional: Close modal after opening checkout
-      setTimeout(() => {
-        onClose();
-        toast({
-          title: "Checkout opened!",
-          description: "Complete your payment in the new tab to activate your subscription.",
-        });
-      }, 1000);
+      // Redirect to Stripe checkout on the same page
+      window.location.href = data.url;
 
     } catch (error) {
       console.error('Error creating checkout session:', error);
