@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Settings, User, LogOut } from 'lucide-react';
+import { Settings, User, LogOut, CreditCard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface SidebarProfileSectionProps {
@@ -77,6 +77,13 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
             <Link to="/settings" className="flex items-center">
               <Settings className="mr-2 h-4 w-4" />
               Settings
+            </Link>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem asChild>
+            <Link to="/billing" className="flex items-center">
+              <CreditCard className="mr-2 h-4 w-4" />
+              Billing
             </Link>
           </DropdownMenuItem>
           

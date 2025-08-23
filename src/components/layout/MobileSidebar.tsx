@@ -5,7 +5,6 @@ import {
   Hash,
   Edit3, 
   Bookmark,
-  CreditCard,
   Instagram,
   Music2,
   Calendar,
@@ -26,7 +25,6 @@ const navigationItems = [
 const bottomNavigationItems = [
   { title: "Script Generator", url: "/script-generator", icon: Edit3 },
   { title: "Content Calendar", url: "/content-calendar", icon: Calendar },
-  { title: "Billing", url: "/billing", icon: CreditCard },
 ];
 
 const instagramItems = [

@@ -3,7 +3,6 @@ import {
   Home, 
   Edit3, 
   Bookmark,
-  CreditCard,
   Instagram,
   Music2,
   Calendar,
@@ -61,7 +60,6 @@ const navigationItems = [
   { title: "Creators", url: "/creator-profiles", icon: UserCog, tooltip: "Creator Profiles", type: "direct" },
   { title: "Scripts", icon: Edit3, tooltip: "Script Tools", type: "flyout", flyoutData: [{ title: "Scripts", items: scriptsItems }] },
   { title: "Calendar", url: "/content-calendar", icon: Calendar, tooltip: "Content Calendar", type: "direct" },
-  { title: "Billing", url: "/billing", icon: CreditCard, tooltip: "Billing & Plans", type: "direct" },
 ];
 
 export function AppSidebar() {
