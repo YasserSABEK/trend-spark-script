@@ -46,6 +46,11 @@ const savedItems = [
   { title: "Creators", url: "/saved-creators", icon: Users, description: "Your saved creators" },
 ];
 
+const scriptsItems = [
+  { title: "Generate Script", url: "/script-generator", icon: Edit3, description: "Create new scripts" },
+  { title: "My Scripts", url: "/my-scripts", icon: FileText, description: "View your scripts" },
+];
+
 // Navigation items with flyout support
 const navigationItems = [
   { title: "Home", url: "/dashboard", icon: Home, tooltip: "Dashboard Home", type: "direct" },
@@ -53,7 +58,7 @@ const navigationItems = [
   { title: "TikTok", icon: Music2, tooltip: "TikTok Creators & Content", type: "flyout", flyoutData: [{ title: "TikTok", items: tiktokItems }] },
   { title: "Saved", icon: Bookmark, tooltip: "Your Saved Content", type: "flyout", flyoutData: [{ title: "Saved", items: savedItems }] },
   { title: "Creators", url: "/creator-profiles", icon: UserCog, tooltip: "Creator Profiles", type: "direct" },
-  { title: "Scripts", url: "/script-generator", icon: Edit3, tooltip: "Script Generator", type: "direct" },
+  { title: "Scripts", icon: Edit3, tooltip: "Script Tools", type: "flyout", flyoutData: [{ title: "Scripts", items: scriptsItems }] },
   { title: "Calendar", url: "/content-calendar", icon: Calendar, tooltip: "Content Calendar", type: "direct" },
   { title: "Billing", url: "/billing", icon: CreditCard, tooltip: "Billing & Plans", type: "direct" },
 ];
