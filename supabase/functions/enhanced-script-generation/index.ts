@@ -51,12 +51,10 @@ serve(async (req) => {
 
     logStep("Request parameters", { post_id, highAccuracy, format });
 
-    // Calculate credit cost
-    const baseCost = 1;
-    const highAccuracyCost = highAccuracy ? 1 : 0;
-    const totalCost = baseCost + highAccuracyCost;
+    // Calculate credit cost - standardized to 1 credit for all actions
+    const totalCost = 1;
 
-    logStep("Credit calculation", { baseCost, highAccuracyCost, totalCost });
+    logStep("Credit calculation", { totalCost });
 
     // Spend credits
     const { data: spendResult, error: spendError } = await supabaseClient

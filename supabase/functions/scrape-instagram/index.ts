@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
         // Use secure credit deduction with proper validation
         const { data: creditResult, error: creditError } = await supabase.rpc('spend_credits', {
           user_id_param: userId,
-          amount_param: 2,
+          amount_param: 1,
           reason_param: 'instagram_user_scrape',
           ref_type_param: 'user',
           ref_id_param: username

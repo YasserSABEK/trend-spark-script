@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     }
 
     // Deduct credits first
-    const creditCost = 5;
+    const creditCost = 1;
     const { data: creditResult, error: creditError } = await supabase.rpc('spend_credits', {
       user_id_param: user.id,
       amount_param: creditCost,
