@@ -14,9 +14,10 @@ import {
   ArrowUpCircle,
   ExternalLink
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ViraltifyCheckout } from "@/components/checkout/ViraltifyCheckout";
 
 
 const plans = [
@@ -91,7 +92,8 @@ const plans = [
 export default function Billing() {
   const { user } = useAuth();
   const { balance, loading, plan, subscription, checkSubscriptionStatus } = useCreditBalance();
-  const navigate = useNavigate();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
   
   const handleUpgrade = (planSlug: string) => {
     if (!user) {
@@ -99,7 +101,11 @@ export default function Billing() {
       return;
     }
     
-    navigate(`/checkout?plan=${planSlug}`);
+    const planDetails = plans.find(p => p.slug === planSlug);
+    if (planDetails) {
+      setSelectedPlan(planDetails);
+      setCheckoutOpen(true);
+    }
   };
 
   const handleManageSubscription = async () => {
@@ -335,6 +341,20 @@ export default function Billing() {
         </CardContent>
       </Card>
 
+      {/* Checkout Modal */}
+      {selectedPlan && (
+        <ViraltifyCheckout
+          isOpen={checkoutOpen}
+          onClose={() => {
+            setCheckoutOpen(false);
+            setSelectedPlan(null);
+          }}
+          planSlug={selectedPlan.slug}
+          planName={selectedPlan.name}
+          planPrice={parseInt(selectedPlan.price.replace('$', ''))}
+          planCredits={selectedPlan.credits}
+        />
+      )}
     </div>
   );
 }

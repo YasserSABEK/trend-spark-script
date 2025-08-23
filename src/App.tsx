@@ -39,9 +39,6 @@ import { MyScripts } from "./pages/MyScripts";
 import { Content } from "./pages/Content";
 import ContentCalendar from "./pages/ContentCalendar";
 import Billing from "./pages/Billing";
-import Checkout from "./pages/Checkout";
-import CheckoutSuccess from "./pages/CheckoutSuccess";
-import CheckoutCancel from "./pages/CheckoutCancel";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import SavedCreators from "./pages/SavedCreators";
@@ -168,9 +165,6 @@ function AppContent() {
             <Route path="/saved-creators" element={<ProtectedRoute><SavedCreators /></ProtectedRoute>} />
             <Route path="/content-calendar" element={<ProtectedRoute><ContentCalendar /></ProtectedRoute>} />
             <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-            <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-            <Route path="/checkout/success" element={<ProtectedRoute><CheckoutSuccess /></ProtectedRoute>} />
-            <Route path="/checkout/cancel" element={<ProtectedRoute><CheckoutCancel /></ProtectedRoute>} />
             <Route path="/test-apify-access" element={<ProtectedRoute><TestApifyAccess /></ProtectedRoute>} />
             <Route path="/system-status" element={<ProtectedRoute><SystemStatus /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
@@ -245,9 +239,6 @@ function AppContent() {
               <Route path="/saved-creators" element={<ProtectedRoute><SavedCreators /></ProtectedRoute>} />
               <Route path="/content-calendar" element={<ProtectedRoute><ContentCalendar /></ProtectedRoute>} />
               <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-              <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-              <Route path="/checkout/success" element={<ProtectedRoute><CheckoutSuccess /></ProtectedRoute>} />
-              <Route path="/checkout/cancel" element={<ProtectedRoute><CheckoutCancel /></ProtectedRoute>} />
               <Route path="/test-apify-access" element={<ProtectedRoute><TestApifyAccess /></ProtectedRoute>} />
               <Route path="/system-status" element={<ProtectedRoute><SystemStatus /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />

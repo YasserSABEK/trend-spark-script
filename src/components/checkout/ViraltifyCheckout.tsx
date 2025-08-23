@@ -90,16 +90,27 @@ export const ViraltifyCheckout = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl bg-gradient-to-br from-background via-background/95 to-muted/20 border-border/50 backdrop-blur-sm">
-        <DialogHeader className="space-y-4">
-          <DialogTitle className="text-3xl font-bold text-center">
-            <span className="bg-gradient-to-r from-instagram-pink via-instagram-purple to-instagram-orange bg-clip-text text-transparent">
-              Upgrade to {planName}
-            </span>
-          </DialogTitle>
-          <p className="text-center text-muted-foreground">
-            Join thousands of creators making viral content with AI
-          </p>
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-background via-background/95 to-muted/20 border-border/50 backdrop-blur-sm">
+        <DialogHeader className="space-y-4 text-center">
+          {/* Logo and Branding Section */}
+          <div className="flex items-center justify-between">
+            <div className="flex-1" />
+            <div className="flex-1 text-center">
+              <DialogTitle className="text-3xl font-bold">
+                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                  Upgrade to {planName}
+                </span>
+              </DialogTitle>
+              <p className="text-muted-foreground mt-2">
+                Join thousands of creators making viral content with AI
+              </p>
+            </div>
+            <div className="flex-1 flex justify-end">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
+                <span className="text-white font-bold text-lg">V</span>
+              </div>
+            </div>
+          </div>
         </DialogHeader>
         
         <div className="space-y-6">
