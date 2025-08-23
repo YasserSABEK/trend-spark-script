@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarProfileSection } from "@/components/profile/SidebarProfileSection";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -75,7 +76,7 @@ export function MobileSidebar({ onClose }: MobileSidebarProps) {
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b p-4">
+      <div className="border-b p-4 flex-shrink-0">
         <div className="flex items-center">
           <img 
             src="/lovable-uploads/20438a19-0f33-4e14-ad03-f2ce206ada62.png" 
@@ -86,7 +87,9 @@ export function MobileSidebar({ onClose }: MobileSidebarProps) {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4 space-y-2">
         {/* Home */}
         {navigationItems.map((item) => (
           <NavLink
@@ -235,10 +238,12 @@ export function MobileSidebar({ onClose }: MobileSidebarProps) {
             <span>{item.title}</span>
           </NavLink>
         ))}
+          </div>
+        </ScrollArea>
       </div>
 
       {/* Footer */}
-      <div className="border-t p-4">
+      <div className="border-t p-4 flex-shrink-0">
         <SidebarProfileSection />
       </div>
     </div>

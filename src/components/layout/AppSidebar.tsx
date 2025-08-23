@@ -24,6 +24,7 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SidebarProfileSection } from "@/components/profile/SidebarProfileSection";
 import { FlyoutMenu, FlyoutGroup } from "./FlyoutMenu";
@@ -148,7 +149,7 @@ export function AppSidebar() {
   return (
     <TooltipProvider>
       <Sidebar className="w-36 flex flex-col fixed left-0 top-0 h-screen z-50 bg-white dark:bg-black border-r" collapsible="none">
-        <SidebarHeader className="border-b border-sidebar-border p-3">
+        <SidebarHeader className="border-b border-sidebar-border p-3 flex-shrink-0">
           <div className="flex justify-center">
             <img 
               src="/lovable-uploads/20438a19-0f33-4e14-ad03-f2ce206ada62.png" 
@@ -158,21 +159,23 @@ export function AppSidebar() {
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="px-1 flex-1">
-          <SidebarGroup className="border-none">
-            <SidebarGroupContent>
-              <SidebarMenu className="space-y-1">
-                {navigationItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    {renderNavigationItem(item)}
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+        <SidebarContent className="px-1 flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            <SidebarGroup className="border-none">
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-1 pb-4">
+                  {navigationItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      {renderNavigationItem(item)}
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </ScrollArea>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border p-0 mt-auto absolute bottom-0 w-full">
+        <SidebarFooter className="border-t border-sidebar-border p-0 flex-shrink-0">
           <SidebarProfileSection />
         </SidebarFooter>
       </Sidebar>
