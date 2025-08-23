@@ -399,6 +399,33 @@ export type Database = {
           },
         ]
       }
+      daily_credit_usage: {
+        Row: {
+          created_at: string
+          credits_used: number
+          date: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_used?: number
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_used?: number
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       generated_scripts: {
         Row: {
           brand_voice: string | null
@@ -1237,6 +1264,10 @@ export type Database = {
       grant_monthly_credits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      grant_subscription_credits: {
+        Args: { plan_slug_param: string; user_id_param: string }
+        Returns: Json
       }
       safe_deduct_credits: {
         Args: { credits_to_deduct: number; user_id_param: string }

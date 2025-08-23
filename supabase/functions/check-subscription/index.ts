@@ -124,6 +124,34 @@ serve(async (req) => {
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' });
 
+    // Grant credits if this is a paid plan and user doesn't have sufficient credits
+    if (planSlug !== 'free') {
+      const { data: currentBalance } = await supabaseClient
+        .from('credit_balances')
+        .select('balance')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const { data: planData } = await supabaseClient
+        .from('billing_plans')
+        .select('monthly_credits')
+        .eq('slug', planSlug)
+        .single();
+
+      // If user has less than half their monthly credits, grant them credits
+      if (planData && (!currentBalance || currentBalance.balance < planData.monthly_credits / 2)) {
+        logStep("Granting missing credits for paid subscriber", { 
+          currentBalance: currentBalance?.balance || 0, 
+          planCredits: planData.monthly_credits 
+        });
+        
+        await supabaseClient.rpc('grant_subscription_credits', {
+          user_id_param: user.id,
+          plan_slug_param: planSlug
+        });
+      }
+    }
+
     logStep("Updated subscription in database", { planSlug, subscriptionStatus });
 
     return new Response(JSON.stringify({

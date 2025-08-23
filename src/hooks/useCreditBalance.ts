@@ -9,6 +9,11 @@ interface CreditBalance {
   next_reset?: string;
 }
 
+interface DailyUsage {
+  credits_used: number;
+  date: string;
+}
+
 interface Subscription {
   plan_slug: string;
   current_period_end: string;
@@ -28,6 +33,7 @@ export const useCreditBalance = () => {
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plan, setPlan] = useState<BillingPlan | null>(null);
+  const [dailyUsage, setDailyUsage] = useState<number>(0);
 
   // Function to check subscription status via Stripe
   const checkSubscriptionStatus = async () => {
@@ -114,6 +120,26 @@ export const useCreditBalance = () => {
       } catch (subFetchError) {
         console.error('[useCreditBalance] Subscription fetch exception:', subFetchError);
       }
+
+      // Fetch daily usage
+      try {
+        const { data: usageData, error: usageError } = await supabase
+          .from('daily_credit_usage')
+          .select('credits_used')
+          .eq('user_id', user.id)
+          .eq('date', new Date().toISOString().split('T')[0])
+          .maybeSingle();
+
+        if (!usageError && usageData) {
+          console.log('[useCreditBalance] Daily usage:', usageData.credits_used);
+          setDailyUsage(usageData.credits_used);
+        } else {
+          setDailyUsage(0);
+        }
+      } catch (usageError) {
+        console.error('[useCreditBalance] Daily usage fetch error:', usageError);
+        setDailyUsage(0);
+      }
     } catch (error) {
       console.error('[useCreditBalance] Critical error fetching credit balance:', error);
       // Set fallback values instead of showing error
@@ -168,6 +194,7 @@ export const useCreditBalance = () => {
     loading,
     subscription,
     plan,
+    dailyUsage,
     fetchBalance,
     deductCredits,
     hasCredits,
