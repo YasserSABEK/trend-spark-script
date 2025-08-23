@@ -16,8 +16,16 @@ import {
   ArrowUpCircle,
   ExternalLink,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  HelpCircle,
+  DollarSign,
+  Settings,
+  Shield,
+  Users,
+  BookOpen,
+  Mail
 } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Link } from "react-router-dom";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -373,49 +381,284 @@ export default function Billing() {
         })}
       </div>
 
-      {/* Simplified Credit Usage */}
+      {/* FAQ Section */}
       <Card>
         <CardHeader>
-          <CardTitle>How Credits Work</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <HelpCircle className="h-5 w-5" />
+            Frequently Asked Questions
+          </CardTitle>
           <CardDescription>
-            Simple, transparent pricing - every action costs exactly 1 credit
+            Everything you need to know about Viraltify billing and features
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h4 className="font-semibold">Credit Costs</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Search Results (50 items)</span>
-                  <Badge variant="outline">1 credit</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Script Generation</span>
-                  <Badge variant="outline">1 credit</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">High Accuracy Script</span>
-                  <Badge variant="outline">+1 credit</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Content Analysis</span>
-                  <Badge variant="outline">1 credit</Badge>
-                </div>
-              </div>
-            </div>
+          <Accordion type="single" collapsible className="w-full">
             
-            <div className="space-y-4">
-              <h4 className="font-semibold">What's New</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>✅ Immediate credit deduction - no waiting</p>
-                <p>✅ No complicated caching system</p>
-                <p>✅ Every action costs exactly 1 credit</p>
-                <p>✅ Simple and transparent pricing</p>
-                <p>✅ Credits work on all devices including mobile</p>
-              </div>
-            </div>
-          </div>
+            {/* Billing & Credits */}
+            <AccordionItem value="how-credits-work">
+              <AccordionTrigger className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                How do credits work?
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Simple, transparent pricing - every action costs exactly 1 credit:
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Search Results (50 items)</span>
+                      <Badge variant="outline">1 credit</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Script Generation</span>
+                      <Badge variant="outline">1 credit</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">High Accuracy Script</span>
+                      <Badge variant="outline">+1 credit</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Content Analysis</span>
+                      <Badge variant="outline">1 credit</Badge>
+                    </div>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="run-out-credits">
+              <AccordionTrigger>What happens when I run out of credits?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  When you run out of credits, you'll need to upgrade your plan or wait for your monthly credits to reset. 
+                  Free users get 5 credits per month, while paid plans offer 50+ credits depending on your subscription.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="purchase-additional-credits">
+              <AccordionTrigger>Can I purchase additional credits?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  Currently, credits are included with your monthly plan and reset each billing cycle. 
+                  For higher usage, consider upgrading to a plan with more credits or the Agency plan with unlimited fair-use credits.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="billing-cycle">
+              <AccordionTrigger>How does billing work for different plans?</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p><strong>Free:</strong> No billing - 5 credits per month</p>
+                  <p><strong>Starter ($19/month):</strong> 50 credits monthly, billed monthly</p>
+                  <p><strong>Pro ($49/month):</strong> 200 credits monthly, billed monthly</p>
+                  <p><strong>Agency ($99/month):</strong> Unlimited fair-use credits, billed monthly</p>
+                  <p>All paid plans include unlimited creator profiles and advanced features.</p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="change-plans">
+              <AccordionTrigger>Can I change plans anytime?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  Yes! You can upgrade or downgrade your plan anytime. Changes take effect immediately for upgrades, 
+                  while downgrades take effect at the end of your current billing cycle. Any unused credits don't roll over.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="refunds">
+              <AccordionTrigger>Do you offer refunds?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  We offer a 30-day money-back guarantee for first-time subscribers. 
+                  If you're not satisfied with Viraltify, contact our support team within 30 days of your first payment for a full refund.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="payment-methods">
+              <AccordionTrigger>What payment methods do you accept?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  We accept all major credit cards (Visa, MasterCard, American Express) and PayPal through our secure Stripe payment processor. 
+                  All payments are encrypted and processed securely.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Account & Subscription */}
+            <AccordionItem value="free-trial">
+              <AccordionTrigger className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Is there a free trial?
+              </AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  Yes! Our Free plan gives you 5 credits per month to try Viraltify. 
+                  You can create 1 creator profile and test all basic features before upgrading to a paid plan.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="cancel-subscription">
+              <AccordionTrigger>How do I cancel my subscription?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  You can cancel anytime by clicking "Manage Subscription" on this page, which opens your customer portal. 
+                  Your subscription will remain active until the end of your current billing period.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="data-after-cancel">
+              <AccordionTrigger>What happens to my data if I cancel?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  Your account and data remain accessible after cancellation, but you'll revert to the Free plan limits (5 credits/month, 1 profile). 
+                  All your saved creators, scripts, and analytics remain available.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="credits-rollover">
+              <AccordionTrigger>Do unused credits roll over?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  No, unused credits reset at the beginning of each billing cycle. 
+                  This keeps our pricing simple and ensures you get fresh credits every month.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Features & Usage */}
+            <AccordionItem value="what-counts-credit">
+              <AccordionTrigger className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                What exactly counts as 1 credit?
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>Each of these actions costs exactly 1 credit:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li>Searching for viral content (returns 50 results)</li>
+                    <li>Generating a script from a video</li>
+                    <li>Analyzing content performance</li>
+                    <li>Creating a creator profile analysis</li>
+                  </ul>
+                  <p>High accuracy script generation costs an additional +1 credit (2 total).</p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="ai-accuracy">
+              <AccordionTrigger>How accurate are the AI-generated scripts?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  Our AI analyzes successful viral content patterns and generates scripts optimized for engagement. 
+                  While results vary, our users typically see 30-50% better performance compared to non-optimized content. 
+                  The "High Accuracy" option uses advanced models for even better results.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="export-content">
+              <AccordionTrigger>Can I export my generated content?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  Yes! All generated scripts and analysis can be copied and exported. 
+                  Pro and Agency plans also include CSV export for bulk data analysis.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="platforms-supported">
+              <AccordionTrigger>What platforms do you support?</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>Viraltify currently supports:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li>TikTok - Creator research, hashtag analysis, script generation</li>
+                    <li>Instagram Reels - Content analysis and script optimization</li>
+                    <li>YouTube Shorts - Coming soon</li>
+                  </ul>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Technical & Support */}
+            <AccordionItem value="data-security">
+              <AccordionTrigger className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Is my data secure?
+              </AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  Absolutely. We use enterprise-grade security with encrypted data storage, secure API connections, 
+                  and comply with GDPR and CCPA privacy regulations. Your account data and generated content are never shared with third parties.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="customer-support">
+              <AccordionTrigger className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Do you offer customer support?
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>Yes! Support varies by plan:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li><strong>Free:</strong> Community support and help docs</li>
+                    <li><strong>Starter:</strong> Email support (24-48 hour response)</li>
+                    <li><strong>Pro:</strong> Priority email support (12-24 hour response)</li>
+                    <li><strong>Agency:</strong> Dedicated support with priority access</li>
+                  </ul>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="api-access">
+              <AccordionTrigger>Do you have an API?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  API access is available for Agency plan subscribers. 
+                  This allows you to integrate Viraltify's content analysis and script generation into your own applications and workflows.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="service-downtime">
+              <AccordionTrigger>What happens if the service is down?</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  We maintain 99.9% uptime and monitor our services 24/7. 
+                  If there are any issues, we'll update our status page and provide timeline estimates. 
+                  Credits are never deducted for failed requests due to service issues.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="get-help">
+              <AccordionTrigger>How do I get help?</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>Multiple ways to get help:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li>Check our knowledge base and documentation</li>
+                    <li>Email support@viraltify.com for technical issues</li>
+                    <li>Use the in-app chat for quick questions</li>
+                    <li>Join our community Discord for tips and tricks</li>
+                  </ul>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+          </Accordion>
         </CardContent>
       </Card>
 
