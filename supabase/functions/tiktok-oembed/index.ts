@@ -69,6 +69,20 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Get user from auth header for tracking cache ownership
+    const authHeader = req.headers.get('authorization')
+    let userId: string | null = null
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.replace('Bearer ', '')
+        const { data: { user } } = await supabase.auth.getUser(token)
+        userId = user?.id || null
+      } catch (error) {
+        console.log('Could not extract user from token (non-authenticated request)')
+      }
+    }
+
     // Check cache first - refresh if older than 24 hours
     const { data: cached } = await supabase
       .from('tiktok_oembed_cache')
@@ -140,7 +154,7 @@ Deno.serve(async (req) => {
     const width = parseSize(oembedData.width);
     const height = parseSize(oembedData.height);
 
-    // UPSERT to cache
+    // UPSERT to cache with user tracking
     const { error: upsertError } = await supabase
       .from('tiktok_oembed_cache')
       .upsert({
@@ -150,6 +164,7 @@ Deno.serve(async (req) => {
         thumbnail_url: oembedData.thumbnail_url,
         width: width,
         height: height,
+        requested_by_user_id: userId,
         fetched_at: new Date().toISOString()
       }, {
         onConflict: 'video_id'

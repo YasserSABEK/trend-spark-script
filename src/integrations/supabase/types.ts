@@ -864,6 +864,7 @@ export type Database = {
           height: number | null
           html: string | null
           id: string
+          requested_by_user_id: string | null
           thumbnail_url: string | null
           url: string
           video_id: string
@@ -874,6 +875,7 @@ export type Database = {
           height?: number | null
           html?: string | null
           id?: string
+          requested_by_user_id?: string | null
           thumbnail_url?: string | null
           url: string
           video_id: string
@@ -884,6 +886,7 @@ export type Database = {
           height?: number | null
           html?: string | null
           id?: string
+          requested_by_user_id?: string | null
           thumbnail_url?: string | null
           url?: string
           video_id?: string
