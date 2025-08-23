@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 import { ViraltifyCheckout } from "@/components/checkout/ViraltifyCheckout";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { BillingErrorAlert } from "@/components/billing/BillingErrorAlert";
+import { SubscriptionManagementModal } from "@/components/billing/SubscriptionManagementModal";
 
 
 const plans = [
@@ -113,6 +114,7 @@ export default function Billing() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [lastError, setLastError] = useState<any>(null);
+  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
   
   const { executeWithRetry, isRetrying } = useRetryLogic();
   const { handleBillingError } = useBillingErrorHandler();
@@ -130,47 +132,12 @@ export default function Billing() {
     }
   };
 
-  const handleManageSubscription = async () => {
+  const handleManageSubscription = () => {
     if (!user) {
       toast.error('Please sign in to manage your subscription');
       return;
     }
-    
-    const result = await executeWithRetry(async () => {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      
-      if (error) throw error;
-      
-      if (data?.error) {
-        throw data;
-      }
-      
-      if (data?.url) {
-        window.open(data.url, '_blank');
-        setLastError(null); // Clear any previous errors on success
-        return data;
-      } else {
-        throw new Error("No portal URL received");
-      }
-    }, {
-      maxRetries: 2,
-      baseDelay: 1000,
-      onRetry: (attempt) => {
-        toast.info(`Retrying billing portal access... (${attempt}/2)`);
-      },
-      onFinalError: (error) => {
-        const errorDetails = handleBillingError(error, {
-          onRetry: handleManageSubscription,
-          showToast: false // We'll show our own error component
-        });
-        setLastError(errorDetails);
-      }
-    });
-
-    if (!result) {
-      // Error was handled in onFinalError
-      return;
-    }
+    setSubscriptionModalOpen(true);
   };
 
   if (!user) {
@@ -394,6 +361,16 @@ export default function Billing() {
           planName={selectedPlan.name}
           planPrice={parseInt(selectedPlan.price.replace('$', ''))}
           planCredits={selectedPlan.credits}
+        />
+      )}
+
+      {/* Subscription Management Modal */}
+      {plan && (
+        <SubscriptionManagementModal
+          isOpen={subscriptionModalOpen}
+          onClose={() => setSubscriptionModalOpen(false)}
+          currentPlan={plan}
+          subscription={subscription}
         />
       )}
     </PageContainer>

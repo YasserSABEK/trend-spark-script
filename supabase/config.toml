@@ -1,5 +1,11 @@
 project_id = "siafgzfpzowztfhlajtn"
 
+[functions.cancel-subscription]
+verify_jwt = true
+
+[functions.downgrade-subscription]
+verify_jwt = true
+
 [functions.extract-and-rewrite-script]
 verify_jwt = true
 
