@@ -37,6 +37,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Check subscription status when user signs in
+        if (event === 'SIGNED_IN' && session?.user) {
+          setTimeout(() => {
+            supabase.functions.invoke('check-subscription').catch(console.error);
+          }, 1000);
+        }
       }
     );
 
@@ -56,6 +63,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Check subscription status for existing session
+        if (session?.user) {
+          setTimeout(() => {
+            supabase.functions.invoke('check-subscription').catch(console.error);
+          }, 1000);
+        }
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (mounted) {

@@ -10,9 +10,12 @@ import {
   Star, 
   Zap, 
   Check,
-  ArrowUpCircle
+  ArrowUpCircle,
+  ExternalLink
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const plans = [
   {
@@ -85,7 +88,47 @@ const plans = [
 
 export default function Billing() {
   const { user } = useAuth();
-  const { balance, loading, plan, subscription } = useCreditBalance();
+  const { balance, loading, plan, subscription, checkSubscriptionStatus } = useCreditBalance();
+  
+  const handleUpgrade = async (planSlug: string) => {
+    if (!user) {
+      toast.error('Please sign in to upgrade your plan');
+      return;
+    }
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { planSlug }
+      });
+      
+      if (error) throw error;
+      
+      // Open Stripe checkout in a new tab
+      window.open(data.url, '_blank');
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to start checkout process');
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    if (!user) {
+      toast.error('Please sign in to manage your subscription');
+      return;
+    }
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      if (error) throw error;
+      
+      // Open Stripe customer portal in a new tab
+      window.open(data.url, '_blank');
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      toast.error('Failed to open subscription management');
+    }
+  };
 
   if (!user) {
     return (
@@ -151,12 +194,22 @@ export default function Billing() {
               
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Credits Remaining</p>
-                <p className="text-2xl font-bold">
-                  {balance}
-                  {plan.monthly_credits > 0 && (
-                    <span className="text-lg text-muted-foreground">/{plan.monthly_credits}</span>
-                  )}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold">
+                    {balance}
+                    {plan.monthly_credits > 0 && (
+                      <span className="text-lg text-muted-foreground">/{plan.monthly_credits}</span>
+                    )}
+                  </p>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={checkSubscriptionStatus}
+                    className="h-6 px-2 text-xs"
+                  >
+                    Refresh
+                  </Button>
+                </div>
                 {plan.monthly_credits > 0 && (
                   <Progress value={usagePercentage} className="h-2 mt-2" />
                 )}
@@ -220,20 +273,25 @@ export default function Billing() {
                   ))}
                 </div>
                 
-                <Button 
-                  className="w-full" 
-                  variant={isCurrentPlan ? "outline" : (planItem.popular ? "default" : "outline")}
-                  disabled={isCurrentPlan}
-                >
-                  {isCurrentPlan ? (
-                    'Current Plan'
-                  ) : (
-                    <>
-                      <ArrowUpCircle className="h-4 w-4 mr-2" />
-                      {currentPlan === 'free' ? 'Upgrade' : 'Switch Plan'}
-                    </>
-                  )}
-                </Button>
+                {isCurrentPlan ? (
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={handleManageSubscription}
+                  >
+                    Manage Subscription
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full" 
+                    variant={planItem.popular ? "default" : "outline"}
+                    onClick={() => handleUpgrade(planItem.slug)}
+                  >
+                    Upgrade to {planItem.name}
+                    <ArrowUpCircle className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
               </CardContent>
             </Card>
           );

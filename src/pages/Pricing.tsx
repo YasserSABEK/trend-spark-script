@@ -2,9 +2,34 @@ import { useState } from "react";
 import { Check, Zap, Crown, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoogleSignupPopup } from "@/components/GoogleSignupPopup";
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/components/auth/AuthContext';
+import { toast } from 'sonner';
 
 const Pricing = () => {
   const [showGooglePopup, setShowGooglePopup] = useState(false);
+  const { user } = useAuth();
+
+  const handleUpgrade = async (planSlug: string) => {
+    if (!user) {
+      setShowGooglePopup(true);
+      return;
+    }
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { planSlug }
+      });
+      
+      if (error) throw error;
+      
+      // Open Stripe checkout in a new tab
+      window.open(data.url, '_blank');
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to start checkout process');
+    }
+  };
 
   const plans = [
     {
@@ -163,8 +188,10 @@ const Pricing = () => {
                   if (plan.name === "Team") {
                     // Handle contact sales
                     window.location.href = "mailto:sales@viraltify.com";
-                  } else {
+                  } else if (plan.name === "Free") {
                     setShowGooglePopup(true);
+                  } else {
+                    handleUpgrade(plan.name.toLowerCase());
                   }
                 }}
               >

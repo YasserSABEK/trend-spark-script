@@ -29,6 +29,22 @@ export const useCreditBalance = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plan, setPlan] = useState<BillingPlan | null>(null);
 
+  // Function to check subscription status via Stripe
+  const checkSubscriptionStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) throw error;
+      
+      console.log('Subscription status checked:', data);
+      // Refresh balance after checking subscription
+      await fetchBalance();
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+    }
+  };
+
   const fetchBalance = async () => {
     if (!user) {
       console.log('[useCreditBalance] No user found, skipping balance fetch');
@@ -155,6 +171,7 @@ export const useCreditBalance = () => {
     fetchBalance,
     deductCredits,
     hasCredits,
-    nextReset: subscription?.current_period_end
+    nextReset: subscription?.current_period_end,
+    checkSubscriptionStatus
   };
 };
