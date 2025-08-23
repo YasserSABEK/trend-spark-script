@@ -2,10 +2,10 @@ import { useCreditBalance } from '@/hooks/useCreditBalance';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Coins, TrendingUp } from 'lucide-react';
+import { Coins, TrendingDown } from 'lucide-react';
 
 export const CreditDisplay = () => {
-  const { balance, loading, plan } = useCreditBalance();
+  const { balance, loading, plan, dailyUsage } = useCreditBalance();
 
   if (loading) {
     return (
@@ -50,7 +50,7 @@ export const CreditDisplay = () => {
           </Badge>
         </div>
         
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-2xl font-bold text-foreground">
               {balance}
@@ -58,6 +58,14 @@ export const CreditDisplay = () => {
             <span className="text-sm text-muted-foreground">
               /{plan.monthly_credits === 0 ? '∞' : plan.monthly_credits}
             </span>
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <TrendingDown className="h-3 w-3 text-muted-foreground" />
+              <span className="text-muted-foreground">Used Today</span>
+            </div>
+            <span className="font-medium">{dailyUsage}</span>
           </div>
           
           {plan.monthly_credits > 0 && (
