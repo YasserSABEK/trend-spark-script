@@ -32,11 +32,15 @@ export interface EnhancedGeneratedScript {
   main_content: string;
   call_to_action: string;
   suggested_hashtags: string[];
-  // New viral script fields
+  // New viral script fields (supporting both camelCase and snake_case for DB compatibility)
   shots?: ShotBreakdown[];
   performanceMetrics?: PerformanceMetrics;
+  performance_metrics?: PerformanceMetrics;
   scriptFormat?: 'basic' | 'viral_shots';
+  script_format?: 'basic' | 'viral_shots';
   totalDuration?: string;
+  total_duration?: string;
   formatType?: string;
   viralTactics?: string[];
+  viral_tactics?: string[];
 }

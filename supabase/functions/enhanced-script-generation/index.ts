@@ -136,6 +136,12 @@ serve(async (req) => {
         platform_optimized: format,
         generation_goal: 'viral_content',
         brand_voice: highAccuracy ? 'premium' : 'standard',
+        // New viral script fields
+        shots: scriptData.shots || null,
+        performance_metrics: scriptData.performance_metrics || null,
+        script_format: (scriptData.shots && scriptData.shots.length > 0) ? 'viral_shots' : 'basic',
+        total_duration: scriptData.total_duration || null,
+        viral_tactics: scriptData.viral_tactics || null,
         conditioning_data: {
           has_creator_profile: !!profile,
           has_style_profile: !!styleProfile,

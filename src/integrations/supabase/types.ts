@@ -414,18 +414,23 @@ export type Database = {
           main_content: string
           niche: string | null
           optimal_posting_time: string | null
+          performance_metrics: Json | null
           performance_score: number | null
           platform_optimized: string | null
           profile_id: string | null
           quality_score: number | null
           reel_id: string | null
+          script_format: string | null
+          shots: Json | null
           style_profile_id: string | null
           suggested_hashtags: string[] | null
           target_audience: string | null
           title: string
           tone_of_voice: string | null
+          total_duration: string | null
           updated_at: string
           user_id: string
+          viral_tactics: Json | null
         }
         Insert: {
           brand_voice?: string | null
@@ -441,18 +446,23 @@ export type Database = {
           main_content: string
           niche?: string | null
           optimal_posting_time?: string | null
+          performance_metrics?: Json | null
           performance_score?: number | null
           platform_optimized?: string | null
           profile_id?: string | null
           quality_score?: number | null
           reel_id?: string | null
+          script_format?: string | null
+          shots?: Json | null
           style_profile_id?: string | null
           suggested_hashtags?: string[] | null
           target_audience?: string | null
           title: string
           tone_of_voice?: string | null
+          total_duration?: string | null
           updated_at?: string
           user_id: string
+          viral_tactics?: Json | null
         }
         Update: {
           brand_voice?: string | null
@@ -468,18 +478,23 @@ export type Database = {
           main_content?: string
           niche?: string | null
           optimal_posting_time?: string | null
+          performance_metrics?: Json | null
           performance_score?: number | null
           platform_optimized?: string | null
           profile_id?: string | null
           quality_score?: number | null
           reel_id?: string | null
+          script_format?: string | null
+          shots?: Json | null
           style_profile_id?: string | null
           suggested_hashtags?: string[] | null
           target_audience?: string | null
           title?: string
           tone_of_voice?: string | null
+          total_duration?: string | null
           updated_at?: string
           user_id?: string
+          viral_tactics?: Json | null
         }
         Relationships: [
           {

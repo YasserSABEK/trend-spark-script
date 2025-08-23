@@ -449,21 +449,27 @@ ${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
           </CardHeader>
           <CardContent>
             {generatedScript ? (
-              <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="basic" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Basic Script
-                  </TabsTrigger>
-                  <TabsTrigger value="shots" className="flex items-center gap-2" disabled={!generatedScript.shots}>
-                    <Video className="h-4 w-4" />
-                    Shot-by-Shot
-                  </TabsTrigger>
-                  <TabsTrigger value="performance" className="flex items-center gap-2" disabled={!generatedScript.performanceMetrics}>
-                    <BarChart3 className="h-4 w-4" />
-                    Performance
-                  </TabsTrigger>
-                </TabsList>
+              (() => {
+                // Check if we have enhanced script data for additional tabs
+                const hasShots = generatedScript.shots && Array.isArray(generatedScript.shots) && generatedScript.shots.length > 0;
+                const hasMetrics = generatedScript.performance_metrics || generatedScript.performanceMetrics;
+                
+                return (
+                  <Tabs defaultValue="basic" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="basic" className="flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Basic Script
+                      </TabsTrigger>
+                      <TabsTrigger value="shots" className="flex items-center gap-2" disabled={!hasShots}>
+                        <Video className="h-4 w-4" />
+                        Shot-by-Shot
+                      </TabsTrigger>
+                      <TabsTrigger value="performance" className="flex items-center gap-2" disabled={!hasMetrics}>
+                        <BarChart3 className="h-4 w-4" />
+                        Performance
+                      </TabsTrigger>
+                    </TabsList>
 
                 <TabsContent value="basic" className="mt-6">
                   <div className="space-y-4">
@@ -567,8 +573,8 @@ ${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
                 </TabsContent>
 
                 <TabsContent value="performance" className="mt-6">
-                  {generatedScript.performanceMetrics ? (
-                    <PerformanceMetrics metrics={generatedScript.performanceMetrics} />
+                  {hasMetrics ? (
+                    <PerformanceMetrics metrics={generatedScript.performance_metrics || generatedScript.performanceMetrics!} />
                   ) : (
                     <div className="text-center py-12 text-muted-foreground">
                       <BarChart3 className="mx-auto h-12 w-12 mb-4 opacity-50" />
@@ -577,7 +583,9 @@ ${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
                     </div>
                   )}
                 </TabsContent>
-              </Tabs>
+                  </Tabs>
+                );
+              })()
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <Sparkles className="mx-auto h-12 w-12 mb-4 opacity-50" />
