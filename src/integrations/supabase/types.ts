@@ -62,8 +62,10 @@ export type Database = {
       billing_plans: {
         Row: {
           created_at: string | null
+          has_advanced_analytics: boolean | null
           id: string
           is_default: boolean | null
+          max_profiles: number | null
           monthly_credits: number
           name: string
           price_usd: number
@@ -71,8 +73,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          has_advanced_analytics?: boolean | null
           id?: string
           is_default?: boolean | null
+          max_profiles?: number | null
           monthly_credits: number
           name: string
           price_usd: number
@@ -80,8 +84,10 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          has_advanced_analytics?: boolean | null
           id?: string
           is_default?: boolean | null
+          max_profiles?: number | null
           monthly_credits?: number
           name?: string
           price_usd?: number
