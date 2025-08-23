@@ -26,30 +26,32 @@ const plans = [
     name: 'Free',
     slug: 'free',
     price: '$0',
-    credits: 0,
+    credits: 5,
+    maxProfiles: 1,
     features: [
-      '0 monthly credits',
-      'Pay per action (1 credit each)',
+      '5 monthly credits',
+      'Maximum 1 creator profile',
+      'Basic features only',
       'Search results (50 items)',
       'Script generation',
-      'High accuracy scripts (+1 credit)',
-      'No monthly limits'
+      'Community support'
     ],
     icon: Star,
     popular: false
   },
   {
-    name: 'Creator',
-    slug: 'creator',
+    name: 'Starter',
+    slug: 'starter',
     price: '$19',
-    credits: 75,
+    credits: 100,
+    maxProfiles: 'Unlimited',
     features: [
-      '75 credits per month',
+      '100 credits per month',
+      'Unlimited creator profiles',
       'All search and generation features',
       'Script generation (1 credit)',
-      'High accuracy scripts (+1 credit)',
       'Basic analytics',
-      'Credits reset monthly'
+      'Email support'
     ],
     icon: Zap,
     popular: false
@@ -57,33 +59,35 @@ const plans = [
   {
     name: 'Pro',
     slug: 'pro',
-    price: '$39',
-    credits: 200,
+    price: '$49',
+    credits: 500,
+    maxProfiles: 'Unlimited',
     features: [
-      '200 credits per month',
+      '500 credits per month',
+      'Unlimited creator profiles',
+      'Advanced analytics unlocked',
       'All search and generation features',
-      'Script generation (1 credit)',
-      'High accuracy scripts (+1 credit)',
-      'Advanced analytics',
-      'Priority support'
+      'Priority support',
+      'Custom integrations'
     ],
     icon: CreditCard,
     popular: true
   },
   {
-    name: 'Team',
-    slug: 'team',
-    price: '$94',
-    credits: 700,
+    name: 'Agency',
+    slug: 'agency',
+    price: '$99',
+    credits: 'Unlimited',
+    maxProfiles: 'Unlimited',
     features: [
-      '700 credits per month',
-      'All search and generation features',
-      'Script generation (1 credit)',
-      'High accuracy scripts (+1 credit)',
-      'Advanced analytics',
-      'Priority support',
-      'Team collaboration features',
-      'Custom integrations'
+      'Unlimited credits (fair-use)',
+      'Unlimited creator profiles',
+      'Advanced analytics and insights',
+      'Agency-level features',
+      'White-label options',
+      'Dedicated support',
+      'Custom integrations',
+      'API access'
     ],
     icon: Crown,
     popular: false
@@ -215,8 +219,8 @@ export default function Billing() {
                 <p className="text-sm text-muted-foreground mb-1">Credits Remaining</p>
                 <div className="flex items-center gap-2">
                   <p className="text-2xl font-bold">
-                    {balance}
-                    {plan.monthly_credits > 0 && (
+                    {plan.slug === 'agency' ? 'Unlimited' : balance}
+                    {plan.monthly_credits > 0 && plan.slug !== 'agency' && (
                       <span className="text-lg text-muted-foreground">/{plan.monthly_credits}</span>
                     )}
                   </p>
@@ -229,14 +233,16 @@ export default function Billing() {
                     Refresh
                   </Button>
                 </div>
-                {plan.monthly_credits > 0 && (
+                {plan.monthly_credits > 0 && plan.slug !== 'agency' && (
                   <Progress value={usagePercentage} className="h-2 mt-2" />
                 )}
               </div>
 
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Credits Used This Month</p>
-                <p className="text-2xl font-bold">{plan.monthly_credits > 0 ? plan.monthly_credits - balance : 0}</p>
+                <p className="text-2xl font-bold">
+                  {plan.slug === 'agency' ? 'Fair Use' : (plan.monthly_credits > 0 ? plan.monthly_credits - balance : 0)}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {subscription?.current_period_end 
                     ? `Resets ${new Date(subscription.current_period_end).toLocaleDateString()}` 
@@ -278,7 +284,11 @@ export default function Billing() {
                   <span className="text-lg text-muted-foreground">/month</span>
                 </div>
                 <CardDescription>
-                  {planItem.credits === 0 ? 'Pay per action' : `${planItem.credits} credits per month`}
+                  {typeof planItem.credits === 'string' ? planItem.credits : `${planItem.credits} credits per month`}
+                  <br />
+                  <span className="text-xs text-muted-foreground">
+                    {typeof planItem.maxProfiles === 'string' ? planItem.maxProfiles : planItem.maxProfiles} creator profile{planItem.maxProfiles !== 1 ? 's' : ''}
+                  </span>
                 </CardDescription>
               </CardHeader>
               

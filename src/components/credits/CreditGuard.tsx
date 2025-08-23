@@ -42,7 +42,9 @@ export const CreditGuard = ({ children, requiredCredits, action, onProceed }: Cr
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm">Credits Remaining</span>
-              <span className="text-sm font-medium">{balance}</span>
+              <span className="text-sm font-medium">
+                {plan.slug === 'agency' ? 'Unlimited' : balance}
+              </span>
             </div>
           </div>
           

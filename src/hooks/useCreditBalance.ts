@@ -25,6 +25,8 @@ interface BillingPlan {
   name: string;
   monthly_credits: number;
   price_usd: number;
+  max_profiles: number;
+  has_advanced_analytics: boolean;
 }
 
 export const useCreditBalance = () => {
@@ -168,7 +170,8 @@ export const useCreditBalance = () => {
       
       if (result?.ok) {
         setBalance(result.new_balance);
-        toast.success(`Used ${amount} credit${amount > 1 ? 's' : ''}. Balance: ${result.new_balance}`);
+        const displayBalance = plan?.slug === 'agency' ? 'unlimited' : result.new_balance;
+        toast.success(`Used ${amount} credit${amount > 1 ? 's' : ''}. Balance: ${displayBalance}`);
         return true;
       } else {
         toast.error('Insufficient credits');
@@ -182,6 +185,8 @@ export const useCreditBalance = () => {
   };
 
   const hasCredits = (amount: number): boolean => {
+    // Agency plan has unlimited credits
+    if (plan?.slug === 'agency') return true;
     return balance >= amount;
   };
 

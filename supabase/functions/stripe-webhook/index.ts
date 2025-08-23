@@ -141,10 +141,10 @@ serve(async (req) => {
         const price = await stripe.prices.retrieve(priceId);
         const amount = price.unit_amount || 0;
         
-        let planSlug = 'creator';
-        if (amount <= 1999) planSlug = "creator";
-        else if (amount <= 3999) planSlug = "pro";
-        else planSlug = "team";
+        let planSlug = 'starter';
+        if (amount <= 1999) planSlug = "starter";
+        else if (amount <= 4999) planSlug = "pro";
+        else planSlug = "agency";
 
         logStep("Determined plan for renewal", { planSlug, amount });
 

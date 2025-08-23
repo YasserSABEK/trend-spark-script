@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      agency_usage_tracking: {
+        Row: {
+          actions_count: number
+          created_at: string
+          credits_used: number
+          date: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actions_count?: number
+          created_at?: string
+          credits_used?: number
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actions_count?: number
+          created_at?: string
+          credits_used?: number
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       apify_runs: {
         Row: {
           actor_id: string | null
@@ -1211,6 +1241,10 @@ export type Database = {
       add_credits: {
         Args: { credits_to_add: number; user_id_param: string }
         Returns: undefined
+      }
+      check_profile_limit: {
+        Args: { user_id_param: string }
+        Returns: boolean
       }
       deduct_credits: {
         Args: { credits_to_deduct: number; user_id_param: string }

@@ -24,15 +24,16 @@ export const CreditDisplay = () => {
     return null;
   }
 
-  const usagePercentage = plan.monthly_credits > 0 
+  const usagePercentage = plan.monthly_credits > 0 && plan.slug !== 'agency'
     ? Math.min(((plan.monthly_credits - balance) / plan.monthly_credits) * 100, 100)
     : 0;
 
   const getPlanColor = (planName: string) => {
     switch (planName.toLowerCase()) {
       case 'free': return 'bg-slate-100 text-slate-800 border-slate-200';
+      case 'starter': return 'bg-green-100 text-green-800 border-green-200';
       case 'pro': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'premium': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'agency': return 'bg-purple-100 text-purple-800 border-purple-200';
       default: return 'bg-slate-100 text-slate-800 border-slate-200';
     }
   };
@@ -53,10 +54,10 @@ export const CreditDisplay = () => {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-2xl font-bold text-foreground">
-              {balance}
+              {plan.slug === 'agency' ? 'Unlimited' : balance}
             </span>
             <span className="text-sm text-muted-foreground">
-              /{plan.monthly_credits === 0 ? '∞' : plan.monthly_credits}
+              {plan.slug === 'agency' ? '' : `/${plan.monthly_credits === 0 ? '∞' : plan.monthly_credits}`}
             </span>
           </div>
 
@@ -68,7 +69,7 @@ export const CreditDisplay = () => {
             <span className="font-medium">{dailyUsage}</span>
           </div>
           
-          {plan.monthly_credits > 0 && (
+          {plan.monthly_credits > 0 && plan.slug !== 'agency' && (
             <>
               <Progress value={100 - usagePercentage} className="h-2" />
               <div className="flex justify-between text-xs text-muted-foreground">
@@ -76,6 +77,12 @@ export const CreditDisplay = () => {
                 <span>{balance} remaining</span>
               </div>
             </>
+          )}
+          
+          {plan.slug === 'agency' && (
+            <div className="text-xs text-muted-foreground text-center">
+              Fair-use policy applies
+            </div>
           )}
         </div>
       </CardContent>

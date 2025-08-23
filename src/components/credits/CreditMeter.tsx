@@ -43,7 +43,9 @@ export const CreditMeter = ({ showDetailed = false, compact = false }: CreditMet
             <span className="font-medium">Credits</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold">{balance}</span>
+            <span className="text-2xl font-bold">
+              {plan?.slug === 'agency' ? 'Unlimited' : balance}
+            </span>
             {plan && (
               <Badge variant="outline">
                 {plan.name}
@@ -53,7 +55,7 @@ export const CreditMeter = ({ showDetailed = false, compact = false }: CreditMet
         </div>
         
         <div className="text-sm text-muted-foreground">
-          {formatNextReset(nextReset)}
+          {plan?.slug === 'agency' ? 'Fair-use policy' : formatNextReset(nextReset)}
         </div>
 
         <div className="flex gap-2">
@@ -82,16 +84,18 @@ export const CreditMeter = ({ showDetailed = false, compact = false }: CreditMet
             <Link to="/billing">
               <Button variant="outline" size="sm" className="gap-1 h-8 px-2 text-xs">
                 <Coins className="w-3 h-3" />
-                <span>{balance}</span>
+                <span>{plan?.slug === 'agency' ? '∞' : balance}</span>
               </Button>
             </Link>
           </TooltipTrigger>
           <TooltipContent>
             <div className="space-y-1">
-              <div className="font-medium">{balance} credits remaining</div>
+              <div className="font-medium">
+                {plan?.slug === 'agency' ? 'Unlimited credits' : `${balance} credits remaining`}
+              </div>
               {plan && <div className="text-sm">Plan: {plan.name}</div>}
               <div className="text-sm text-muted-foreground">
-                {formatNextReset(nextReset)}
+                {plan?.slug === 'agency' ? 'Fair-use policy applies' : formatNextReset(nextReset)}
               </div>
               <div className="text-sm">Click to manage billing</div>
             </div>
@@ -108,16 +112,18 @@ export const CreditMeter = ({ showDetailed = false, compact = false }: CreditMet
           <Link to="/billing">
             <Button variant="outline" size="sm" className="gap-2">
               <Coins className="w-4 h-4" />
-              <span>{balance}</span>
+              <span>{plan?.slug === 'agency' ? '∞' : balance}</span>
             </Button>
           </Link>
         </TooltipTrigger>
         <TooltipContent>
           <div className="space-y-1">
-            <div className="font-medium">{balance} credits remaining</div>
+            <div className="font-medium">
+              {plan?.slug === 'agency' ? 'Unlimited credits' : `${balance} credits remaining`}
+            </div>
             {plan && <div className="text-sm">Plan: {plan.name}</div>}
             <div className="text-sm text-muted-foreground">
-              {formatNextReset(nextReset)}
+              {plan?.slug === 'agency' ? 'Fair-use policy applies' : formatNextReset(nextReset)}
             </div>
             <div className="text-sm">Click to manage billing</div>
           </div>
