@@ -5,29 +5,34 @@ import { GoogleSignupPopup } from "@/components/GoogleSignupPopup";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
 import { toast } from 'sonner';
+import { StripeCheckout } from "@/components/checkout/StripeCheckout";
 
 const Pricing = () => {
   const [showGooglePopup, setShowGooglePopup] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{
+    slug: string;
+    name: string;
+    price: number;
+    credits: number;
+  } | null>(null);
   const { user } = useAuth();
 
-  const handleUpgrade = async (planSlug: string) => {
+  const handleUpgrade = (planSlug: string) => {
     if (!user) {
       setShowGooglePopup(true);
       return;
     }
     
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planSlug }
+    const planToUpgrade = plans.find(p => p.name.toLowerCase() === planSlug);
+    if (planToUpgrade) {
+      setSelectedPlan({
+        slug: planSlug,
+        name: planToUpgrade.name,
+        price: parseInt(planToUpgrade.price.replace('$', '')),
+        credits: parseInt(planToUpgrade.credits.replace(/\D/g, '')),
       });
-      
-      if (error) throw error;
-      
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
-    } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error('Failed to start checkout process');
+      setCheckoutOpen(true);
     }
   };
 
@@ -244,6 +249,21 @@ const Pricing = () => {
         isOpen={showGooglePopup} 
         onClose={() => setShowGooglePopup(false)} 
       />
+
+      {/* Stripe Checkout Modal */}
+      {selectedPlan && (
+        <StripeCheckout
+          isOpen={checkoutOpen}
+          onClose={() => {
+            setCheckoutOpen(false);
+            setSelectedPlan(null);
+          }}
+          planSlug={selectedPlan.slug}
+          planName={selectedPlan.name}
+          planPrice={selectedPlan.price}
+          planCredits={selectedPlan.credits}
+        />
+      )}
     </div>
   );
 };

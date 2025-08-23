@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { useCreditBalance } from "@/hooks/useCreditBalance";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +17,7 @@ import {
 import { Link } from "react-router-dom";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { StripeCheckout } from "@/components/checkout/StripeCheckout";
 
 const plans = [
   {
@@ -89,25 +91,29 @@ const plans = [
 export default function Billing() {
   const { user } = useAuth();
   const { balance, loading, plan, subscription, checkSubscriptionStatus } = useCreditBalance();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{
+    slug: string;
+    name: string;
+    price: number;
+    credits: number;
+  } | null>(null);
   
-  const handleUpgrade = async (planSlug: string) => {
+  const handleUpgrade = (planSlug: string) => {
     if (!user) {
       toast.error('Please sign in to upgrade your plan');
       return;
     }
     
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planSlug }
+    const planToUpgrade = plans.find(p => p.slug === planSlug);
+    if (planToUpgrade) {
+      setSelectedPlan({
+        slug: planToUpgrade.slug,
+        name: planToUpgrade.name,
+        price: parseInt(planToUpgrade.price.replace('$', '')),
+        credits: planToUpgrade.credits,
       });
-      
-      if (error) throw error;
-      
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
-    } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error('Failed to start checkout process');
+      setCheckoutOpen(true);
     }
   };
 
@@ -343,6 +349,21 @@ export default function Billing() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Stripe Checkout Modal */}
+      {selectedPlan && (
+        <StripeCheckout
+          isOpen={checkoutOpen}
+          onClose={() => {
+            setCheckoutOpen(false);
+            setSelectedPlan(null);
+          }}
+          planSlug={selectedPlan.slug}
+          planName={selectedPlan.name}
+          planPrice={selectedPlan.price}
+          planCredits={selectedPlan.credits}
+        />
+      )}
     </div>
   );
 }
