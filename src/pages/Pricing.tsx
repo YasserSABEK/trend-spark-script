@@ -5,7 +5,7 @@ import { GoogleSignupPopup } from "@/components/GoogleSignupPopup";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
 import { toast } from 'sonner';
-import { StripeCheckout } from "@/components/checkout/StripeCheckout";
+import { ViraltifyCheckout } from "@/components/checkout/ViraltifyCheckout";
 
 const Pricing = () => {
   const [showGooglePopup, setShowGooglePopup] = useState(false);
@@ -250,9 +250,9 @@ const Pricing = () => {
         onClose={() => setShowGooglePopup(false)} 
       />
 
-      {/* Stripe Checkout Modal */}
+      {/* Viraltify Checkout Modal */}
       {selectedPlan && (
-        <StripeCheckout
+        <ViraltifyCheckout
           isOpen={checkoutOpen}
           onClose={() => {
             setCheckoutOpen(false);

@@ -17,7 +17,7 @@ import {
 import { Link } from "react-router-dom";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { StripeCheckout } from "@/components/checkout/StripeCheckout";
+import { ViraltifyCheckout } from "@/components/checkout/ViraltifyCheckout";
 
 const plans = [
   {
@@ -350,9 +350,9 @@ export default function Billing() {
         </CardContent>
       </Card>
 
-      {/* Stripe Checkout Modal */}
+      {/* Viraltify Checkout Modal */}
       {selectedPlan && (
-        <StripeCheckout
+        <ViraltifyCheckout
           isOpen={checkoutOpen}
           onClose={() => {
             setCheckoutOpen(false);
