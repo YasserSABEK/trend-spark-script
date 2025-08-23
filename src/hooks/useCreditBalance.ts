@@ -36,6 +36,7 @@ export const useCreditBalance = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plan, setPlan] = useState<BillingPlan | null>(null);
   const [dailyUsage, setDailyUsage] = useState<number>(0);
+  const [monthlyUsage, setMonthlyUsage] = useState<number>(0);
 
   // Function to check subscription status via Stripe
   const checkSubscriptionStatus = async () => {
@@ -142,6 +143,24 @@ export const useCreditBalance = () => {
         console.error('[useCreditBalance] Daily usage fetch error:', usageError);
         setDailyUsage(0);
       }
+
+      // Fetch monthly usage using the new function
+      try {
+        const { data: monthlyData, error: monthlyError } = await supabase.rpc('get_monthly_credit_usage', {
+          user_id_param: user.id
+        });
+
+        if (!monthlyError) {
+          console.log('[useCreditBalance] Monthly usage:', monthlyData);
+          setMonthlyUsage(monthlyData || 0);
+        } else {
+          console.error('[useCreditBalance] Monthly usage fetch error:', monthlyError);
+          setMonthlyUsage(0);
+        }
+      } catch (monthlyUsageError) {
+        console.error('[useCreditBalance] Monthly usage fetch exception:', monthlyUsageError);
+        setMonthlyUsage(0);
+      }
     } catch (error) {
       console.error('[useCreditBalance] Critical error fetching credit balance:', error);
       // Set fallback values instead of showing error
@@ -200,6 +219,7 @@ export const useCreditBalance = () => {
     subscription,
     plan,
     dailyUsage,
+    monthlyUsage,
     fetchBalance,
     deductCredits,
     hasCredits,

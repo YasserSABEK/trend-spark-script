@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Coins, TrendingDown } from 'lucide-react';
 
 export const CreditDisplay = () => {
-  const { balance, loading, plan, dailyUsage } = useCreditBalance();
+  const { balance, loading, plan, dailyUsage, monthlyUsage } = useCreditBalance();
 
   if (loading) {
     return (
@@ -25,7 +25,7 @@ export const CreditDisplay = () => {
   }
 
   const usagePercentage = plan.monthly_credits > 0 && plan.slug !== 'agency'
-    ? Math.min(((plan.monthly_credits - balance) / plan.monthly_credits) * 100, 100)
+    ? Math.min((monthlyUsage / plan.monthly_credits) * 100, 100)
     : 0;
 
   const getPlanColor = (planName: string) => {
@@ -73,7 +73,7 @@ export const CreditDisplay = () => {
             <>
               <Progress value={100 - usagePercentage} className="h-2" />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{plan.monthly_credits - balance} used</span>
+                <span>{monthlyUsage} used</span>
                 <span>{balance} remaining</span>
               </div>
             </>

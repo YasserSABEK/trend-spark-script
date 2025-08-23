@@ -1294,6 +1294,10 @@ export type Database = {
           video_url: string
         }[]
       }
+      get_monthly_credit_usage: {
+        Args: { user_id_param: string }
+        Returns: number
+      }
       get_user_credits: {
         Args: { user_id_param: string }
         Returns: {
