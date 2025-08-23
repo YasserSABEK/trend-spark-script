@@ -9,30 +9,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Sparkles, Copy, Heart, Star, AlertCircle, Calendar, Eye } from 'lucide-react';
+import { Loader2, Sparkles, Copy, Heart, Star, AlertCircle, Calendar, Eye, FileText, Video, BarChart3 } from 'lucide-react';
 import { CreditGuard } from '@/components/credits/CreditGuard';
 import { ProfileSelector } from '@/components/creator/ProfileSelector';
 import { ScriptGeneratorErrorBoundary } from '@/components/script/ScriptGeneratorErrorBoundary';
 import { InstagramLinkInput } from '@/components/script/InstagramLinkInput';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-interface GeneratedScript {
-  id?: string;
-  title: string;
-  hook: string;
-  main_content: string;
-  call_to_action: string;
-  suggested_hashtags: string[];
-}
+import { ShotTimeline } from '@/components/script/ShotTimeline';
+import { PerformanceMetrics } from '@/components/script/PerformanceMetrics';
+import { EnhancedGeneratedScript } from '@/types/viral-script';
 
 const ScriptGeneratorContent = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedScript, setGeneratedScript] = useState<GeneratedScript | null>(null);
+  const [generatedScript, setGeneratedScript] = useState<EnhancedGeneratedScript | null>(null);
   const [formData, setFormData] = useState({
     prompt: '',
     profileId: '',
@@ -454,79 +449,140 @@ ${generatedScript.suggested_hashtags?.map(tag => `#${tag}`).join(' ') || ''}
           </CardHeader>
           <CardContent>
             {generatedScript ? (
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-semibold text-primary">Title</Label>
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.title)}>
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <div className="bg-muted p-3 rounded-md text-sm font-medium">
-                    {generatedScript.title}
-                  </div>
-                </div>
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="basic" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Basic Script
+                  </TabsTrigger>
+                  <TabsTrigger value="shots" className="flex items-center gap-2" disabled={!generatedScript.shots}>
+                    <Video className="h-4 w-4" />
+                    Shot-by-Shot
+                  </TabsTrigger>
+                  <TabsTrigger value="performance" className="flex items-center gap-2" disabled={!generatedScript.performanceMetrics}>
+                    <BarChart3 className="h-4 w-4" />
+                    Performance
+                  </TabsTrigger>
+                </TabsList>
 
-                <Separator />
+                <TabsContent value="basic" className="mt-6">
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-sm font-semibold text-primary">Title</Label>
+                        <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.title)}>
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div className="bg-muted p-3 rounded-md text-sm font-medium">
+                        {generatedScript.title}
+                      </div>
+                    </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-semibold text-primary">Hook</Label>
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.hook)}>
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <div className="bg-muted p-3 rounded-md text-sm">
-                    {generatedScript.hook}
-                  </div>
-                </div>
+                    <Separator />
 
-                <Separator />
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-sm font-semibold text-primary">Hook</Label>
+                        <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.hook)}>
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div className="bg-muted p-3 rounded-md text-sm">
+                        {generatedScript.hook}
+                      </div>
+                    </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-semibold text-primary">Main Content</Label>
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.main_content)}>
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <div className="bg-muted p-3 rounded-md text-sm">
-                    {generatedScript.main_content}
-                  </div>
-                </div>
+                    <Separator />
 
-                <Separator />
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-sm font-semibold text-primary">Main Content</Label>
+                        <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.main_content)}>
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div className="bg-muted p-3 rounded-md text-sm whitespace-pre-wrap">
+                        {generatedScript.main_content}
+                      </div>
+                    </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-semibold text-primary">Call to Action</Label>
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.call_to_action)}>
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <div className="bg-muted p-3 rounded-md text-sm">
-                    {generatedScript.call_to_action}
-                  </div>
-                </div>
+                    <Separator />
 
-                <Separator />
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-sm font-semibold text-primary">Call to Action</Label>
+                        <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.call_to_action)}>
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div className="bg-muted p-3 rounded-md text-sm">
+                        {generatedScript.call_to_action}
+                      </div>
+                    </div>
 
-                <div>
-                  <Label className="text-sm font-semibold text-primary mb-2 block">Suggested Hashtags</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {generatedScript.suggested_hashtags?.map((hashtag, index) => (
-                      <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => copyToClipboard(`#${hashtag}`)}>
-                        #{hashtag}
-                      </Badge>
-                    )) || <span className="text-muted-foreground text-sm">No hashtags generated</span>}
+                    {generatedScript.suggested_hashtags && generatedScript.suggested_hashtags.length > 0 && (
+                      <>
+                        <Separator />
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <Label className="text-sm font-semibold text-primary">Suggested Hashtags</Label>
+                            <Button variant="ghost" size="sm" onClick={() => copyToClipboard(generatedScript.suggested_hashtags.map(tag => `#${tag}`).join(' '))}>
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {generatedScript.suggested_hashtags.map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                #{tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {generatedScript.totalDuration && (
+                      <>
+                        <Separator />
+                        <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
+                          <span className="text-sm font-medium">Total Duration</span>
+                          <Badge variant="outline">{generatedScript.totalDuration}</Badge>
+                        </div>
+                      </>
+                    )}
                   </div>
-                </div>
-              </div>
+                </TabsContent>
+
+                <TabsContent value="shots" className="mt-6">
+                  {generatedScript.shots && generatedScript.shots.length > 0 ? (
+                    <ShotTimeline shots={generatedScript.shots} />
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Video className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                      <p>No shot-by-shot breakdown available</p>
+                      <p className="text-sm">This script was generated in basic format</p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="performance" className="mt-6">
+                  {generatedScript.performanceMetrics ? (
+                    <PerformanceMetrics metrics={generatedScript.performanceMetrics} />
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <BarChart3 className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                      <p>No performance metrics available</p>
+                      <p className="text-sm">Enable viral analysis for detailed performance insights</p>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <Sparkles className="mx-auto h-12 w-12 mb-4 opacity-50" />
                 <p>Your generated script will appear here</p>
-                <p className="text-sm">Fill out the form and click "Generate Script" to get started</p>
+                <p className="text-sm">Configure your settings and click generate to create your viral script</p>
               </div>
             )}
           </CardContent>
