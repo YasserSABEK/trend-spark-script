@@ -2,6 +2,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { SidebarCreditWidget } from '@/components/credits/SidebarCreditWidget';
+import { FeedbackModal } from '@/components/feedback/FeedbackModal';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,8 +12,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Settings, User, LogOut, CreditCard } from 'lucide-react';
+import { Lightbulb, User, LogOut, CreditCard } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 
 interface SidebarProfileSectionProps {
   // Always compact for Canva-style sidebar
@@ -21,6 +23,7 @@ interface SidebarProfileSectionProps {
 export function SidebarProfileSection({}: SidebarProfileSectionProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   if (!user) return null;
 
@@ -74,17 +77,18 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
           </DropdownMenuItem>
           
           <DropdownMenuItem asChild>
-            <Link to="/settings" className="flex items-center">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Link>
-          </DropdownMenuItem>
-          
-          <DropdownMenuItem asChild>
             <Link to="/billing" className="flex items-center">
               <CreditCard className="mr-2 h-4 w-4" />
               Billing
             </Link>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem 
+            onClick={() => setIsFeedbackModalOpen(true)}
+            className="flex items-center cursor-pointer"
+          >
+            <Lightbulb className="mr-2 h-4 w-4" />
+            Suggest Improvement
           </DropdownMenuItem>
           
           <DropdownMenuSeparator />
@@ -103,6 +107,12 @@ export function SidebarProfileSection({}: SidebarProfileSectionProps) {
       <div className="mt-2">
         <SidebarCreditWidget collapsed={true} />
       </div>
+      
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+      />
     </div>
   );
 }
