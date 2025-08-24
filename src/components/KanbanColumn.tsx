@@ -2,6 +2,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { ContentPlanCard } from './ContentPlanCard';
 import { AddIdeaCard } from './AddIdeaCard';
+import { EnhancedDropZone } from './dnd/EnhancedDropZone';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -30,6 +31,7 @@ interface KanbanColumnProps {
   onContentCreated?: (content: ContentItem) => void;
   onCardClick?: (item: ContentItem) => void;
   defaultCollapsed?: boolean;
+  isDragActive?: boolean;
 }
 
 const getStatusColor = (status: string) => {
@@ -66,7 +68,7 @@ const getStatusTitle = (status: string) => {
   }
 };
 
-export function KanbanColumn({ id, title, items, onDelete, onUpdate, onContentCreated, onCardClick, defaultCollapsed = false }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, items, onDelete, onUpdate, onContentCreated, onCardClick, defaultCollapsed = false, isDragActive = false }: KanbanColumnProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   
   const {
@@ -111,34 +113,62 @@ export function KanbanColumn({ id, title, items, onDelete, onUpdate, onContentCr
       {!isCollapsed && (
         <div
           ref={setNodeRef}
-          className={`flex-1 p-3 space-y-3 min-h-[200px] transition-colors ${
+          className={`flex-1 transition-all duration-200 ${
             isOver ? 'bg-primary/5' : 'bg-background'
-          }`}
+          } ${isDragActive ? 'px-2 py-4' : 'p-3'}`}
         >
-          <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
-            {/* Add Idea Card for Ideas column */}
-            {id === 'idea' && onContentCreated && (
-              <AddIdeaCard onContentCreated={onContentCreated} />
-            )}
-            
-            {items.length === 0 && id !== 'idea' ? (
-              <div className="flex items-center justify-center h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  {id === 'archived' ? 'No archived content' : `Drop content here`}
-                </p>
-              </div>
-            ) : (
-              items.map((item) => (
-                <ContentPlanCard
-                  key={item.id}
-                  item={item}
-                  onDelete={onDelete}
-                  onUpdate={onUpdate}
-                  onClick={() => onCardClick?.(item)}
-                />
-              ))
-            )}
-          </SortableContext>
+          <div className={`space-y-2 min-h-[200px] ${isDragActive ? 'space-y-3' : ''}`}>
+            <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
+              {/* Top drop zone */}
+              <EnhancedDropZone 
+                id={`${id}-top`} 
+                position="top"
+                isActive={isDragActive}
+                placeholder={`Add to ${getStatusTitle(id)}`}
+              />
+
+              {/* Add Idea Card for Ideas column */}
+              {id === 'idea' && onContentCreated && (
+                <AddIdeaCard onContentCreated={onContentCreated} />
+              )}
+              
+              {items.length === 0 && id !== 'idea' ? (
+                <div className="flex items-center justify-center h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    {id === 'archived' ? 'No archived content' : `Drop content here`}
+                  </p>
+                </div>
+              ) : (
+                items.map((item, index) => (
+                  <div key={item.id}>
+                    <ContentPlanCard
+                      item={item}
+                      onDelete={onDelete}
+                      onUpdate={onUpdate}
+                      onClick={() => onCardClick?.(item)}
+                    />
+                    {/* Between-card drop zone */}
+                    {index < items.length - 1 && (
+                      <EnhancedDropZone 
+                        id={`${id}-between-${index}`}
+                        position="between"
+                        isActive={isDragActive}
+                        showIndicator={true}
+                      />
+                    )}
+                  </div>
+                ))
+              )}
+
+              {/* Bottom drop zone */}
+              <EnhancedDropZone 
+                id={`${id}-bottom`} 
+                position="bottom"
+                isActive={isDragActive}
+                placeholder={`Add to ${getStatusTitle(id)}`}
+              />
+            </SortableContext>
+          </div>
         </div>
       )}
     </div>

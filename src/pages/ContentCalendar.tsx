@@ -159,21 +159,28 @@ export default function ContentCalendar() {
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    // Check if we're dragging over a column (status)
-    if (STATUSES.includes(overId as any)) {
+    // Handle enhanced drop zones (top, bottom, between)
+    let targetStatus = overId;
+    if (overId.includes('-')) {
+      const parts = overId.split('-');
+      targetStatus = parts[0];
+    }
+
+    // Check if we're dragging over a column or enhanced drop zone
+    if (STATUSES.includes(targetStatus as any)) {
       const item = items.find(item => item.id === activeId);
-      if (!item || item.status === overId) return;
+      if (!item || item.status === targetStatus) return;
 
       try {
         const { error } = await supabase
           .from("content_items")
-          .update({ status: overId })
+          .update({ status: targetStatus })
           .eq("id", activeId);
 
         if (error) throw error;
 
-        handleUpdateItem(activeId, { status: overId });
-        toast(`Content moved to ${overId}`);
+        handleUpdateItem(activeId, { status: targetStatus });
+        toast(`Content moved to ${targetStatus}`);
       } catch (error) {
         console.error("Update status error:", error);
         toast("Failed to update content status");
@@ -259,6 +266,7 @@ export default function ContentCalendar() {
               onContentCreated={handleContentCreated}
               onCardClick={handleCardClick}
               defaultCollapsed={status === 'archived'}
+              isDragActive={!!activeId}
             />
           ))}
         </div>
