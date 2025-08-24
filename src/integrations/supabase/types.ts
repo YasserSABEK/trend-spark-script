@@ -894,6 +894,42 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_log: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tiktok_oembed_cache: {
         Row: {
           fetched_at: string
@@ -1414,6 +1450,15 @@ export type Database = {
       grant_subscription_credits: {
         Args: { plan_slug_param: string; user_id_param: string }
         Returns: Json
+      }
+      log_security_event: {
+        Args: {
+          action_type_param: string
+          metadata_param?: Json
+          resource_id_param?: string
+          resource_type_param: string
+        }
+        Returns: undefined
       }
       safe_deduct_credits: {
         Args: { credits_to_deduct: number; user_id_param: string }
