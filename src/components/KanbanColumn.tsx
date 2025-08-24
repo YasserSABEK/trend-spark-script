@@ -119,14 +119,6 @@ export function KanbanColumn({ id, title, items, onDelete, onUpdate, onContentCr
         >
           <div className={`space-y-2 min-h-[200px] ${isDragActive ? 'space-y-3' : ''}`}>
             <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
-              {/* Top drop zone */}
-              <EnhancedDropZone 
-                id={`${id}-top`} 
-                position="top"
-                isActive={isDragActive}
-                placeholder={`Add to ${getStatusTitle(id)}`}
-              />
-
               {/* Add Idea Card for Ideas column */}
               {id === 'idea' && onContentCreated && (
                 <AddIdeaCard onContentCreated={onContentCreated} />

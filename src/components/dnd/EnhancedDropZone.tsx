@@ -34,7 +34,7 @@ export function EnhancedDropZone({
       return cn(
         "h-4 transition-all duration-200 flex items-center justify-center",
         isActive ? "opacity-100 scale-y-100" : "opacity-0 scale-y-50",
-        isOver ? "bg-primary/10 border-2 border-dashed border-primary rounded-lg" : "",
+        isOver ? "bg-red-50 border-2 border-dashed border-red-500 rounded-lg" : "",
         className
       );
     }
@@ -45,7 +45,7 @@ export function EnhancedDropZone({
         ? "border-muted-foreground/40 bg-muted/30 opacity-100" 
         : "border-transparent opacity-0",
       isOver 
-        ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
+        ? "border-red-500 bg-red-50 shadow-lg shadow-red-500/10" 
         : "",
       className
     );
@@ -58,7 +58,7 @@ export function EnhancedDropZone({
         className={getDropZoneStyles()}
       >
         {isOver && showIndicator && (
-          <div className="w-full h-0.5 bg-primary rounded-full animate-pulse shadow-lg shadow-primary/50" />
+          <div className="w-full h-0.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
         )}
       </div>
     );
@@ -82,10 +82,10 @@ export function EnhancedDropZone({
       )}
       
       {isOver && (
-        <div className="absolute inset-0 flex items-center justify-center bg-primary/10 rounded-lg">
+        <div className="absolute inset-0 flex items-center justify-center bg-red-50 rounded-lg">
           <div className="text-center">
-            <ArrowDown className="w-8 h-8 mx-auto mb-2 text-primary animate-bounce" />
-            <p className="text-primary font-semibold text-sm">Drop here</p>
+            <ArrowDown className="w-8 h-8 mx-auto mb-2 text-red-500 animate-bounce" />
+            <p className="text-red-500 font-semibold text-sm">Drop here</p>
           </div>
         </div>
       )}
