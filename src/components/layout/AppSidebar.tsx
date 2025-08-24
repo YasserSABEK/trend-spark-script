@@ -69,12 +69,12 @@ export function AppSidebar() {
   const isActive = (item: typeof navigationItems[number]) => {
     if (item.type === "direct" && item.url) {
       if (item.url === "/dashboard") return currentPath === item.url;
-      return currentPath.startsWith(item.url);
+      return currentPath === item.url || (currentPath.startsWith(item.url + "/"));
     }
     
     if (item.type === "flyout" && item.flyoutData) {
       return item.flyoutData[0].items.some(flyoutItem => 
-        currentPath.startsWith(flyoutItem.url)
+        currentPath === flyoutItem.url || currentPath.startsWith(flyoutItem.url + "/")
       );
     }
     
