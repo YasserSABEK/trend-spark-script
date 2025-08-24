@@ -259,22 +259,14 @@ serve(async (req) => {
     const posts = await datasetResponse.json();
     console.log(`Retrieved ${posts.length} posts for query: ${normalizedQuery}`);
 
-    // Filter posts by date (last 90 days) and views (min 100k for broader results)
-    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-    const minViews = 100000;
-
-    const filteredPosts = posts.filter((post: any) => {
-      const postDate = new Date(post.createTimeISO || post.createTime * 1000);
-      const views = post.playCount || post.stats?.playCount || 0;
-      return postDate >= ninetyDaysAgo && views >= minViews;
-    });
-
-    console.log(`Filtered to ${filteredPosts.length} posts meeting criteria`);
-
-    // Group by creator and aggregate metrics
+    // Phase 1: Extract all creators first (inclusive approach)
     const creatorMap = new Map<string, any>();
+    const sixMonthsAgo = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+    
+    console.log(`Processing ${posts.length} total posts to extract creators`);
 
-    filteredPosts.forEach((post: any) => {
+    // First pass: Collect all creators and their content
+    posts.forEach((post: any) => {
       const username = post.authorMeta?.name || post.author?.uniqueId;
       if (!username) return;
 
@@ -288,29 +280,70 @@ serve(async (req) => {
           avatar_url: post.authorMeta?.avatar || post.author?.avatarLarger || '',
           follower_count: post.authorMeta?.fans || post.author?.followerCount,
           profile_url: `https://www.tiktok.com/@${username}`,
-          posts: [],
+          all_posts: [],
+          viral_posts: [],
+          recent_posts: [],
           total_views: 0,
           last_seen_at: createdAt
         });
       }
 
       const creator = creatorMap.get(username);
-      creator.posts.push({
+      const postData = {
         url: post.webVideoUrl || `https://www.tiktok.com/@${username}/video/${post.id}`,
         views,
         created_at: createdAt
-      });
+      };
+
+      // Add to all posts
+      creator.all_posts.push(postData);
       creator.total_views += views;
+
+      // Categorize posts
+      const isRecent = createdAt >= sixMonthsAgo;
+      const isViral = views >= 50000; // Lowered threshold from 100k to 50k
+
+      if (isRecent) {
+        creator.recent_posts.push(postData);
+      }
+      
+      if (isViral) {
+        creator.viral_posts.push(postData);
+      }
 
       if (createdAt > new Date(creator.last_seen_at)) {
         creator.last_seen_at = createdAt;
       }
     });
 
+    console.log(`Found ${creatorMap.size} unique creators from ${posts.length} posts`);
+
+    // Second pass: Filter out creators with no meaningful content
+    const filteredCreators = Array.from(creatorMap.values()).filter(creator => {
+      // Include creators with at least one of these criteria:
+      // 1. Has viral content (50k+ views)
+      // 2. Has recent activity (last 6 months) with decent engagement (10k+ views)
+      // 3. Has consistent posting (5+ posts) with moderate engagement
+      const hasViralContent = creator.viral_posts.length > 0;
+      const hasRecentActivity = creator.recent_posts.length > 0 && 
+        creator.recent_posts.some((p: any) => p.views >= 10000);
+      const hasConsistentPosting = creator.all_posts.length >= 5 && 
+        creator.total_views / creator.all_posts.length >= 5000;
+
+      return hasViralContent || hasRecentActivity || hasConsistentPosting;
+    });
+
+    console.log(`Filtered to ${filteredCreators.length} creators meeting inclusion criteria`);
+
     // Calculate final metrics for each creator
-    const creators: Creator[] = Array.from(creatorMap.values()).map(creator => {
-      const views = creator.posts.map((p: any) => p.views).sort((a: number, b: number) => a - b);
-      const viralPosts = creator.posts; // Count all posts as viral posts since they already passed the view filter
+    const creators: Creator[] = filteredCreators.map(creator => {
+      const allViews = creator.all_posts.map((p: any) => p.views).sort((a: number, b: number) => a - b);
+      const viralPosts = creator.viral_posts;
+      
+      // Use best posts for sample (mix of viral and recent)
+      const bestPosts = [...creator.viral_posts, ...creator.recent_posts]
+        .sort((a: any, b: any) => b.views - a.views)
+        .slice(0, 3);
       
       return {
         username: creator.username,
@@ -318,15 +351,12 @@ serve(async (req) => {
         avatar_url: creator.avatar_url,
         follower_count: creator.follower_count,
         viral_post_count: viralPosts.length,
-        median_views: views.length > 0 ? views[Math.floor(views.length / 2)] : 0,
-        max_views: Math.max(...views),
+        median_views: allViews.length > 0 ? allViews[Math.floor(allViews.length / 2)] : 0,
+        max_views: allViews.length > 0 ? Math.max(...allViews) : 0,
         total_views: creator.total_views,
         last_seen_at: creator.last_seen_at.toISOString(),
         profile_url: creator.profile_url,
-        sample_posts: creator.posts
-          .sort((a: any, b: any) => b.views - a.views)
-          .slice(0, 3)
-          .map((p: any) => ({ url: p.url, views: p.views }))
+        sample_posts: bestPosts.map((p: any) => ({ url: p.url, views: p.views }))
       };
     });
 
@@ -345,7 +375,7 @@ serve(async (req) => {
       query: normalizedQuery,
       creators,
       creators_count: creators.length,
-      videos_processed_count: filteredPosts.length,
+      videos_processed_count: posts.length,
       last_run_source: 'fresh',
       last_run_at: new Date().toISOString(),
       cached_at: new Date().toISOString()
