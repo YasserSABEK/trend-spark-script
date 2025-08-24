@@ -33,14 +33,26 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("user_feedback").insert({
-        feedback_type: feedbackType,
-        subject: subject.trim() || null,
-        message: message.trim(),
-        status: "new"
+      // Temporarily use rpc call until types are regenerated
+      const { error } = await supabase.rpc('submit_user_feedback', {
+        feedback_type_param: feedbackType,
+        subject_param: subject.trim() || null,
+        message_param: message.trim()
       });
 
-      if (error) throw error;
+      if (error) {
+        // If RPC doesn't exist yet, fall back to direct insert
+        const { error: insertError } = await supabase
+          .from('user_feedback' as any)
+          .insert({
+            feedback_type: feedbackType,
+            subject: subject.trim() || null,
+            message: message.trim(),
+            status: "new"
+          });
+        
+        if (insertError) throw insertError;
+      }
 
       toast({
         title: "Thank you for your feedback!",
