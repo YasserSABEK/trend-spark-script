@@ -179,7 +179,7 @@ serve(async (req) => {
     const actorInput = {
       enhanceUserSearchWithFacebookPage: false,
       search: query,
-      searchLimit: 100,
+      searchLimit: 80,
       searchType: "user"
     };
 

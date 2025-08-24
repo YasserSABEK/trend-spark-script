@@ -194,7 +194,7 @@ serve(async (req) => {
     // Start Apify run
     const apifyInput = {
       searchQueries: [normalizedQuery],
-      resultsPerPage: 100,
+      resultsPerPage: 80,
       excludePinnedPosts: false,
       shouldDownloadCovers: false,
       shouldDownloadSlideshowImages: false,

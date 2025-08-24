@@ -9,6 +9,7 @@ interface InstallationProgressProps {
   className?: string;
   icon?: React.ReactNode;
   title?: string;
+  searchId?: string; // For progress persistence
 }
 
 export const InstallationProgress = ({ 
@@ -16,34 +17,60 @@ export const InstallationProgress = ({
   startTime, 
   className = "",
   icon,
-  title = "Processing"
+  title = "Searching",
+  searchId
 }: InstallationProgressProps) => {
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState("Initializing...");
 
   const isProcessing = status === 'processing' || status === 'running' || status === 'queued';
+  const storageKey = searchId ? `search_progress_${searchId}` : null;
 
   useEffect(() => {
     if (!isProcessing) {
       if (status === 'completed') {
         setProgress(100);
-        setPhase("Installation complete");
+        setPhase("Search complete");
+        // Clear stored progress on completion
+        if (storageKey) {
+          localStorage.removeItem(storageKey);
+        }
       } else if (status === 'failed') {
-        setPhase("Installation failed");
+        setPhase("Search failed");
+        // Clear stored progress on failure
+        if (storageKey) {
+          localStorage.removeItem(storageKey);
+        }
       }
       return;
     }
 
+    // Try to restore progress from localStorage
+    if (storageKey) {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          const { progress: storedProgress, phase: storedPhase } = JSON.parse(stored);
+          setProgress(storedProgress);
+          setPhase(storedPhase);
+          console.log('Restored progress:', storedProgress, storedPhase);
+          return; // Don't reset if we restored state
+        } catch (e) {
+          console.error('Failed to restore progress:', e);
+        }
+      }
+    }
+
     // Reset progress when starting
     setProgress(5);
-    setPhase("Initializing system...");
+    setPhase("Initializing search...");
 
     const phases = [
-      { text: "Connecting to servers...", duration: 3000, targetProgress: 15 },
-      { text: "Downloading data packages...", duration: 4000, targetProgress: 35 },
-      { text: "Processing content...", duration: 6000, targetProgress: 60 },
-      { text: "Analyzing results...", duration: 4000, targetProgress: 80 },
-      { text: "Finalizing installation...", duration: 3000, targetProgress: 95 },
+      { text: "Connecting to data sources...", duration: 8000, targetProgress: 15 },
+      { text: "Fetching creator data...", duration: 12000, targetProgress: 35 },
+      { text: "Analyzing creator profiles...", duration: 20000, targetProgress: 65 },
+      { text: "Processing search results...", duration: 12000, targetProgress: 85 },
+      { text: "Finalizing search...", duration: 8000, targetProgress: 95 },
     ];
 
     let currentPhaseIndex = 0;
@@ -68,6 +95,14 @@ export const InstallationProgress = ({
         step++;
         const newProgress = Math.min(startProgress + (progressStep * step), targetProgress);
         setProgress(newProgress);
+
+        // Store progress if we have a searchId
+        if (storageKey) {
+          localStorage.setItem(storageKey, JSON.stringify({
+            progress: newProgress,
+            phase: currentPhase.text
+          }));
+        }
 
         if (step >= steps) {
           clearInterval(progressInterval);
@@ -105,7 +140,7 @@ export const InstallationProgress = ({
       default:
         return {
           icon: <Loader2 className="w-4 h-4 animate-spin text-primary" />,
-          badge: <Badge variant="secondary" className="bg-primary/10 text-primary">Installing</Badge>,
+          badge: <Badge variant="secondary" className="bg-primary/10 text-primary">Searching</Badge>,
           showProgress: true
         };
     }
@@ -154,14 +189,14 @@ export const InstallationProgress = ({
       {/* Completion message */}
       {status === 'completed' && (
         <div className="text-xs text-green-600 text-center animate-fade-in">
-          ✓ Installation completed successfully
+          ✓ Search completed successfully
         </div>
       )}
 
       {/* Error message */}
       {status === 'failed' && (
         <div className="text-xs text-destructive text-center animate-fade-in">
-          ✗ Installation failed - please try again
+          ✗ Search failed - please try again
         </div>
       )}
     </div>
