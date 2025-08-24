@@ -7,50 +7,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
-};
-
-// Enhanced debugging for environment variables
-const debugEnvironment = () => {
-  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-  const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  
-  logStep("Environment debug", {
-    hasStripeKey: !!stripeKey,
-    stripeKeyPrefix: stripeKey ? stripeKey.substring(0, 7) : 'none',
-    hasSupabaseUrl: !!supabaseUrl,
-    hasSupabaseAnonKey: !!supabaseAnonKey
-  });
-};
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    logStep("Function started - v2.0");
-    debugEnvironment();
+    console.log("[CREATE-CHECKOUT] Production checkout initiated");
     
-    // Additional debugging - check all env vars
-    const allEnvVars = Object.entries(Deno.env.toObject());
-    const stripeVars = allEnvVars.filter(([key]) => key.includes('STRIPE'));
-    logStep("All STRIPE env vars found", { count: stripeVars.length, keys: stripeVars.map(([key, value]) => [key, value ? 'SET' : 'EMPTY']) });
-
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
-      logStep("CRITICAL ERROR: STRIPE_SECRET_KEY not found");
-      // Try alternative approaches
-      const altKey = Deno.env.get("STRIPE_SECRET_KEY ") || Deno.env.get(" STRIPE_SECRET_KEY");
-      logStep("Checking for key with spaces", { hasAltKey: !!altKey });
+      console.error("[CREATE-CHECKOUT] CRITICAL: Stripe secret key not found");
       throw new Error("STRIPE_SECRET_KEY is not set");
     }
-    logStep("Stripe key verified", { keyLength: stripeKey.length, keyType: stripeKey.startsWith('sk_test_') ? 'test' : 'live' });
+    
+    console.log("[CREATE-CHECKOUT] Stripe key verified:", {
+      keyType: stripeKey.startsWith('sk_test_') ? 'test' : stripeKey.startsWith('sk_live_') ? 'live' : 'unknown',
+      keyLength: stripeKey.length
+    });
 
-    // Use anon key for user authentication
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
@@ -58,18 +33,15 @@ serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
 
     const { planSlug } = await req.json();
     if (!planSlug) throw new Error("Plan slug is required");
-    logStep("Plan slug received", { planSlug });
 
     // Get plan details from billing_plans table
     const { data: planData, error: planError } = await supabaseClient
@@ -81,7 +53,6 @@ serve(async (req) => {
     if (planError || !planData) {
       throw new Error(`Invalid plan: ${planSlug}`);
     }
-    logStep("Plan details fetched", planData);
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
@@ -90,9 +61,7 @@ serve(async (req) => {
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
-      logStep("Existing customer found", { customerId });
-    } else {
-      logStep("Creating new customer");
+      console.log("[CREATE-CHECKOUT] Existing customer found");
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -106,7 +75,7 @@ serve(async (req) => {
               name: `${planData.name} Plan`,
               description: `${planData.monthly_credits} credits per month`
             },
-            unit_amount: Math.round(planData.price_usd * 100), // Convert to cents
+            unit_amount: Math.round(planData.price_usd * 100),
             recurring: { interval: "month" },
           },
           quantity: 1,
@@ -121,7 +90,7 @@ serve(async (req) => {
       },
     });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    console.log("[CREATE-CHECKOUT] Checkout session created successfully");
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -129,7 +98,7 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage });
+    console.error("[CREATE-CHECKOUT] Error:", errorMessage);
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
