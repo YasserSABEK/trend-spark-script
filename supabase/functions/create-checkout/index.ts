@@ -12,6 +12,20 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Enhanced debugging for environment variables
+const debugEnvironment = () => {
+  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  
+  logStep("Environment debug", {
+    hasStripeKey: !!stripeKey,
+    stripeKeyPrefix: stripeKey ? stripeKey.substring(0, 7) : 'none',
+    hasSupabaseUrl: !!supabaseUrl,
+    hasSupabaseAnonKey: !!supabaseAnonKey
+  });
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,10 +33,14 @@ serve(async (req) => {
 
   try {
     logStep("Function started");
+    debugEnvironment();
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
+    if (!stripeKey) {
+      logStep("CRITICAL ERROR: STRIPE_SECRET_KEY not found");
+      throw new Error("STRIPE_SECRET_KEY is not set");
+    }
+    logStep("Stripe key verified", { keyLength: stripeKey.length });
 
     // Use anon key for user authentication
     const supabaseClient = createClient(
