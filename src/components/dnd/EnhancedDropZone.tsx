@@ -82,11 +82,8 @@ export function EnhancedDropZone({
       )}
       
       {isOver && (
-        <div className="absolute inset-0 flex items-center justify-center bg-red-50 rounded-lg">
-          <div className="text-center">
-            <ArrowDown className="w-8 h-8 mx-auto mb-2 text-red-500 animate-bounce" />
-            <p className="text-red-500 font-semibold text-sm">Drop here</p>
-          </div>
+        <div className="flex items-center justify-center py-2">
+          <ArrowDown className="w-6 h-6 text-red-500 animate-bounce" />
         </div>
       )}
     </div>
