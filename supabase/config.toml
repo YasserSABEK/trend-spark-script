@@ -65,3 +65,12 @@ verify_jwt = true
 
 [functions.search-tiktok-creators]
 verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.test-stripe-key]
+verify_jwt = false
+
+[functions.customer-portal]
+verify_jwt = true

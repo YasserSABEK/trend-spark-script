@@ -7,47 +7,102 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper logging function
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+};
+
+// Function to get Stripe key using multiple methods
+const getStripeKey = () => {
+  const methods = [
+    () => Deno.env.get("STRIPE_SECRET_KEY"),
+    () => Deno.env.toObject()["STRIPE_SECRET_KEY"],
+    () => Deno.env.get("stripe_secret_key"),
+    () => Deno.env.toObject()["stripe_secret_key"]
+  ];
+  
+  for (let i = 0; i < methods.length; i++) {
+    try {
+      const key = methods[i]();
+      if (key && key.length > 0) {
+        logStep(`Stripe key found using method ${i + 1}`, { length: key.length, type: key.startsWith('sk_') ? 'valid' : 'invalid' });
+        return key;
+      }
+    } catch (error) {
+      logStep(`Method ${i + 1} failed`, { error: error.message });
+    }
+  }
+  
+  return null;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log("[CREATE-CHECKOUT] NEW DEPLOYMENT - Function started");
+    logStep("=== FUNCTION STARTED ===");
+    logStep("Request method", { method: req.method });
     
-    // Test environment access first
-    const allVars = Object.keys(Deno.env.toObject()).length;
-    console.log("[CREATE-CHECKOUT] Environment check - Total vars:", allVars);
-    
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    console.log("[CREATE-CHECKOUT] Stripe key check:", {
-      exists: !!stripeKey,
-      length: stripeKey?.length || 0,
-      type: stripeKey?.startsWith('sk_test_') ? 'test' : stripeKey?.startsWith('sk_live_') ? 'live' : 'unknown',
-      prefix: stripeKey ? stripeKey.substring(0, 7) : 'none'
+    // Environment check
+    const allEnvVars = Object.keys(Deno.env.toObject());
+    const stripeVars = allEnvVars.filter(key => key.toLowerCase().includes('stripe'));
+    logStep("Environment check", { 
+      totalVars: allEnvVars.length, 
+      stripeVars: stripeVars,
+      hasStripeKey: allEnvVars.includes('STRIPE_SECRET_KEY')
     });
     
+    // Get Stripe key using multiple methods
+    const stripeKey = getStripeKey();
     if (!stripeKey) {
-      console.error("[CREATE-CHECKOUT] CRITICAL: Stripe secret key not found in environment");
-      throw new Error("STRIPE_SECRET_KEY is not set in environment");
+      logStep("CRITICAL: No Stripe key found", { availableVars: stripeVars });
+      throw new Error("STRIPE_SECRET_KEY not accessible through any method");
     }
+    
+    logStep("Stripe key obtained successfully", { 
+      length: stripeKey.length,
+      type: stripeKey.startsWith('sk_test_') ? 'test' : stripeKey.startsWith('sk_live_') ? 'live' : 'unknown',
+      prefix: stripeKey.substring(0, 7)
+    });
 
+    // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
+    logStep("Supabase client initialized");
 
+    // Authenticate user
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader) {
+      throw new Error("No authorization header provided");
+    }
 
     const token = authHeader.replace("Bearer ", "");
+    logStep("Authenticating user");
+    
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    if (userError) {
+      throw new Error(`Authentication error: ${userError.message}`);
+    }
+    
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
+    if (!user?.email) {
+      throw new Error("User not authenticated or email not available");
+    }
+    
+    logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Get request body
     const { planSlug } = await req.json();
-    if (!planSlug) throw new Error("Plan slug is required");
+    if (!planSlug) {
+      throw new Error("Plan slug is required");
+    }
+    
+    logStep("Plan requested", { planSlug });
 
     // Get plan details from billing_plans table
     const { data: planData, error: planError } = await supabaseClient
@@ -57,21 +112,29 @@ serve(async (req) => {
       .single();
 
     if (planError || !planData) {
+      logStep("Plan not found", { planSlug, error: planError });
       throw new Error(`Invalid plan: ${planSlug}`);
     }
+    
+    logStep("Plan found", { plan: planData.name, price: planData.price_usd, credits: planData.monthly_credits });
 
-    console.log("[CREATE-CHECKOUT] Initializing Stripe with key");
+    // Initialize Stripe
+    logStep("Initializing Stripe client");
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
     // Check if customer exists
+    logStep("Checking for existing customer");
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
-      console.log("[CREATE-CHECKOUT] Existing customer found");
+      logStep("Existing customer found", { customerId });
+    } else {
+      logStep("No existing customer found");
     }
 
-    console.log("[CREATE-CHECKOUT] Creating checkout session for plan:", planSlug);
+    // Create checkout session
+    logStep("Creating checkout session");
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -98,7 +161,7 @@ serve(async (req) => {
       },
     });
 
-    console.log("[CREATE-CHECKOUT] Checkout session created successfully");
+    logStep("Checkout session created successfully", { sessionId: session.id, url: session.url });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -106,7 +169,8 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("[CREATE-CHECKOUT] Error:", errorMessage);
+    logStep("ERROR occurred", { message: errorMessage, stack: error instanceof Error ? error.stack : 'No stack' });
+    
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
