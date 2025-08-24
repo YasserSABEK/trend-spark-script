@@ -13,18 +13,24 @@ serve(async (req) => {
   }
 
   try {
-    console.log("[CREATE-CHECKOUT] Production checkout initiated");
+    console.log("[CREATE-CHECKOUT] NEW DEPLOYMENT - Function started");
+    
+    // Test environment access first
+    const allVars = Object.keys(Deno.env.toObject()).length;
+    console.log("[CREATE-CHECKOUT] Environment check - Total vars:", allVars);
     
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      console.error("[CREATE-CHECKOUT] CRITICAL: Stripe secret key not found");
-      throw new Error("STRIPE_SECRET_KEY is not set");
-    }
-    
-    console.log("[CREATE-CHECKOUT] Stripe key verified:", {
-      keyType: stripeKey.startsWith('sk_test_') ? 'test' : stripeKey.startsWith('sk_live_') ? 'live' : 'unknown',
-      keyLength: stripeKey.length
+    console.log("[CREATE-CHECKOUT] Stripe key check:", {
+      exists: !!stripeKey,
+      length: stripeKey?.length || 0,
+      type: stripeKey?.startsWith('sk_test_') ? 'test' : stripeKey?.startsWith('sk_live_') ? 'live' : 'unknown',
+      prefix: stripeKey ? stripeKey.substring(0, 7) : 'none'
     });
+    
+    if (!stripeKey) {
+      console.error("[CREATE-CHECKOUT] CRITICAL: Stripe secret key not found in environment");
+      throw new Error("STRIPE_SECRET_KEY is not set in environment");
+    }
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -54,6 +60,7 @@ serve(async (req) => {
       throw new Error(`Invalid plan: ${planSlug}`);
     }
 
+    console.log("[CREATE-CHECKOUT] Initializing Stripe with key");
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
     // Check if customer exists
@@ -64,6 +71,7 @@ serve(async (req) => {
       console.log("[CREATE-CHECKOUT] Existing customer found");
     }
 
+    console.log("[CREATE-CHECKOUT] Creating checkout session for plan:", planSlug);
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
