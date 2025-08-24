@@ -32,15 +32,23 @@ serve(async (req) => {
   }
 
   try {
-    logStep("Function started");
+    logStep("Function started - v2.0");
     debugEnvironment();
+    
+    // Additional debugging - check all env vars
+    const allEnvVars = Object.entries(Deno.env.toObject());
+    const stripeVars = allEnvVars.filter(([key]) => key.includes('STRIPE'));
+    logStep("All STRIPE env vars found", { count: stripeVars.length, keys: stripeVars.map(([key, value]) => [key, value ? 'SET' : 'EMPTY']) });
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
       logStep("CRITICAL ERROR: STRIPE_SECRET_KEY not found");
+      // Try alternative approaches
+      const altKey = Deno.env.get("STRIPE_SECRET_KEY ") || Deno.env.get(" STRIPE_SECRET_KEY");
+      logStep("Checking for key with spaces", { hasAltKey: !!altKey });
       throw new Error("STRIPE_SECRET_KEY is not set");
     }
-    logStep("Stripe key verified", { keyLength: stripeKey.length });
+    logStep("Stripe key verified", { keyLength: stripeKey.length, keyType: stripeKey.startsWith('sk_test_') ? 'test' : 'live' });
 
     // Use anon key for user authentication
     const supabaseClient = createClient(
