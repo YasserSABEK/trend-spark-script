@@ -34,7 +34,7 @@ export function EnhancedDropZone({
       return cn(
         "h-4 transition-all duration-200 flex items-center justify-center",
         isActive ? "opacity-100 scale-y-100" : "opacity-0 scale-y-50",
-        isOver ? "bg-red-50 border-2 border-dashed border-red-500 rounded-lg" : "",
+        isOver ? "bg-primary/5 border-2 border-dashed border-primary rounded-lg" : "",
         className
       );
     }
@@ -45,7 +45,7 @@ export function EnhancedDropZone({
         ? "border-muted-foreground/40 bg-muted/30 opacity-100" 
         : "border-transparent opacity-0",
       isOver 
-        ? "border-red-500 bg-red-50 shadow-lg shadow-red-500/10" 
+        ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
         : "",
       className
     );
@@ -58,7 +58,7 @@ export function EnhancedDropZone({
         className={getDropZoneStyles()}
       >
         {isOver && showIndicator && (
-          <div className="w-full h-0.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
+          <div className="w-full h-0.5 bg-primary rounded-full animate-pulse shadow-lg shadow-primary/50" />
         )}
       </div>
     );
@@ -83,7 +83,7 @@ export function EnhancedDropZone({
       
       {isOver && (
         <div className="flex items-center justify-center py-2">
-          <ArrowDown className="w-6 h-6 text-red-500 animate-bounce" />
+          <ArrowDown className="w-6 h-6 text-primary animate-bounce" />
         </div>
       )}
     </div>
