@@ -26,6 +26,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditWarning } from "@/components/credits/CreditWarning";
 import { DashboardContainer } from "@/components/layout/DashboardContainer";
+import { normalizeUsername } from "@/utils/username";
 
 const features = [
   {
@@ -253,7 +254,7 @@ export const Dashboard = () => {
                     <div className="flex items-center gap-2">
                       {getStatusBadge(search.status)}
                       {search.status === 'completed' && search.total_results > 0 && (
-                        <Link to={search.username ? `/reel-results?username=${search.username}` : `/hashtag-videos?hashtag=${search.hashtag}`}>
+                        <Link to={search.username ? `/reels/${normalizeUsername(search.username)}` : `/hashtag-videos?hashtag=${search.hashtag}`}>
                           <Button size="sm" variant="outline" className="gap-2">
                             <Eye className="w-4 h-4" />
                             View Results
