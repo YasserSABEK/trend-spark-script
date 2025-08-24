@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronUp, User, LogOut, Mail, UserCog } from "lucide-react";
+import { ChevronUp, User, LogOut, Mail, UserCog, Lightbulb } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthContext";
 import { ProfileAvatar } from "./ProfileAvatar";
+import { FeedbackModal } from "@/components/feedback/FeedbackModal";
 
 interface ProfileDropdownProps {
   collapsed: boolean;
@@ -18,6 +19,7 @@ interface ProfileDropdownProps {
 
 export function ProfileDropdown({ collapsed }: ProfileDropdownProps) {
   const { user, signOut } = useAuth();
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -57,12 +59,20 @@ export function ProfileDropdown({ collapsed }: ProfileDropdownProps) {
               <span>Manage Account</span>
             </Link>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsFeedbackModalOpen(true)}>
+            <Lightbulb className="w-4 h-4 mr-2" />
+            <span>Suggest Improvement</span>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out
           </DropdownMenuItem>
         </DropdownMenuContent>
+        <FeedbackModal 
+          isOpen={isFeedbackModalOpen} 
+          onClose={() => setIsFeedbackModalOpen(false)} 
+        />
       </DropdownMenu>
     );
   }
@@ -101,12 +111,20 @@ export function ProfileDropdown({ collapsed }: ProfileDropdownProps) {
             <span>Manage Account</span>
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setIsFeedbackModalOpen(true)}>
+          <Lightbulb className="w-4 h-4 mr-2" />
+          <span>Suggest Improvement</span>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
           <LogOut className="w-4 h-4 mr-2" />
           Sign Out
         </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+        </DropdownMenuContent>
+        <FeedbackModal 
+          isOpen={isFeedbackModalOpen} 
+          onClose={() => setIsFeedbackModalOpen(false)} 
+        />
+      </DropdownMenu>
+    );
 }
