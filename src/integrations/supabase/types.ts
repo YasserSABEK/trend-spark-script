@@ -1430,6 +1430,14 @@ export type Database = {
         }
         Returns: Json
       }
+      submit_user_feedback: {
+        Args: {
+          feedback_type_param: string
+          message_param: string
+          subject_param?: string
+        }
+        Returns: undefined
+      }
       update_subscription_plan: {
         Args: {
           credit_limit: number
