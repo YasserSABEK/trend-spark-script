@@ -113,9 +113,7 @@ export function KanbanColumn({ id, title, items, onDelete, onUpdate, onContentCr
       {!isCollapsed && (
         <div
           ref={setNodeRef}
-          className={`flex-1 transition-all duration-200 ${
-            isOver ? 'bg-primary/5' : 'bg-background'
-          } ${isDragActive ? 'px-2 py-4' : 'p-3'}`}
+          className={`flex-1 transition-all duration-200 bg-background ${isDragActive ? 'px-2 py-4' : 'p-3'}`}
         >
           <div className={`space-y-2 min-h-[200px] ${isDragActive ? 'space-y-3' : ''}`}>
             <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
