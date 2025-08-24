@@ -1144,6 +1144,72 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          auto_save_scripts: boolean | null
+          created_at: string
+          credit_alerts: Json | null
+          dashboard_layout: string | null
+          data_sharing: boolean | null
+          date_format: string | null
+          default_analysis_depth: string | null
+          email_notifications: Json | null
+          id: string
+          in_app_notifications: boolean | null
+          language: string | null
+          preferred_platforms: string[] | null
+          profile_visibility: string | null
+          push_notifications: boolean | null
+          sidebar_collapsed: boolean | null
+          theme: string | null
+          timezone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_save_scripts?: boolean | null
+          created_at?: string
+          credit_alerts?: Json | null
+          dashboard_layout?: string | null
+          data_sharing?: boolean | null
+          date_format?: string | null
+          default_analysis_depth?: string | null
+          email_notifications?: Json | null
+          id?: string
+          in_app_notifications?: boolean | null
+          language?: string | null
+          preferred_platforms?: string[] | null
+          profile_visibility?: string | null
+          push_notifications?: boolean | null
+          sidebar_collapsed?: boolean | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_save_scripts?: boolean | null
+          created_at?: string
+          credit_alerts?: Json | null
+          dashboard_layout?: string | null
+          data_sharing?: boolean | null
+          date_format?: string | null
+          default_analysis_depth?: string | null
+          email_notifications?: Json | null
+          id?: string
+          in_app_notifications?: boolean | null
+          language?: string | null
+          preferred_platforms?: string[] | null
+          profile_visibility?: string | null
+          push_notifications?: boolean | null
+          sidebar_collapsed?: boolean | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_style_profiles: {
         Row: {
           confidence_score: number | null

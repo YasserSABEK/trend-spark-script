@@ -29,6 +29,7 @@ import TikTokCreatorResults from "./pages/TikTokCreatorResults";
 import InstagramCreators from "./pages/InstagramCreators";
 import InstagramCreatorResults from "./pages/InstagramCreatorResults";
 import { Profile } from "./pages/Profile";
+import Settings from "./pages/Settings";
 import CreatorProfile from "./pages/CreatorProfile";
 import CreatorProfileEdit from "./pages/CreatorProfileEdit";
 import { CreatorProfiles } from "./pages/CreatorProfiles";
@@ -164,6 +165,7 @@ function AppContent() {
             <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
             <Route path="/saved-creators" element={<ProtectedRoute><SavedCreators /></ProtectedRoute>} />
             <Route path="/content-calendar" element={<ProtectedRoute><ContentCalendar /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="/test-apify-access" element={<ProtectedRoute><TestApifyAccess /></ProtectedRoute>} />
             <Route path="/system-status" element={<ProtectedRoute><SystemStatus /></ProtectedRoute>} />
@@ -232,6 +234,7 @@ function AppContent() {
               <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
               <Route path="/saved-creators" element={<ProtectedRoute><SavedCreators /></ProtectedRoute>} />
               <Route path="/content-calendar" element={<ProtectedRoute><ContentCalendar /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
               <Route path="/test-apify-access" element={<ProtectedRoute><TestApifyAccess /></ProtectedRoute>} />
               <Route path="/system-status" element={<ProtectedRoute><SystemStatus /></ProtectedRoute>} />
