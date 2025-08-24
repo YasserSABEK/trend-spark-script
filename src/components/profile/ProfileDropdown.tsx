@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronUp, User, Settings, LogOut, Mail, UserCog } from "lucide-react";
+import { ChevronUp, User, LogOut, Mail, UserCog } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,12 +57,6 @@ export function ProfileDropdown({ collapsed }: ProfileDropdownProps) {
               <span>Manage Account</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link to="/settings" className="flex items-center space-x-2">
-              <Settings className="w-4 h-4" />
-              <span>Settings</span>
-            </Link>
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
             <LogOut className="w-4 h-4 mr-2" />
@@ -105,12 +99,6 @@ export function ProfileDropdown({ collapsed }: ProfileDropdownProps) {
           <Link to="/profile" className="flex items-center space-x-2">
             <User className="w-4 h-4" />
             <span>Manage Account</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/settings" className="flex items-center space-x-2">
-            <Settings className="w-4 h-4" />
-            <span>Settings</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
