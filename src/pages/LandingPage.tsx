@@ -206,7 +206,7 @@ export const LandingPage = () => {
                   <div className="aspect-video bg-muted rounded-lg mb-4 overflow-hidden border">
                     <iframe
                       className="w-full h-full"
-                      src="https://www.youtube.com/embed/BZUjDxJYaCg"
+                      src="https://www.youtube.com/embed/Y0GlJnaxv48"
                       title="Viraltify Demo Video"
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -349,12 +349,12 @@ export const LandingPage = () => {
           {/* Trend Insights */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="bg-card border rounded-2xl p-8 shadow-lg">
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center border">
-                <div className="text-center">
-                  <TrendingUp className="w-16 h-16 text-primary mx-auto mb-4" />
-                  <p className="text-muted-foreground">Trending Dashboard</p>
-                  <p className="text-sm text-muted-foreground">Real-time viral content tracking</p>
-                </div>
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center border overflow-hidden">
+                <img 
+                  src="/lovable-uploads/47c5bd0e-29f3-492c-b67f-acc0636e6c17.png" 
+                  alt="Trending Hashtags Dashboard" 
+                  className="w-full h-full object-contain"
+                />
               </div>
             </div>
             
@@ -434,12 +434,12 @@ export const LandingPage = () => {
             </div>
             
             <div className="order-1 lg:order-2 bg-card border rounded-2xl p-8 shadow-lg">
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center border">
-                <div className="text-center">
-                  <Brain className="w-16 h-16 text-primary mx-auto mb-4" />
-                  <p className="text-muted-foreground">Script Generator</p>
-                  <p className="text-sm text-muted-foreground">AI-powered content creation</p>
-                </div>
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center border overflow-hidden">
+                <img 
+                  src="/lovable-uploads/5d06cf83-124d-4fdf-a843-4736467edf4a.png" 
+                  alt="Script Generator Dashboard" 
+                  className="w-full h-full object-contain"
+                />
               </div>
             </div>
           </div>
