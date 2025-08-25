@@ -351,6 +351,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "credit_balances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       credit_ledger: {
@@ -392,6 +399,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "credit_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       credit_topups: {
@@ -431,6 +445,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "credit_topups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
             referencedColumns: ["user_id"]
           },
         ]
@@ -1366,16 +1387,71 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "user_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      safe_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          current_credits: number | null
+          full_name: string | null
+          id: string | null
+          instagram_username: string | null
+          subscription_plan: string | null
+          subscription_status: string | null
+          updated_at: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          current_credits?: number | null
+          full_name?: string | null
+          id?: string | null
+          instagram_username?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          current_credits?: number | null
+          full_name?: string | null
+          id?: string | null
+          instagram_username?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_credits: {
         Args: { credits_to_add: number; user_id_param: string }
         Returns: undefined
+      }
+      check_content_creation_rate_limit: {
+        Args: { user_id_param: string }
+        Returns: boolean
       }
       check_profile_limit: {
         Args: { user_id_param: string }
@@ -1451,6 +1527,10 @@ export type Database = {
         Args: { plan_slug_param: string; user_id_param: string }
         Returns: Json
       }
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       log_security_event: {
         Args: {
           action_type_param: string
@@ -1495,6 +1575,10 @@ export type Database = {
       }
       user_owns_content: {
         Args: { content_user_id: string }
+        Returns: boolean
+      }
+      user_owns_financial_data: {
+        Args: { target_user_id: string }
         Returns: boolean
       }
     }
