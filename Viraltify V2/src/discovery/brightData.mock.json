@@ -1,0 +1,230 @@
+{
+  "instagram_profile_response": {
+    "snapshot_id": "sp_abc123def456",
+    "status": "completed",
+    "total_records": 1,
+    "data": {
+      "profile": {
+        "username": "mrbeast",
+        "display_name": "MrBeast",
+        "bio": "I want to make the world a better place before I die",
+        "follower_count": 51200000,
+        "following_count": 345,
+        "post_count": 892,
+        "verified": true,
+        "profile_pic_url": "https://scontent-lax3-1.cdninstagram.com/v/mrbeast_profile.jpg",
+        "external_url": "https://youtube.com/c/MrBeast6000",
+        "category": "Entertainment"
+      },
+      "posts": [
+        {
+          "id": "3145628394756283947",
+          "shortcode": "CwXmBcDJ9kL",
+          "url": "https://www.instagram.com/reel/CwXmBcDJ9kL/",
+          "type": "video",
+          "caption": "I spent 50 hours buried alive and this is what happened 😱",
+          "timestamp": "2023-08-15T18:30:45.000Z",
+          "view_count": 12500000,
+          "like_count": 1800000,
+          "comment_count": 45000,
+          "video_url": "https://scontent-lax3-1.cdninstagram.com/v/video.mp4",
+          "thumbnail_url": "https://scontent-lax3-1.cdninstagram.com/v/thumbnail.jpg",
+          "duration": 85.5,
+          "hashtags": ["#challenge", "#buried", "#experiment", "#viral"],
+          "mentions": ["@chandlerhallow", "@carljacobs"],
+          "location": null,
+          "engagement_rate": 14.76
+        },
+        {
+          "id": "3134567892345678923",
+          "shortcode": "CwRmNdKJ7mP",
+          "url": "https://www.instagram.com/reel/CwRmNdKJ7mP/",
+          "type": "video",
+          "caption": "$456,000 Squid Game In Real Life! Who will win the grand prize? 🦑",
+          "timestamp": "2023-08-10T20:15:30.000Z",
+          "view_count": 18900000,
+          "like_count": 2200000,
+          "comment_count": 67000,
+          "video_url": "https://scontent-lax3-1.cdninstagram.com/v/squidgame.mp4",
+          "thumbnail_url": "https://scontent-lax3-1.cdninstagram.com/v/squid_thumb.jpg",
+          "duration": 120.3,
+          "hashtags": ["#squidgame", "#challenge", "#money", "#competition"],
+          "mentions": ["@chandlerhallow", "@carljacobs", "@karljacobs"],
+          "location": "Beast Studios",
+          "engagement_rate": 12.03
+        },
+        {
+          "id": "3123456781234567812",
+          "shortcode": "CwLmOeJKmNq",
+          "url": "https://www.instagram.com/reel/CwLmOeJKmNq/",
+          "type": "video",
+          "caption": "I gave away a private island! The reaction was priceless 🏝️",
+          "timestamp": "2023-08-05T16:45:22.000Z",
+          "view_count": 15600000,
+          "like_count": 1950000,
+          "comment_count": 58000,
+          "video_url": "https://scontent-lax3-1.cdninstagram.com/v/island.mp4",
+          "thumbnail_url": "https://scontent-lax3-1.cdninstagram.com/v/island_thumb.jpg",
+          "duration": 95.7,
+          "hashtags": ["#giveaway", "#island", "#surprise", "#philanthropy"],
+          "mentions": ["@chandlerhallow"],
+          "location": "Private Island",
+          "engagement_rate": 12.85
+        }
+      ]
+    }
+  },
+  "tiktok_profile_response": {
+    "snapshot_id": "sp_xyz789abc123",
+    "status": "completed",
+    "total_records": 1,
+    "data": {
+      "profile": {
+        "username": "khaby.lame",
+        "display_name": "Khabane lame",
+        "bio": "If u wanna laugh u r in the right place🙂",
+        "follower_count": 161300000,
+        "following_count": 142,
+        "video_count": 1245,
+        "verified": true,
+        "avatar_url": "https://p16-sign-sg.tiktokcdn.com/khaby_avatar.jpeg",
+        "signature": "If u wanna laugh u r in the right place🙂"
+      },
+      "videos": [
+        {
+          "id": "7245628394756283947",
+          "url": "https://www.tiktok.com/@khaby.lame/video/7245628394756283947",
+          "desc": "When people make simple things complicated 🤦🏿‍♂️",
+          "create_time": "2023-08-15T14:22:15.000Z",
+          "view_count": 45600000,
+          "like_count": 3200000,
+          "comment_count": 125000,
+          "share_count": 890000,
+          "video_url": "https://v16-webapp.tiktok.com/video.mp4",
+          "cover_url": "https://p16-sign-sg.tiktokcdn.com/cover.jpeg",
+          "duration": 12.5,
+          "hashtags": ["#comedy", "#viral", "#simple", "#funny"],
+          "mentions": [],
+          "music": {
+            "title": "original sound",
+            "author": "khaby.lame",
+            "duration": 12.5
+          },
+          "engagement_rate": 9.13
+        },
+        {
+          "id": "7234567892345678923",
+          "url": "https://www.tiktok.com/@khaby.lame/video/7234567892345678923",
+          "desc": "Life hacks that actually make life harder 😂",
+          "create_time": "2023-08-12T19:45:30.000Z",
+          "view_count": 38900000,
+          "like_count": 2800000,
+          "comment_count": 98000,
+          "share_count": 650000,
+          "video_url": "https://v16-webapp.tiktok.com/lifehack.mp4",
+          "cover_url": "https://p16-sign-sg.tiktokcdn.com/lifehack_cover.jpeg",
+          "duration": 15.2,
+          "hashtags": ["#lifehacks", "#comedy", "#reaction", "#viral"],
+          "mentions": [],
+          "music": {
+            "title": "Storytelling",
+            "author": "Adriel Fair",
+            "duration": 60.0
+          },
+          "engagement_rate": 9.24
+        },
+        {
+          "id": "7223456781234567812",
+          "url": "https://www.tiktok.com/@khaby.lame/video/7223456781234567812",
+          "desc": "The easiest way to open a bottle 🤷🏿‍♂️",
+          "create_time": "2023-08-08T11:30:45.000Z",
+          "view_count": 52100000,
+          "like_count": 4100000,
+          "comment_count": 156000,
+          "share_count": 1200000,
+          "video_url": "https://v16-webapp.tiktok.com/bottle.mp4",
+          "cover_url": "https://p16-sign-sg.tiktokcdn.com/bottle_cover.jpeg",
+          "duration": 8.7,
+          "hashtags": ["#simple", "#comedy", "#tutorial", "#viral"],
+          "mentions": [],
+          "music": {
+            "title": "original sound",
+            "author": "khaby.lame",
+            "duration": 8.7
+          },
+          "engagement_rate": 10.42
+        }
+      ]
+    }
+  },
+  "scraping_job_status": {
+    "job_id": "job_abc123def456",
+    "status": "completed",
+    "progress": 100,
+    "created_at": "2023-08-15T18:00:00.000Z",
+    "completed_at": "2023-08-15T18:03:45.000Z",
+    "total_items": 20,
+    "processed_items": 20,
+    "failed_items": 0,
+    "errors": [],
+    "metadata": {
+      "platform": "instagram",
+      "target_url": "https://instagram.com/mrbeast",
+      "requested_posts": 20,
+      "scraped_posts": 20,
+      "profile_found": true
+    }
+  },
+  "error_responses": {
+    "invalid_url": {
+      "error": "Invalid URL format",
+      "details": "The provided URL does not match the expected format for Instagram or TikTok profiles",
+      "suggested_formats": [
+        "https://instagram.com/username",
+        "https://tiktok.com/@username"
+      ]
+    },
+    "rate_limit": {
+      "error": "Rate limit exceeded",
+      "details": "You have exceeded the scraping rate limit. Please try again later.",
+      "retry_after": 300,
+      "remaining_quota": 0
+    },
+    "profile_not_found": {
+      "error": "Profile not found",
+      "details": "The specified profile could not be found or is private",
+      "suggestions": [
+        "Check the username spelling",
+        "Ensure the profile is public",
+        "Try again with a different profile"
+      ]
+    },
+    "scraping_failed": {
+      "error": "Scraping failed",
+      "details": "The scraping operation failed due to technical issues",
+      "retry_recommended": true,
+      "support_contact": "support@viraltify.com"
+    }
+  },
+  "performance_metrics": {
+    "typical_scraping_times": {
+      "instagram_10_posts": "15-30 seconds",
+      "instagram_50_posts": "45-90 seconds", 
+      "instagram_100_posts": "2-4 minutes",
+      "tiktok_10_posts": "10-25 seconds",
+      "tiktok_50_posts": "30-75 seconds",
+      "tiktok_100_posts": "1-3 minutes"
+    },
+    "success_rates": {
+      "instagram": 0.94,
+      "tiktok": 0.92,
+      "overall": 0.93
+    },
+    "data_accuracy": {
+      "view_counts": 0.98,
+      "engagement_metrics": 0.96,
+      "profile_data": 0.99,
+      "video_metadata": 0.97
+    }
+  }
+}

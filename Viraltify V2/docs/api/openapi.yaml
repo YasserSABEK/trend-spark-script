@@ -1,0 +1,1049 @@
+openapi: 3.0.3
+info:
+  title: Viraltify V2 API
+  description: |
+    API documentation for Viraltify V2 - A viral content discovery and analytics platform.
+    
+    This API provides endpoints for:
+    - Content scraping from TikTok and Instagram
+    - Analytics and performance metrics
+    - Content management and CRM workflow
+    - AI-powered script generation
+    
+  version: 2.0.0
+  contact:
+    name: Viraltify Support
+    email: api@viraltify.com
+    url: https://viraltify.com/support
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.viraltify.com/v2
+    description: Production server
+  - url: https://staging-api.viraltify.com/v2
+    description: Staging server
+  - url: http://localhost:8000/v2
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ===== DISCOVERY ENDPOINTS =====
+  /discovery/scrape:
+    post:
+      tags:
+        - Discovery
+      summary: Initiate content scraping
+      description: Start scraping content from a TikTok or Instagram profile
+      operationId: initiateScraping
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScrapeRequest'
+            examples:
+              tiktok_example:
+                summary: TikTok Profile Scraping
+                value:
+                  url: "https://tiktok.com/@khaby.lame"
+                  platform: "tiktok"
+                  post_count: 20
+              instagram_example:
+                summary: Instagram Profile Scraping
+                value:
+                  url: "https://instagram.com/mrbeast"
+                  platform: "instagram"
+                  post_count: 50
+      responses:
+        '202':
+          description: Scraping job initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapeJobResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+
+  /discovery/scrape/{job_id}/status:
+    get:
+      tags:
+        - Discovery
+      summary: Get scraping job status
+      description: Check the status and progress of a scraping job
+      operationId: getScrapeStatus
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Job status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapeJobStatus'
+        '404':
+          description: Job not found
+
+  /discovery/scrape/{job_id}/results:
+    get:
+      tags:
+        - Discovery
+      summary: Get scraping results
+      description: Retrieve the scraped content data for a completed job
+      operationId: getScrapeResults
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Scraping results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapeResults'
+
+  # ===== ANALYTICS ENDPOINTS =====
+  /analytics/content:
+    get:
+      tags:
+        - Analytics
+      summary: Get content analytics
+      description: Retrieve analytics data for scraped content with filtering and sorting
+      operationId: getContentAnalytics
+      parameters:
+        - name: platform
+          in: query
+          schema:
+            type: string
+            enum: [tiktok, instagram]
+          description: Filter by platform
+        - name: creator
+          in: query
+          schema:
+            type: string
+          description: Filter by creator username
+        - name: min_views
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          description: Minimum view count filter
+        - name: min_engagement_rate
+          in: query
+          schema:
+            type: number
+            minimum: 0
+            maximum: 100
+          description: Minimum engagement rate filter
+        - name: hashtags
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          description: Filter by hashtags
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter content from this date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter content to this date
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [created_at, views, likes, comments, engagement_rate, virality_score]
+            default: created_at
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Analytics data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsResponse'
+
+  /analytics/content/{content_id}:
+    get:
+      tags:
+        - Analytics
+      summary: Get detailed content analytics
+      description: Get comprehensive analytics for a specific content item
+      operationId: getContentDetail
+      parameters:
+        - name: content_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Content details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentDetail'
+        '404':
+          description: Content not found
+
+  /analytics/summary:
+    get:
+      tags:
+        - Analytics
+      summary: Get analytics summary
+      description: Get aggregated analytics metrics and insights
+      operationId: getAnalyticsSummary
+      parameters:
+        - name: platform
+          in: query
+          schema:
+            type: string
+            enum: [tiktok, instagram]
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Summary analytics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummary'
+
+  # ===== CRM ENDPOINTS =====
+  /crm/content:
+    get:
+      tags:
+        - CRM
+      summary: Get CRM content items
+      description: Retrieve content items in the CRM workflow
+      operationId: getCRMContent
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [saved, in_scripting, ready_to_post, posted, archived]
+        - name: view
+          in: query
+          schema:
+            type: string
+            enum: [kanban, spreadsheet]
+            default: kanban
+      responses:
+        '200':
+          description: CRM content retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CRMContentResponse'
+
+    post:
+      tags:
+        - CRM
+      summary: Add content to CRM
+      description: Move content from discovery/analytics to CRM workflow
+      operationId: addToCRM
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddToCRMRequest'
+      responses:
+        '201':
+          description: Content added to CRM successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CRMItem'
+
+  /crm/content/{content_id}:
+    put:
+      tags:
+        - CRM
+      summary: Update CRM content item
+      description: Update status, notes, or other properties of a CRM content item
+      operationId: updateCRMContent
+      parameters:
+        - name: content_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCRMItemRequest'
+      responses:
+        '200':
+          description: CRM content updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CRMItem'
+
+    delete:
+      tags:
+        - CRM
+      summary: Remove content from CRM
+      description: Delete a content item from the CRM workflow
+      operationId: removeCRMContent
+      parameters:
+        - name: content_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Content removed successfully
+
+  # ===== SCRIPT GENERATION ENDPOINTS =====
+  /scripts/generate:
+    post:
+      tags:
+        - Scripts
+      summary: Generate AI script
+      description: Generate a script based on viral content using AI
+      operationId: generateScript
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateScriptRequest'
+      responses:
+        '200':
+          description: Script generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedScript'
+        '400':
+          description: Invalid generation parameters
+
+  /scripts:
+    get:
+      tags:
+        - Scripts
+      summary: Get user scripts
+      description: Retrieve all scripts generated by the user
+      operationId: getUserScripts
+      parameters:
+        - name: content_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter scripts by associated content
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Scripts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScriptsResponse'
+
+  /scripts/{script_id}:
+    get:
+      tags:
+        - Scripts
+      summary: Get script details
+      description: Retrieve detailed information about a specific script
+      operationId: getScript
+      parameters:
+        - name: script_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Script details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Script'
+
+    put:
+      tags:
+        - Scripts
+      summary: Update script
+      description: Edit an existing script
+      operationId: updateScript
+      parameters:
+        - name: script_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateScriptRequest'
+      responses:
+        '200':
+          description: Script updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Script'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ===== REQUEST/RESPONSE SCHEMAS =====
+    ScrapeRequest:
+      type: object
+      required:
+        - url
+        - platform
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Profile URL to scrape
+          example: "https://tiktok.com/@khaby.lame"
+        platform:
+          type: string
+          enum: [tiktok, instagram]
+          description: Social media platform
+        post_count:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 20
+          description: Number of posts to scrape
+
+    ScrapeJobResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the scraping job
+        status:
+          type: string
+          enum: [initiated, in_progress, completed, failed]
+        estimated_completion:
+          type: string
+          format: date-time
+          description: Estimated completion time
+
+    ScrapeJobStatus:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [initiated, in_progress, completed, failed]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Completion percentage
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        error_message:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          properties:
+            platform:
+              type: string
+            target_url:
+              type: string
+            requested_posts:
+              type: integer
+            processed_posts:
+              type: integer
+
+    ScrapeResults:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        profile:
+          $ref: '#/components/schemas/ProfileData'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentItem'
+        total_items:
+          type: integer
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    ProfileData:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "khaby.lame"
+        display_name:
+          type: string
+          example: "Khabane lame"
+        bio:
+          type: string
+        follower_count:
+          type: integer
+          example: 161300000
+        following_count:
+          type: integer
+        post_count:
+          type: integer
+        verified:
+          type: boolean
+        profile_pic_url:
+          type: string
+          format: uri
+        external_url:
+          type: string
+          format: uri
+          nullable: true
+
+    ContentItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        platform:
+          type: string
+          enum: [tiktok, instagram]
+        url:
+          type: string
+          format: uri
+        thumbnail_url:
+          type: string
+          format: uri
+        video_url:
+          type: string
+          format: uri
+          nullable: true
+        caption:
+          type: string
+        creator:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        duration:
+          type: number
+          nullable: true
+          description: Video duration in seconds
+        metrics:
+          $ref: '#/components/schemas/ContentMetrics'
+        hashtags:
+          type: array
+          items:
+            type: string
+        mentions:
+          type: array
+          items:
+            type: string
+        location:
+          type: string
+          nullable: true
+
+    ContentMetrics:
+      type: object
+      properties:
+        views:
+          type: integer
+          description: Total view count
+        likes:
+          type: integer
+          description: Total like count
+        comments:
+          type: integer
+          description: Total comment count
+        shares:
+          type: integer
+          description: Total share count
+        engagement_rate:
+          type: number
+          description: Calculated engagement rate as percentage
+        virality_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Proprietary virality score
+        like_rate:
+          type: number
+          description: Likes per view ratio as percentage
+        comment_rate:
+          type: number
+          description: Comments per view ratio as percentage
+        share_rate:
+          type: number
+          description: Shares per view ratio as percentage
+
+    AnalyticsResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentItem'
+        total_items:
+          type: integer
+        summary:
+          $ref: '#/components/schemas/AnalyticsSummary'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        total_content_items:
+          type: integer
+        total_views:
+          type: integer
+        total_likes:
+          type: integer
+        total_comments:
+          type: integer
+        average_engagement_rate:
+          type: number
+        top_virality_score:
+          type: integer
+        platform_distribution:
+          type: object
+          properties:
+            tiktok:
+              type: integer
+            instagram:
+              type: integer
+        performance_distribution:
+          type: object
+          properties:
+            high:
+              type: integer
+            medium:
+              type: integer
+            low:
+              type: integer
+
+    ContentDetail:
+      allOf:
+        - $ref: '#/components/schemas/ContentItem'
+        - type: object
+          properties:
+            performance_indicators:
+              type: object
+              properties:
+                above_average_views:
+                  type: boolean
+                above_average_engagement:
+                  type: boolean
+                trending:
+                  type: boolean
+                peak_performance_hour:
+                  type: integer
+            music:
+              type: object
+              properties:
+                title:
+                  type: string
+                author:
+                  type: string
+                duration:
+                  type: number
+              nullable: true
+
+    # ===== CRM SCHEMAS =====
+    CRMContentResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CRMItem'
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/CRMColumn'
+
+    CRMItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content_id:
+          type: string
+          format: uuid
+          description: Reference to original content item
+        status:
+          type: string
+          enum: [saved, in_scripting, ready_to_post, posted, archived]
+        title:
+          type: string
+          description: User-defined title for the content
+        notes:
+          type: string
+          nullable: true
+        priority:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+        due_date:
+          type: string
+          format: date
+          nullable: true
+        assigned_to:
+          type: string
+          nullable: true
+          description: User ID if assigned to team member
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        content:
+          $ref: '#/components/schemas/ContentItem'
+        script:
+          $ref: '#/components/schemas/Script'
+          nullable: true
+
+    CRMColumn:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        order:
+          type: integer
+        color:
+          type: string
+          nullable: true
+
+    AddToCRMRequest:
+      type: object
+      required:
+        - content_id
+      properties:
+        content_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [saved, in_scripting, ready_to_post, posted, archived]
+          default: saved
+        title:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        priority:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+        tags:
+          type: array
+          items:
+            type: string
+
+    UpdateCRMItemRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [saved, in_scripting, ready_to_post, posted, archived]
+        title:
+          type: string
+        notes:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+        due_date:
+          type: string
+          format: date
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+
+    # ===== SCRIPT SCHEMAS =====
+    GenerateScriptRequest:
+      type: object
+      required:
+        - content_id
+      properties:
+        content_id:
+          type: string
+          format: uuid
+          description: Content item to base script on
+        script_type:
+          type: string
+          enum: [voiceover, captions, post_copy, video_script]
+          default: voiceover
+        tone:
+          type: string
+          enum: [casual, professional, humorous, inspiring, educational]
+          default: casual
+        length:
+          type: string
+          enum: [short, medium, long]
+          default: medium
+        style:
+          type: string
+          enum: [storytelling, listicle, tutorial, review, vlog]
+          nullable: true
+        custom_prompt:
+          type: string
+          nullable: true
+          description: Additional instructions for AI generation
+
+    GeneratedScript:
+      type: object
+      properties:
+        script_id:
+          type: string
+          format: uuid
+        content:
+          type: string
+          description: Generated script content
+        metadata:
+          type: object
+          properties:
+            word_count:
+              type: integer
+            estimated_duration:
+              type: number
+              description: Estimated reading time in seconds
+            ai_model:
+              type: string
+            generation_time:
+              type: number
+              description: Time taken to generate in seconds
+
+    Script:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content_id:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        content:
+          type: string
+        script_type:
+          type: string
+          enum: [voiceover, captions, post_copy, video_script]
+        metadata:
+          type: object
+          properties:
+            word_count:
+              type: integer
+            estimated_duration:
+              type: number
+            tone:
+              type: string
+            style:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          description: Script version number
+
+    ScriptsResponse:
+      type: object
+      properties:
+        scripts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Script'
+        total_items:
+          type: integer
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    UpdateScriptRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        metadata:
+          type: object
+
+    # ===== COMMON SCHEMAS =====
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+        has_next:
+          type: boolean
+        has_previous:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        details:
+          type: string
+          nullable: true
+          description: Additional error details
+        code:
+          type: string
+          nullable: true
+          description: Error code for programmatic handling
+
+    RateLimitError:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            retry_after:
+              type: integer
+              description: Seconds to wait before retrying
+            remaining_quota:
+              type: integer
+              description: Remaining API quota
+
+tags:
+  - name: Discovery
+    description: Content discovery and scraping operations
+  - name: Analytics
+    description: Content analytics and performance metrics
+  - name: CRM
+    description: Content management and workflow operations
+  - name: Scripts
+    description: AI script generation and management

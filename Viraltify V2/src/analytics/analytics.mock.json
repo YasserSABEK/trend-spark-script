@@ -1,0 +1,323 @@
+{
+  "analytics_dashboard_data": {
+    "summary_metrics": {
+      "total_content_items": 1247,
+      "total_views": 892400000,
+      "total_likes": 67800000,
+      "total_comments": 3450000,
+      "total_shares": 12300000,
+      "average_engagement_rate": 8.76,
+      "top_virality_score": 98,
+      "platform_distribution": {
+        "tiktok": 687,
+        "instagram": 560
+      },
+      "performance_distribution": {
+        "high": 187,
+        "medium": 523,
+        "low": 537
+      }
+    },
+    "content_items": [
+      {
+        "id": "content_001",
+        "platform": "tiktok",
+        "url": "https://tiktok.com/@khaby.lame/video/7245628394756283947",
+        "thumbnail": "https://p16-sign-sg.tiktokcdn.com/khaby_thumb_001.jpeg",
+        "video_url": "https://v16-webapp.tiktok.com/khaby_video_001.mp4",
+        "caption": "When people make simple things complicated 🤦🏿‍♂️",
+        "creator": {
+          "username": "khaby.lame",
+          "display_name": "Khabane lame",
+          "verified": true,
+          "follower_count": 161300000
+        },
+        "created_at": "2023-08-15T14:22:15.000Z",
+        "duration": 12.5,
+        "metrics": {
+          "views": 45600000,
+          "likes": 3200000,
+          "comments": 125000,
+          "shares": 890000,
+          "engagement_rate": 9.13,
+          "virality_score": 94,
+          "like_rate": 7.02,
+          "comment_rate": 0.27,
+          "share_rate": 1.95
+        },
+        "hashtags": ["comedy", "viral", "simple", "funny", "reaction"],
+        "mentions": [],
+        "music": {
+          "title": "original sound",
+          "author": "khaby.lame"
+        },
+        "performance_indicators": {
+          "above_average_views": true,
+          "above_average_engagement": true,
+          "trending": true,
+          "peak_performance_hour": 16
+        }
+      },
+      {
+        "id": "content_002",
+        "platform": "instagram",
+        "url": "https://www.instagram.com/reel/CwXmBcDJ9kL/",
+        "thumbnail": "https://scontent-lax3-1.cdninstagram.com/mrbeast_thumb_001.jpg",
+        "video_url": "https://scontent-lax3-1.cdninstagram.com/mrbeast_video_001.mp4",
+        "caption": "I spent 50 hours buried alive and this is what happened 😱",
+        "creator": {
+          "username": "mrbeast",
+          "display_name": "MrBeast",
+          "verified": true,
+          "follower_count": 51200000
+        },
+        "created_at": "2023-08-15T18:30:45.000Z",
+        "duration": 85.5,
+        "metrics": {
+          "views": 12500000,
+          "likes": 1800000,
+          "comments": 45000,
+          "shares": 325000,
+          "engagement_rate": 14.76,
+          "virality_score": 87,
+          "like_rate": 14.4,
+          "comment_rate": 0.36,
+          "share_rate": 2.6
+        },
+        "hashtags": ["challenge", "buried", "experiment", "viral", "extreme"],
+        "mentions": ["chandlerhallow", "carljacobs"],
+        "location": "Beast Studios",
+        "performance_indicators": {
+          "above_average_views": true,
+          "above_average_engagement": true,
+          "trending": false,
+          "peak_performance_hour": 19
+        }
+      },
+      {
+        "id": "content_003",
+        "platform": "tiktok",
+        "url": "https://tiktok.com/@bellapoarch/video/7234567892345678923",
+        "thumbnail": "https://p16-sign-sg.tiktokcdn.com/bella_thumb_001.jpeg",
+        "video_url": "https://v16-webapp.tiktok.com/bella_video_001.mp4",
+        "caption": "Build a Bitch 💄✨ #transformation #makeup",
+        "creator": {
+          "username": "bellapoarch",
+          "display_name": "Bella Poarch",
+          "verified": true,
+          "follower_count": 93200000
+        },
+        "created_at": "2023-08-12T15:45:30.000Z",
+        "duration": 15.2,
+        "metrics": {
+          "views": 38900000,
+          "likes": 2800000,
+          "comments": 98000,
+          "shares": 650000,
+          "engagement_rate": 9.24,
+          "virality_score": 91,
+          "like_rate": 7.2,
+          "comment_rate": 0.25,
+          "share_rate": 1.67
+        },
+        "hashtags": ["transformation", "makeup", "viral", "beauty", "trend"],
+        "mentions": [],
+        "music": {
+          "title": "Build a Bitch",
+          "author": "Bella Poarch"
+        },
+        "performance_indicators": {
+          "above_average_views": true,
+          "above_average_engagement": true,
+          "trending": true,
+          "peak_performance_hour": 20
+        }
+      },
+      {
+        "id": "content_004",
+        "platform": "instagram",
+        "url": "https://www.instagram.com/reel/CwRmNdKJ7mP/",
+        "thumbnail": "https://scontent-lax3-1.cdninstagram.com/gordon_thumb_001.jpg",
+        "video_url": "https://scontent-lax3-1.cdninstagram.com/gordon_video_001.mp4",
+        "caption": "This steak is RAW! 🥩 Teaching proper cooking techniques",
+        "creator": {
+          "username": "gordongram",
+          "display_name": "Gordon Ramsay",
+          "verified": true,
+          "follower_count": 15800000
+        },
+        "created_at": "2023-08-10T12:20:15.000Z",
+        "duration": 45.8,
+        "metrics": {
+          "views": 8900000,
+          "likes": 890000,
+          "comments": 23000,
+          "shares": 145000,
+          "engagement_rate": 11.89,
+          "virality_score": 75,
+          "like_rate": 10.0,
+          "comment_rate": 0.26,
+          "share_rate": 1.63
+        },
+        "hashtags": ["cooking", "chef", "steak", "food", "technique"],
+        "mentions": [],
+        "location": "Hell's Kitchen",
+        "performance_indicators": {
+          "above_average_views": false,
+          "above_average_engagement": true,
+          "trending": false,
+          "peak_performance_hour": 18
+        }
+      },
+      {
+        "id": "content_005",
+        "platform": "tiktok",
+        "url": "https://tiktok.com/@charlidamelio/video/7223456781234567812",
+        "thumbnail": "https://p16-sign-sg.tiktokcdn.com/charli_thumb_001.jpeg",
+        "video_url": "https://v16-webapp.tiktok.com/charli_video_001.mp4",
+        "caption": "New dance trend! Who can do it better? 💃",
+        "creator": {
+          "username": "charlidamelio",
+          "display_name": "charli d'amelio",
+          "verified": true,
+          "follower_count": 151400000
+        },
+        "created_at": "2023-08-08T19:30:45.000Z",
+        "duration": 18.3,
+        "metrics": {
+          "views": 25600000,
+          "likes": 2100000,
+          "comments": 67000,
+          "shares": 480000,
+          "engagement_rate": 10.35,
+          "virality_score": 89,
+          "like_rate": 8.2,
+          "comment_rate": 0.26,
+          "share_rate": 1.88
+        },
+        "hashtags": ["dance", "trend", "viral", "challenge", "fyp"],
+        "mentions": ["dixiedamelio"],
+        "music": {
+          "title": "Lottery",
+          "author": "K Camp"
+        },
+        "performance_indicators": {
+          "above_average_views": true,
+          "above_average_engagement": true,
+          "trending": true,
+          "peak_performance_hour": 21
+        }
+      }
+    ],
+    "trending_hashtags": [
+      {
+        "tag": "viral",
+        "usage_count": 234,
+        "avg_engagement": 9.45,
+        "growth_rate": 15.6
+      },
+      {
+        "tag": "challenge",
+        "usage_count": 189,
+        "avg_engagement": 8.92,
+        "growth_rate": 12.3
+      },
+      {
+        "tag": "comedy",
+        "usage_count": 156,
+        "avg_engagement": 7.84,
+        "growth_rate": 8.7
+      },
+      {
+        "tag": "dance",
+        "usage_count": 143,
+        "avg_engagement": 10.23,
+        "growth_rate": 18.9
+      },
+      {
+        "tag": "food",
+        "usage_count": 127,
+        "avg_engagement": 6.78,
+        "growth_rate": 5.4
+      }
+    ],
+    "top_creators": [
+      {
+        "username": "khaby.lame",
+        "platform": "tiktok",
+        "total_content": 45,
+        "avg_virality_score": 91.2,
+        "total_views": 856000000,
+        "follower_count": 161300000
+      },
+      {
+        "username": "mrbeast",
+        "platform": "instagram",
+        "total_content": 23,
+        "avg_virality_score": 88.7,
+        "total_views": 345000000,
+        "follower_count": 51200000
+      },
+      {
+        "username": "charlidamelio",
+        "platform": "tiktok",
+        "total_content": 67,
+        "avg_virality_score": 85.4,
+        "total_views": 1200000000,
+        "follower_count": 151400000
+      }
+    ],
+    "performance_trends": {
+      "daily_averages": {
+        "views_per_post": 18500000,
+        "engagement_rate": 8.76,
+        "virality_score": 76.3
+      },
+      "weekly_growth": {
+        "views": 12.5,
+        "engagement": 8.9,
+        "content_volume": 15.2
+      },
+      "best_posting_times": {
+        "tiktok": [16, 19, 21],
+        "instagram": [18, 20, 22]
+      }
+    },
+    "filter_options": {
+      "platforms": ["all", "tiktok", "instagram"],
+      "performance_levels": ["all", "high", "medium", "low"],
+      "content_types": ["all", "video", "image", "carousel"],
+      "date_ranges": [
+        "today",
+        "yesterday", 
+        "last_7_days",
+        "last_30_days",
+        "last_90_days",
+        "custom"
+      ],
+      "sort_fields": [
+        "created_at",
+        "views",
+        "likes", 
+        "comments",
+        "shares",
+        "engagement_rate",
+        "virality_score"
+      ]
+    },
+    "export_formats": [
+      {
+        "format": "csv",
+        "description": "Spreadsheet format with all metrics"
+      },
+      {
+        "format": "json",
+        "description": "Raw data format for analysis"
+      },
+      {
+        "format": "pdf",
+        "description": "Professional report format"
+      }
+    ]
+  }
+}
