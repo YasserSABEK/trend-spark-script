@@ -2,10 +2,9 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { SecureInput } from "@/components/security/SecureInput";
 import { toast } from "sonner";
 import { Plus, Sparkles } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -114,13 +113,13 @@ export function NewContentModal({ onContentCreated, children }: NewContentModalP
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title">Content Title *</Label>
-            <Input
-              id="title"
+            <SecureInput
               value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              onChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
+              validationType="title"
               placeholder="e.g., How to get 1M followers..."
               className="focus-visible:ring-primary"
-              required
+              maxLength={200}
             />
           </div>
 
@@ -174,12 +173,14 @@ export function NewContentModal({ onContentCreated, children }: NewContentModalP
           {/* Notes */}
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
+            <SecureInput
               value={formData.notes}
-              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              onChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
+              validationType="notes"
               placeholder="Add your ideas, hooks, or notes..."
+              multiline={true}
               className="resize-none h-20 focus-visible:ring-primary"
+              maxLength={5000}
             />
           </div>
 

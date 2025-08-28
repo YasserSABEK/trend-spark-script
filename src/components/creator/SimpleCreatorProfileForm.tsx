@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { SecureInput } from '@/components/security/SecureInput';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
@@ -406,11 +406,12 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="brand_name">Brand/Creator Name *</Label>
-              <Input
-                id="brand_name"
+              <SecureInput
                 value={formData.brand_name}
-                onChange={(e) => handleInputChange('brand_name', e.target.value)}
+                onChange={(value) => handleInputChange('brand_name', value)}
+                validationType="displayName"
                 placeholder="Your brand or personal name"
+                maxLength={100}
               />
             </div>
             
@@ -436,23 +437,25 @@ const SimpleCreatorProfileForm: React.FC<SimpleCreatorProfileFormProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="target_audience">Target Audience *</Label>
-            <Textarea
-              id="target_audience"
+            <SecureInput
               value={formData.target_audience}
-              onChange={(e) => handleInputChange('target_audience', e.target.value)}
+              onChange={(value) => handleInputChange('target_audience', value)}
+              validationType="notes"
               placeholder="Describe your ideal audience (e.g., young professionals, fitness enthusiasts, small business owners)"
+              multiline={true}
               className="resize-none"
-              rows={3}
+              maxLength={1000}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="instagram_handle">Instagram Handle (Optional)</Label>
-            <Input
-              id="instagram_handle"
+            <SecureInput
               value={formData.instagram_handle}
-              onChange={(e) => handleInputChange('instagram_handle', e.target.value)}
+              onChange={(value) => handleInputChange('instagram_handle', value)}
+              validationType="username"
               placeholder="@yourusername"
+              maxLength={30}
             />
           </div>
 

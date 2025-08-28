@@ -7,6 +7,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Security headers for XSS protection
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://siafgzfpzowztfhlajtn.supabase.co;",
+};
+
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const assemblyAIKey = Deno.env.get('ASSEMBLYAI_API_KEY');
@@ -322,7 +331,7 @@ serve(async (req) => {
       analysisId: analysis.id,
       status: 'transcribing'
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
@@ -331,7 +340,7 @@ serve(async (req) => {
       error: error.message 
     }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' },
     });
   }
 });

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SecureInput } from "@/components/security/SecureInput";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -393,14 +394,13 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-base font-medium">Title</Label>
-            <Input
-              id="title"
+            <SecureInput
               value={formData.title}
-              onChange={(e) => handleInputChange("title", e.target.value)}
-              onBlur={() => handleInputBlur("title")}
+              onChange={(value) => handleInputChange("title", value)}
+              validationType="title"
               placeholder="Content title..."
               className="text-lg font-medium h-12"
-              disabled={isUpdating}
+              maxLength={200}
             />
           </div>
 
@@ -620,14 +620,14 @@ export function ContentPlanModal({ item, open, onOpenChange, onUpdate, onDelete 
           {/* Notes */}
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-base font-medium">Notes & Ideas</Label>
-            <Textarea
-              id="notes"
+            <SecureInput
               value={formData.notes}
-              onChange={(e) => handleInputChange("notes", e.target.value)}
-              onBlur={() => handleInputBlur("notes")}
+              onChange={(value) => handleInputChange("notes", value)}
+              validationType="notes"
               placeholder="Add your ideas, hooks, or notes..."
+              multiline={true}
               className="resize-none h-32"
-              disabled={isUpdating}
+              maxLength={5000}
             />
           </div>
 
