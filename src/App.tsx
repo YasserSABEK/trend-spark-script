@@ -6,12 +6,14 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/components/auth/AuthContext";
 import { RouteTracker } from "@/components/analytics/RouteTracker";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AdminGuard } from "@/components/auth/AdminGuard";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Navbar } from "@/components/layout/Navbar";
 import { MobileHeader } from "@/components/layout/MobileHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { LandingPage } from "./pages/LandingPage";
+import { UnderConstruction } from "./pages/UnderConstruction";
 import { AuthPage } from "./pages/AuthPage";
 import { AuthCallback } from "./pages/AuthCallback";
 import { ResetPassword } from "./pages/ResetPassword";
@@ -65,11 +67,11 @@ function AppContent() {
     return <div>Redirecting...</div>;
   }
   
-  // On main domain, show only landing page without navbar
+  // On main domain, show only under construction page
   if (isMainDomain && isLandingRoute) {
     return (
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<UnderConstruction />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     );
@@ -109,14 +111,15 @@ function AppContent() {
   // Mobile layout (no sidebar)
   if (isMobile) {
     return (
-      <SidebarProvider>
-        <div className="min-h-screen w-full">
-          {/* Fixed Mobile Header */}
-          <MobileHeader />
-          
-          {/* Main Content with proper top padding */}
-          <main className="pt-16 px-4 pb-6">
-            <Routes>
+      <AdminGuard>
+        <SidebarProvider>
+          <div className="min-h-screen w-full">
+            {/* Fixed Mobile Header */}
+            <MobileHeader />
+            
+            {/* Main Content with proper top padding */}
+            <main className="pt-16 px-4 pb-6">
+              <Routes>
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/tiktok-creators" element={<ProtectedRoute><TikTokCreators /></ProtectedRoute>} />
             <Route path="/tiktok-creators/:searchId" element={<ProtectedRoute><TikTokCreatorResults /></ProtectedRoute>} />
@@ -170,22 +173,24 @@ function AppContent() {
             <Route path="/test-apify-access" element={<ProtectedRoute><TestApifyAccess /></ProtectedRoute>} />
             <Route path="/system-status" element={<ProtectedRoute><SystemStatus /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-      </div>
-    </SidebarProvider>
+            </Routes>
+          </main>
+        </div>
+      </SidebarProvider>
+      </AdminGuard>
     );
   }
 
   // Desktop layout with sidebar
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        
-        <div className="flex-1 ml-36">
-          <main className="flex-1 min-h-screen bg-gradient-canva">
-            <Routes>
+    <AdminGuard>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <AppSidebar />
+          
+          <div className="flex-1 ml-36">
+            <main className="flex-1 min-h-screen bg-gradient-canva">
+              <Routes>
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/tiktok-creators" element={<ProtectedRoute><TikTokCreators /></ProtectedRoute>} />
               <Route path="/tiktok-creators/:searchId" element={<ProtectedRoute><TikTokCreatorResults /></ProtectedRoute>} />
@@ -239,11 +244,12 @@ function AppContent() {
               <Route path="/test-apify-access" element={<ProtectedRoute><TestApifyAccess /></ProtectedRoute>} />
               <Route path="/system-status" element={<ProtectedRoute><SystemStatus /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
+              </Routes>
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </AdminGuard>
   );
 }
 
